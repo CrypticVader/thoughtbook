@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/auth_exceptions.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
@@ -34,7 +35,6 @@ class _RegisterViewState extends State<RegisterView> {
 
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
         if (state is AuthStateRegistering) {
@@ -80,7 +80,7 @@ class _RegisterViewState extends State<RegisterView> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 26,
-                    color: theme.colorScheme.onBackground,
+                    color: context.theme.colorScheme.onBackground,
                   ),
                 ),
                 Text(
@@ -88,7 +88,7 @@ class _RegisterViewState extends State<RegisterView> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 28,
-                    color: theme.colorScheme.primary,
+                    color: context.theme.colorScheme.primary,
                   ),
                 ),
                 const Spacer(
@@ -103,7 +103,8 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
                 Card(
                   elevation: 0,
-                  color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+                  color: context.theme.colorScheme.primaryContainer
+                      .withOpacity(0.4),
                   shape: ContinuousRectangleBorder(
                     borderRadius: BorderRadius.circular(128),
                   ),
@@ -123,16 +124,17 @@ class _RegisterViewState extends State<RegisterView> {
                               borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide(
                                 width: 2,
-                                color: theme.colorScheme.primary,
+                                color: context.theme.colorScheme.primary,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(32),
                               borderSide: BorderSide.none,
                             ),
-                            fillColor: theme.colorScheme.primaryContainer,
+                            fillColor:
+                                context.theme.colorScheme.primaryContainer,
                             filled: true,
-                            prefixIconColor: theme.colorScheme.primary,
+                            prefixIconColor: context.theme.colorScheme.primary,
                             prefixIcon: const Icon(
                               Icons.email_rounded,
                             ),
@@ -153,18 +155,19 @@ class _RegisterViewState extends State<RegisterView> {
                               borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide(
                                 width: 2,
-                                color: theme.colorScheme.primary,
+                                color: context.theme.colorScheme.primary,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(32),
                               borderSide: BorderSide.none,
                             ),
-                            fillColor: theme.colorScheme.primaryContainer,
+                            fillColor:
+                                context.theme.colorScheme.primaryContainer,
                             filled: true,
                             hintText:
                                 context.loc.password_text_field_placeholder,
-                            prefixIconColor: theme.colorScheme.primary,
+                            prefixIconColor: context.theme.colorScheme.primary,
                             prefixIcon: const Icon(
                               Icons.password_rounded,
                             ),
@@ -191,8 +194,8 @@ class _RegisterViewState extends State<RegisterView> {
                   style: TextButton.styleFrom(
                       minimumSize: const Size.fromHeight(40),
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      backgroundColor: theme.colorScheme.primary),
+                      foregroundColor: context.theme.colorScheme.onPrimary,
+                      backgroundColor: context.theme.colorScheme.primary),
                   child: Text(
                     context.loc.register,
                     style: const TextStyle(fontSize: 14),
@@ -203,7 +206,8 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
-                    backgroundColor: theme.colorScheme.surface.withOpacity(0.6),
+                    backgroundColor:
+                        context.theme.colorScheme.surface.withOpacity(0.6),
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   ),
                   onPressed: () {

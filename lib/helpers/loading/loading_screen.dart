@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:thoughtbook/helpers/loading/loading_screen_controllers.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/helpers/loading/loading_screen_controller.dart';
 
 class LoadingScreen {
   factory LoadingScreen() => _shared;
@@ -44,16 +46,17 @@ class LoadingScreen {
     final overlay = OverlayEntry(
       builder: (context) {
         return Material(
-          color: Colors.black.withAlpha(150),
+          color: context.theme.colorScheme.background.withAlpha(220),
           child: Center(
             child: Card(
-              elevation: 7,
+              color: Colors.transparent,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(32.0),
               ),
               child: Container(
                 constraints: BoxConstraints(
-                  maxWidth: size.width * 0.8,
+                  maxWidth: size.width * 0.5,
                   maxHeight: size.height * 0.8,
                   minWidth: size.width * 0.5,
                 ),
@@ -70,7 +73,10 @@ class LoadingScreen {
                         const SizedBox(
                           height: 10,
                         ),
-                        const CircularProgressIndicator(),
+                        SpinKitDoubleBounce(
+                          color: context.theme.colorScheme.primary,
+                          size: 60,
+                        ),
                         const SizedBox(
                           height: 20,
                         ),
@@ -81,6 +87,9 @@ class LoadingScreen {
                               return Text(
                                 snapshot.data as String,
                                 textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: context.theme.colorScheme.onBackground,
+                                ),
                               );
                             } else {
                               return Container();

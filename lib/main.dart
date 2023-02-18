@@ -3,7 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:thoughtbook/constants/routes.dart';
+import 'package:thoughtbook/extensions/buildContext/loc.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/helpers/loading/loading_screen.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
@@ -104,7 +107,7 @@ class HomePage extends StatelessWidget {
         if (state.isLoading) {
           LoadingScreen().show(
             context: context,
-            text: state.loadingText ?? 'Please wait a moment',
+            text: state.loadingText ?? context.loc.please_wait,
           );
         } else {
           LoadingScreen().hide();
@@ -122,9 +125,12 @@ class HomePage extends StatelessWidget {
         } else if (state is AuthStateRegistering) {
           return const RegisterView();
         } else {
-          return const Scaffold(
+          return Scaffold(
             body: Center(
-              child: CircularProgressIndicator(),
+              child: SpinKitDoubleBounce(
+                color: context.theme.colorScheme.primary,
+                size: 60,
+              ),
             ),
           );
         }

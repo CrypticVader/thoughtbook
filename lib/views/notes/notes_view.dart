@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' show ReadContext;
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:thoughtbook/constants/routes.dart';
 import 'package:thoughtbook/enums/menu_action.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/auth_service.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
@@ -103,6 +105,9 @@ class _NotesViewState extends State<NotesView> {
                       ),
                       Text(
                         context.loc.logout_button,
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
                       ),
                     ],
                   ),
@@ -140,8 +145,11 @@ class _NotesViewState extends State<NotesView> {
                 );
               }
             default:
-              return const Center(
-                child: CircularProgressIndicator(),
+              return Center(
+                child: SpinKitDoubleBounce(
+                  color: context.theme.colorScheme.primary,
+                  size: 60,
+                ),
               );
           }
         },

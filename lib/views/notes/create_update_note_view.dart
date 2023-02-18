@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/auth_service.dart';
 import 'package:thoughtbook/styles/text_styles.dart';
 import 'package:thoughtbook/utilities/dialogs/cannot_share_empty_note_dialog.dart';
@@ -91,7 +93,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
 
   @override
   Widget build(BuildContext context) {
-    // var theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -131,7 +132,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
                       child: TextField(
                           minLines: 4,
-                          // autofocus: true,
+                          autofocus: true,
                           controller: _textController,
                           keyboardType: TextInputType.multiline,
                           maxLines: null,
@@ -143,7 +144,12 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                   ),
                 );
               default:
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                  child: SpinKitDoubleBounce(
+                    color: context.theme.colorScheme.primary,
+                    size: 60,
+                  ),
+                );
             }
           },
         ),

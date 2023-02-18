@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/auth_exceptions.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
@@ -33,8 +34,6 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
 
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
         if (state is AuthStateForgotPassword) {
@@ -80,7 +79,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             children: [
               Card(
                 elevation: 0,
-                color: theme.colorScheme.tertiaryContainer.withAlpha(70),
+                color:
+                    context.theme.colorScheme.tertiaryContainer.withAlpha(70),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
@@ -91,7 +91,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                       Icon(
                         Icons.info_rounded,
                         size: 36,
-                        color: theme.colorScheme.onTertiaryContainer,
+                        color: context.theme.colorScheme.onTertiaryContainer,
                       ),
                       const SizedBox(
                         width: 16,
@@ -101,7 +101,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                           context.loc.forgot_password_view_prompt,
                           style: TextStyle(
                             fontSize: 15,
-                            color: theme.colorScheme.onTertiaryContainer,
+                            color:
+                                context.theme.colorScheme.onTertiaryContainer,
                           ),
                         ),
                       ),
@@ -114,7 +115,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               ),
               Card(
                 elevation: 0,
-                color: theme.colorScheme.primaryContainer.withOpacity(0.4),
+                color:
+                    context.theme.colorScheme.primaryContainer.withOpacity(0.4),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32),
                 ),
@@ -125,7 +127,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                       TextField(
                         keyboardType: TextInputType.emailAddress,
                         autocorrect: false,
-                        autofocus: false,
+                        autofocus: true,
                         controller: _controller,
                         decoration: InputDecoration(
                           contentPadding: const EdgeInsets.all(16),
@@ -163,8 +165,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                         },
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                          foregroundColor: theme.colorScheme.onPrimary,
-                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: context.theme.colorScheme.onPrimary,
+                          backgroundColor: context.theme.colorScheme.primary,
                         ),
                         child: Text(
                           context.loc.forgot_password_view_send_me_link,

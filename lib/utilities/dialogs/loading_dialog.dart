@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
 
 typedef CloseDialog = void Function();
 
@@ -10,7 +12,10 @@ CloseDialog showLoadingDialog({
     content: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const CircularProgressIndicator(),
+        SpinKitDoubleBounce(
+          color: context.theme.colorScheme.primary,
+          size: 60,
+        ),
         const SizedBox(height: 10),
         Text(text),
       ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
+import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
 import 'package:thoughtbook/styles/text_styles.dart';
@@ -15,7 +16,6 @@ class VerifyEmailView extends StatefulWidget {
 class _VerifyEmailViewState extends State<VerifyEmailView> {
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -29,7 +29,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32),
           ),
-          color: theme.colorScheme.primaryContainer.withAlpha(140),
+          color: context.theme.colorScheme.primaryContainer.withAlpha(140),
           elevation: 0,
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -40,7 +40,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                   context.loc.verify_email_view_prompt,
                   style: TextStyle(
                     fontSize: 15,
-                    color: theme.colorScheme.onPrimaryContainer,
+                    color: context.theme.colorScheme.onPrimaryContainer,
                   ),
                 ),
                 const SizedBox(
@@ -54,8 +54,8 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                   },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
+                    backgroundColor: context.theme.colorScheme.primary,
+                    foregroundColor: context.theme.colorScheme.onPrimary,
                   ),
                   child: Text(
                     context.loc.verify_email_view_back_to_login,
@@ -65,7 +65,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                   height: 20,
                 ),
                 Card(
-                  color: theme.colorScheme.surface,
+                  color: context.theme.colorScheme.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(26),
                   ),
@@ -79,7 +79,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                               .loc.verify_email_view_resend_verification_prompt,
                           style: TextStyle(
                             fontSize: 14,
-                            color: theme.colorScheme.onSurface,
+                            color: context.theme.colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(
@@ -94,7 +94,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                           child: Text(
                             context.loc.verify_email_send_email_verification,
                             style: TextStyle(
-                              color: theme.colorScheme.onSurface,
+                              color: context.theme.colorScheme.onSurface,
                             ),
                           ),
                         ),

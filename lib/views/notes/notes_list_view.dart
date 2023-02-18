@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/modals/show_note_item_modal_bottom_sheet.dart';
@@ -35,10 +36,12 @@ class _NotesListViewState extends State<NotesListView> {
             size: 100,
             color: theme.colorScheme.onBackground,
           ),
-          const Center(
+          Center(
             child: Text(
-              'Create a new note to see it here',
-              style: TextStyle(fontSize: 15),
+              context.loc.notes_view_create_note_to_see_here,
+              style: const TextStyle(
+                fontSize: 15,
+              ),
             ),
           ),
         ],
@@ -69,7 +72,7 @@ class _NotesListViewState extends State<NotesListView> {
                   backgroundColor: theme.colorScheme.error,
                   foregroundColor: theme.colorScheme.onError,
                   icon: Icons.delete_rounded,
-                  label: 'Delete',
+                  label: context.loc.delete,
                 ),
               ],
             ),
@@ -101,7 +104,7 @@ class _NotesListViewState extends State<NotesListView> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 trailing: IconButton(
-                  tooltip: 'More options',
+                  tooltip: context.loc.more_options,
                   onPressed: () async {
                     showNoteItemModalBottomSheet(
                       context: context,

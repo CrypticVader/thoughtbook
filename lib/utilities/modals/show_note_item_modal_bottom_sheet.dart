@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
@@ -28,25 +29,51 @@ Future<void> showNoteItemModalBottomSheet({
                 borderRadius: BorderRadius.circular(20),
               ),
               onTap: () async {
+                Navigator.of(context).pop();
                 final shouldDelete = await showDeleteDialog(context);
                 if (shouldDelete) {
                   onDeleteNote(note);
                 }
-                Navigator.of(context).pop();
               },
               leading: const Icon(Icons.delete_rounded),
-              title: const Text('Delete Note'),
+              title: const Text('Delete'),
             ),
             ListTile(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               onTap: () {
-                Share.share(note.text);
                 Navigator.of(context).pop();
+                Share.share(note.text);
               },
               leading: const Icon(Icons.share_rounded),
               title: const Text('Share'),
+            ),
+            ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await Clipboard.setData(
+                  ClipboardData(text: note.text),
+                ).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: const Text(
+                        'Note copied to clipboard',
+                      ),
+                      dismissDirection: DismissDirection.startToEnd,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                });
+              },
+              leading: const Icon(Icons.copy_rounded),
+              title: const Text('Copy text'),
             ),
           ],
         ),
