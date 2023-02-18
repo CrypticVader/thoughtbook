@@ -60,21 +60,24 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
         title: 'Flutter Demo',
         theme: ThemeData(
           fontFamily:
+              (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
                   ? 'Roboto'
+                  : 'Montserrat',
           fontFamilyFallback: const ['Roboto'],
-          fontFamily: 'Montserrat',
           colorScheme: lightColorScheme ?? _defaultLightColorScheme,
-          splashFactory: InkSparkle.splashFactory,
           splashFactory:
+              (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
           useMaterial3: true,
         ),
         darkTheme: ThemeData(
+          fontFamily:
+              (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
+                  ? 'Roboto'
+                  : 'Montserrat',
           fontFamilyFallback: const ['Roboto'],
-          fontFamily: 'Montserrat',
           colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
-          splashFactory: (Theme.of(context).platform == TargetPlatform.android)
-              ? InkSparkle.splashFactory
-              : InkRipple.splashFactory,
+          splashFactory:
+              (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
           useMaterial3: true,
         ),
         themeMode: ThemeMode.system,
