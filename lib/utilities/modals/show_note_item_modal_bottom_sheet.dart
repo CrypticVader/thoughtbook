@@ -32,6 +32,7 @@ Future<void> showNoteItemModalBottomSheet({
                 if (shouldDelete) {
                   onDeleteNote(note);
                 }
+                Navigator.of(context).pop();
               },
               leading: const Icon(Icons.delete_rounded),
               title: const Text('Delete Note'),
@@ -42,6 +43,7 @@ Future<void> showNoteItemModalBottomSheet({
               ),
               onTap: () {
                 Share.share(note.text);
+                Navigator.of(context).pop();
               },
               leading: const Icon(Icons.share_rounded),
               title: const Text('Share'),

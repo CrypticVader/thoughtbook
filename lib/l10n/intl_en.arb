@@ -42,8 +42,8 @@
   "register_error_invalid_email": "The email address you entered appears to be invalid. Please try another email address!",
   "register_view_prompt": "Create an account to add & interact with your notes",
   "register_view_already_registered": "Have an account? Login here!",
-  "verify_email_view_prompt": "We\\'ve sent you a verification email to your registered email, please open it to verify your account before you can login.",
-  "verify_email_view_resend_verification_prompt": "If you haven\\'t received a verification email yet, please press the button below.",
+  "verify_email_view_prompt": "We've sent you a verification email to your registered email, please open it to verify your account before you can login.",
+  "verify_email_view_resend_verification_prompt": "If you haven't received a verification email yet, please press the button below.",
   "verify_email_send_email_verification": "Resend verification email",
   "verify_email_view_back_to_login": "Verified? Go to login page",
   "notes_view_create_note_to_see_here": "Create a new note to see it here"
