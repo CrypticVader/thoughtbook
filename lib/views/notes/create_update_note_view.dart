@@ -131,15 +131,16 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
                       child: TextField(
-                          minLines: 4,
-                          autofocus: true,
-                          controller: _textController,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            hintText: context.loc.start_typing_your_note,
-                            border: InputBorder.none,
-                          )),
+                        minLines: 4,
+                        autofocus: true,
+                        controller: _textController,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          hintText: context.loc.start_typing_your_note,
+                          border: InputBorder.none,
+                        ),
+                      ),
                     ),
                   ),
                 );
