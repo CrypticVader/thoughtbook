@@ -1,4 +1,5 @@
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,10 +59,13 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
+          fontFamily:
+                  ? 'Roboto'
           fontFamilyFallback: const ['Roboto'],
           fontFamily: 'Montserrat',
           colorScheme: lightColorScheme ?? _defaultLightColorScheme,
           splashFactory: InkSparkle.splashFactory,
+          splashFactory:
           useMaterial3: true,
         ),
         darkTheme: ThemeData(
