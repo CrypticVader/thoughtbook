@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' show ReadContext;
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:share_plus/share_plus.dart';
@@ -10,6 +12,7 @@ import 'package:thoughtbook/services/auth/auth_service.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
 import 'package:thoughtbook/styles/text_styles.dart';
+import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/logout_dialog.dart';
 import 'package:thoughtbook/views/notes/notes_list_view.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
@@ -24,7 +27,7 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   late final FirebaseCloudStorage _notesService;
-  List<CloudNote> selectedNotes = [];
+  List<CloudNote> _selectedNotes = [];
 
   String get userId => AuthService.firebase().currentUser!.id;
 
@@ -34,17 +37,64 @@ class _NotesViewState extends State<NotesView> {
     super.initState();
   }
 
+  void _onDeleteNote(note) async {
+    _notesService.deleteNote(
+      documentId: note.documentId,
+    );
+  }
+
+  void _onTapNote(note) async {
+    if (_selectedNotes.contains(note)) {
+      setState(
+        () {
+          _selectedNotes.remove(note);
+        },
+      );
+      return;
+    } else if (_selectedNotes.isNotEmpty) {
+      setState(
+        () {
+          _selectedNotes.add(note);
+        },
+      );
+    } else {
+      Navigator.of(context).pushNamed(
+        createOrUpdateNoteRoute,
+        arguments: note,
+      );
+    }
+  }
+
+  void _onLongPressNote(note) {
+    if (_selectedNotes.contains(note)) {
+      setState(
+        () {
+          _selectedNotes.remove(note);
+        },
+      );
+    } else {
+      setState(
+        () {
+          _selectedNotes.add(note);
+        },
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          context.loc.app_title,
+          context.loc.notes_title(
+            _selectedNotes.length,
+            context.loc.app_title,
+          ),
           style: CustomTextStyle(context).appBarTitle,
         ),
         actions: [
           // TODO: Use valueListenableBuilder to update the actions depending on the number of items in SelectedNotes
-          if (selectedNotes.isEmpty)
+          if (_selectedNotes.isEmpty)
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
@@ -83,6 +133,32 @@ class _NotesViewState extends State<NotesView> {
                 ),
               ),
             ),
+          if (_selectedNotes.isNotEmpty)
+            IconButton(
+              tooltip: context.loc.select_all_notes,
+              onPressed: () async {
+                final allNotes =
+                    await _notesService.allNotes(ownerUserId: userId).first;
+                setState(() {
+                  for (var element in allNotes) {
+                    if (!_selectedNotes.contains(element)) {
+                      _selectedNotes.add(element);
+                    }
+                  }
+                });
+              },
+              icon: const Icon(Icons.select_all_rounded),
+            ),
+          if (_selectedNotes.isNotEmpty)
+            IconButton(
+              tooltip: context.loc.clear_selection,
+              onPressed: () {
+                setState(
+                  () => _selectedNotes = [],
+                );
+              },
+              icon: const Icon(Icons.clear_all_rounded),
+            ),
           PopupMenuButton<MenuAction>(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
@@ -95,20 +171,52 @@ class _NotesViewState extends State<NotesView> {
                   }
                   break;
                 case MenuAction.share:
-                  Share.share(selectedNotes.first.text);
+                  Share.share(_selectedNotes.first.text);
+                  break;
+                case MenuAction.delete:
+                  final shouldDelete = await showDeleteDialog(context);
+                  setState(
+                    () {
+                      if (shouldDelete) {
+                        for (var note in _selectedNotes) {
+                          _notesService.deleteNote(
+                            documentId: note.documentId,
+                          );
+                        }
+                        _selectedNotes = [];
+                      }
+                    },
+                  );
+                  break;
+                case MenuAction.copy:
+                  await Clipboard.setData(
+                    ClipboardData(text: _selectedNotes.first.text),
+                  ).then(
+                    (_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          behavior: SnackBarBehavior.floating,
+                          content: Text(
+                            context.loc.note_copied,
+                          ),
+                          dismissDirection: DismissDirection.startToEnd,
+                        ),
+                      );
+                    },
+                  );
+                  break;
               }
             },
             itemBuilder: (context) {
               return [
-                if (selectedNotes.isEmpty)
+                if (_selectedNotes.isEmpty)
                   PopupMenuItem<MenuAction>(
                     value: MenuAction.logout,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         const Icon(Icons.logout_rounded),
                         const SizedBox(
-                          width: 6,
+                          width: 4,
                         ),
                         Text(
                           context.loc.logout_button,
@@ -119,18 +227,53 @@ class _NotesViewState extends State<NotesView> {
                       ],
                     ),
                   ),
-                if (selectedNotes.length == 1)
+                if (_selectedNotes.length == 1)
                   PopupMenuItem<MenuAction>(
                     value: MenuAction.share,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         const Icon(Icons.share_rounded),
                         const SizedBox(
-                          width: 6,
+                          width: 4,
                         ),
                         Text(
                           context.loc.share_note,
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_selectedNotes.length == 1)
+                  PopupMenuItem<MenuAction>(
+                    value: MenuAction.copy,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.copy_rounded),
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        Text(
+                          context.loc.copy_text,
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_selectedNotes.isNotEmpty)
+                  PopupMenuItem<MenuAction>(
+                    value: MenuAction.delete,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.delete_rounded),
+                        const SizedBox(
+                          width: 4,
+                        ),
+                        Text(
+                          context.loc.delete,
                           style: const TextStyle(
                             fontSize: 15,
                           ),
@@ -153,42 +296,10 @@ class _NotesViewState extends State<NotesView> {
                 final allNotes = snapshot.data as Iterable<CloudNote>;
                 return NotesListView(
                   notes: allNotes,
-                  selectedNotes: selectedNotes,
-                  onDeleteNote: (note) async {
-                    _notesService.deleteNote(
-                      documentId: note.documentId,
-                    );
-                  },
-                  onTap: (note) {
-                    if (selectedNotes.contains(note)) {
-                      setState(
-                        () {
-                          selectedNotes.remove(note);
-                        },
-                      );
-                      return;
-                    } else {
-                      Navigator.of(context).pushNamed(
-                        createOrUpdateNoteRoute,
-                        arguments: note,
-                      );
-                    }
-                  },
-                  onLongPress: (note) {
-                    if (selectedNotes.contains(note)) {
-                      setState(
-                        () {
-                          selectedNotes.remove(note);
-                        },
-                      );
-                    } else {
-                      setState(
-                        () {
-                          selectedNotes.add(note);
-                        },
-                      );
-                    }
-                  },
+                  selectedNotes: _selectedNotes,
+                  onDeleteNote: _onDeleteNote,
+                  onTap: _onTapNote,
+                  onLongPress: _onLongPressNote,
                 );
               } else {
                 return Center(

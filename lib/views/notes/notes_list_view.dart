@@ -92,17 +92,17 @@ class NoteItem extends StatelessWidget {
 
   Color _getTileColor(BuildContext context) {
     if (isSelected) {
-      return context.theme.colorScheme.secondaryContainer;
+      return context.theme.colorScheme.primaryContainer;
     } else {
-      return context.theme.colorScheme.secondaryContainer.withOpacity(0.5);
+      return context.theme.colorScheme.secondaryContainer.withOpacity(0.6);
     }
   }
 
   Color _getTileBorderColor(BuildContext context) {
     if (isSelected) {
-      return context.theme.colorScheme.secondary;
+      return context.theme.colorScheme.primary;
     } else {
-      return context.theme.colorScheme.onBackground.withOpacity(0.3);
+      return context.theme.colorScheme.secondaryContainer;
     }
   }
 
@@ -156,6 +156,9 @@ class NoteItem extends StatelessWidget {
             maxLines: 1,
             softWrap: true,
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: context.theme.colorScheme.onSecondaryContainer,
+            ),
           ),
           trailing: IconButton(
             tooltip: context.loc.more_options,
