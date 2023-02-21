@@ -7,10 +7,12 @@ import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/modals/show_note_item_modal_bottom_sheet.dart';
 
 typedef NoteCallback = void Function(CloudNote note);
+typedef NotesListCallback = void Function(List<CloudNote> notes);
 
 class NotesListView extends StatefulWidget {
   final Iterable<CloudNote> notes;
-  final NoteCallback onDeleteNote;
+  final NotesListCallback onDeleteNote;
+  final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
   final List<CloudNote> selectedNotes;
@@ -20,6 +22,7 @@ class NotesListView extends StatefulWidget {
     required this.notes,
     required this.selectedNotes,
     required this.onDeleteNote,
+    required this.onCopyNote,
     required this.onTap,
     required this.onLongPress,
   }) : super(key: key);
@@ -59,9 +62,10 @@ class _NotesListViewState extends State<NotesListView> {
           return NoteItem(
             note: note,
             isSelected: widget.selectedNotes.contains(note),
-            onDeleteNote: widget.onDeleteNote,
-            onTap: widget.onTap,
-            onLongPress: widget.onLongPress,
+            onDeleteNote: (note) => widget.onDeleteNote(note),
+            onCopyNote: (note) => widget.onCopyNote(note),
+            onTap: (note) => widget.onTap(note),
+            onLongPress: (note) => widget.onLongPress(note),
           );
         },
         separatorBuilder: (BuildContext context, int index) {
@@ -80,13 +84,15 @@ class NoteItem extends StatelessWidget {
     required this.note,
     required this.isSelected,
     required this.onDeleteNote,
+    required this.onCopyNote,
     required this.onTap,
     required this.onLongPress,
   }) : super(key: key);
 
   final CloudNote note;
   final bool isSelected;
-  final NoteCallback onDeleteNote;
+  final NotesListCallback onDeleteNote;
+  final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
 
@@ -94,7 +100,7 @@ class NoteItem extends StatelessWidget {
     if (isSelected) {
       return context.theme.colorScheme.primaryContainer;
     } else {
-      return context.theme.colorScheme.secondaryContainer.withOpacity(0.6);
+      return context.theme.colorScheme.secondaryContainer.withOpacity(0.65);
     }
   }
 
@@ -119,10 +125,7 @@ class NoteItem extends StatelessWidget {
           SlidableAction(
             flex: 1,
             onPressed: (context) async {
-              final shouldDelete = await showDeleteDialog(context);
-              if (shouldDelete) {
-                onDeleteNote(note);
-              }
+              onDeleteNote([note]);
             },
             borderRadius: BorderRadius.circular(64),
             backgroundColor: context.theme.colorScheme.error,
@@ -167,9 +170,10 @@ class NoteItem extends StatelessWidget {
                 context: context,
                 note: note,
                 onDeleteNote: onDeleteNote,
+                onCopyNote: onCopyNote,
               );
             },
-            icon: const Icon(Icons.more_horiz_rounded),
+            icon: const Icon(Icons.more_vert_rounded),
           ),
         ),
       ),

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' show ReadContext;
@@ -37,13 +36,7 @@ class _NotesViewState extends State<NotesView> {
     super.initState();
   }
 
-  void _onDeleteNote(note) async {
-    _notesService.deleteNote(
-      documentId: note.documentId,
-    );
-  }
-
-  void _onTapNote(note) async {
+  void _onTapNote(CloudNote note) async {
     if (_selectedNotes.contains(note)) {
       setState(
         () {
@@ -65,7 +58,7 @@ class _NotesViewState extends State<NotesView> {
     }
   }
 
-  void _onLongPressNote(note) {
+  void _onLongPressNote(CloudNote note) {
     if (_selectedNotes.contains(note)) {
       setState(
         () {
@@ -79,6 +72,67 @@ class _NotesViewState extends State<NotesView> {
         },
       );
     }
+  }
+
+  Future<void> _onCopyNote({
+    required BuildContext context,
+    required CloudNote note,
+  }) async {
+    await Clipboard.setData(
+      ClipboardData(text: note.text),
+    ).then(
+      (_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              context.loc.note_copied,
+            ),
+            dismissDirection: DismissDirection.startToEnd,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _onDeleteNotes({
+    required BuildContext context,
+    required List<CloudNote> notes,
+  }) async {
+    final shouldDelete = await showDeleteDialog(context);
+    //TODO: State changes aren't being notified properly here
+    if (shouldDelete) {
+      for (var note in notes) {
+        await _notesService.deleteNote(
+          documentId: note.documentId,
+        );
+        _selectedNotes.remove(note);
+      }
+    }
+  }
+
+  Future<void> _onLogout(BuildContext context) async {
+    final shouldLogout = await showLogoutDialog(context);
+    if (shouldLogout) {
+      context.read<AuthBloc>().add(const AuthEventLogOut());
+    }
+  }
+
+  void _onClearSelectedNotes() {
+    setState(
+      () => _selectedNotes = [],
+    );
+  }
+
+  void _onSelectAllNotes() async {
+    final allNotes = await _notesService.allNotes(ownerUserId: userId).first;
+    setState(() {
+      for (var element in allNotes) {
+        if (!_selectedNotes.contains(element)) {
+          _selectedNotes.add(element);
+        }
+      }
+    });
   }
 
   @override
@@ -136,27 +190,13 @@ class _NotesViewState extends State<NotesView> {
           if (_selectedNotes.isNotEmpty)
             IconButton(
               tooltip: context.loc.select_all_notes,
-              onPressed: () async {
-                final allNotes =
-                    await _notesService.allNotes(ownerUserId: userId).first;
-                setState(() {
-                  for (var element in allNotes) {
-                    if (!_selectedNotes.contains(element)) {
-                      _selectedNotes.add(element);
-                    }
-                  }
-                });
-              },
+              onPressed: _onSelectAllNotes,
               icon: const Icon(Icons.select_all_rounded),
             ),
           if (_selectedNotes.isNotEmpty)
             IconButton(
               tooltip: context.loc.clear_selection,
-              onPressed: () {
-                setState(
-                  () => _selectedNotes = [],
-                );
-              },
+              onPressed: _onClearSelectedNotes,
               icon: const Icon(Icons.clear_all_rounded),
             ),
           PopupMenuButton<MenuAction>(
@@ -165,44 +205,22 @@ class _NotesViewState extends State<NotesView> {
             onSelected: (value) async {
               switch (value) {
                 case MenuAction.logout:
-                  final shouldLogout = await showLogoutDialog(context);
-                  if (shouldLogout) {
-                    context.read<AuthBloc>().add(const AuthEventLogOut());
-                  }
+                  await _onLogout(context);
                   break;
                 case MenuAction.share:
                   Share.share(_selectedNotes.first.text);
                   break;
                 case MenuAction.delete:
-                  final shouldDelete = await showDeleteDialog(context);
-                  setState(
-                    () {
-                      if (shouldDelete) {
-                        for (var note in _selectedNotes) {
-                          _notesService.deleteNote(
-                            documentId: note.documentId,
-                          );
-                        }
-                        _selectedNotes = [];
-                      }
-                    },
+                  // TODO: Broken when deleting multiple notes
+                  await _onDeleteNotes(
+                    context: context,
+                    notes: _selectedNotes,
                   );
                   break;
                 case MenuAction.copy:
-                  await Clipboard.setData(
-                    ClipboardData(text: _selectedNotes.first.text),
-                  ).then(
-                    (_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          behavior: SnackBarBehavior.floating,
-                          content: Text(
-                            context.loc.note_copied,
-                          ),
-                          dismissDirection: DismissDirection.startToEnd,
-                        ),
-                      );
-                    },
+                  await _onCopyNote(
+                    context: context,
+                    note: _selectedNotes.first,
                   );
                   break;
               }
@@ -297,7 +315,14 @@ class _NotesViewState extends State<NotesView> {
                 return NotesListView(
                   notes: allNotes,
                   selectedNotes: _selectedNotes,
-                  onDeleteNote: _onDeleteNote,
+                  onDeleteNote: (notes) => _onDeleteNotes(
+                    notes: notes,
+                    context: context,
+                  ),
+                  onCopyNote: (note) => _onCopyNote(
+                    note: note,
+                    context: context,
+                  ),
                   onTap: _onTapNote,
                   onLongPress: _onLongPressNote,
                 );
