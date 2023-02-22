@@ -7,11 +7,10 @@ import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/modals/show_note_item_modal_bottom_sheet.dart';
 
 typedef NoteCallback = void Function(CloudNote note);
-typedef NotesListCallback = void Function(List<CloudNote> notes);
 
 class NotesListView extends StatefulWidget {
   final Iterable<CloudNote> notes;
-  final NotesListCallback onDeleteNote;
+  final NoteCallback onDeleteNote;
   final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
@@ -91,7 +90,7 @@ class NoteItem extends StatelessWidget {
 
   final CloudNote note;
   final bool isSelected;
-  final NotesListCallback onDeleteNote;
+  final NoteCallback onDeleteNote;
   final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
@@ -125,7 +124,13 @@ class NoteItem extends StatelessWidget {
           SlidableAction(
             flex: 1,
             onPressed: (context) async {
-              onDeleteNote([note]);
+              final shouldDelete = await showDeleteDialog(
+                context: context,
+                content: context.loc.delete_note_prompt,
+              );
+              if (shouldDelete) {
+                onDeleteNote(note);
+              }
             },
             borderRadius: BorderRadius.circular(64),
             backgroundColor: context.theme.colorScheme.error,
@@ -140,7 +145,7 @@ class NoteItem extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         color: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(22),
         ),
         child: ListTile(
           onTap: () => onTap(note),
@@ -152,7 +157,7 @@ class NoteItem extends StatelessWidget {
               width: 1.4,
               color: _getTileBorderColor(context),
             ),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(22),
           ),
           title: Text(
             note.text,
@@ -169,7 +174,7 @@ class NoteItem extends StatelessWidget {
               showNoteItemModalBottomSheet(
                 context: context,
                 note: note,
-                onDeleteNote: onDeleteNote,
+                onDeleteNote: (note) => onDeleteNote(note),
                 onCopyNote: onCopyNote,
               );
             },

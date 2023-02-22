@@ -95,26 +95,38 @@ class _NotesViewState extends State<NotesView> {
     );
   }
 
-  Future<void> _onDeleteNotes({
+  Future<void> _onDeleteNote({
     required BuildContext context,
-    required List<CloudNote> notes,
+    required CloudNote note,
   }) async {
-    final shouldDelete = await showDeleteDialog(context);
-    //TODO: State changes aren't being notified properly here
-    if (shouldDelete) {
-      for (var note in notes) {
-        await _notesService.deleteNote(
-          documentId: note.documentId,
-        );
+    _notesService.deleteNote(
+      documentId: note.documentId,
+    );
+    setState(
+      () {
         _selectedNotes.remove(note);
-      }
-    }
+      },
+    );
+  }
+
+  Future<void> _onDeleteSelectedNotes() async {
+    setState(
+      () {
+        for (var note in _selectedNotes) {
+          _notesService.deleteNote(
+            documentId: note.documentId,
+          );
+        }
+        _selectedNotes = [];
+      },
+    );
   }
 
   Future<void> _onLogout(BuildContext context) async {
+    final bloc = context.read<AuthBloc>();
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout) {
-      context.read<AuthBloc>().add(const AuthEventLogOut());
+      bloc.add(const AuthEventLogOut());
     }
   }
 
@@ -135,10 +147,19 @@ class _NotesViewState extends State<NotesView> {
     });
   }
 
+  Color? _getTileColor(BuildContext context) {
+    if (_selectedNotes.isNotEmpty) {
+      return context.theme.colorScheme.secondaryContainer;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 64,
+        backgroundColor: _getTileColor(context),
         title: Text(
           context.loc.notes_title(
             _selectedNotes.length,
@@ -146,6 +167,13 @@ class _NotesViewState extends State<NotesView> {
           ),
           style: CustomTextStyle(context).appBarTitle,
         ),
+        leading: (_selectedNotes.isNotEmpty)
+            ? IconButton(
+                tooltip: context.loc.close,
+                onPressed: () => _onClearSelectedNotes(),
+                icon: const Icon(Icons.close_rounded),
+              )
+            : null,
         actions: [
           // TODO: Use valueListenableBuilder to update the actions depending on the number of items in SelectedNotes
           if (_selectedNotes.isEmpty)
@@ -155,7 +183,9 @@ class _NotesViewState extends State<NotesView> {
               },
               style: ElevatedButton.styleFrom(
                 shadowColor: Colors.transparent,
-                elevation: 10,
+                elevation: 0,
+                backgroundColor: context.theme.colorScheme.secondaryContainer
+                    .withOpacity(0.7),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -193,12 +223,6 @@ class _NotesViewState extends State<NotesView> {
               onPressed: _onSelectAllNotes,
               icon: const Icon(Icons.select_all_rounded),
             ),
-          if (_selectedNotes.isNotEmpty)
-            IconButton(
-              tooltip: context.loc.clear_selection,
-              onPressed: _onClearSelectedNotes,
-              icon: const Icon(Icons.clear_all_rounded),
-            ),
           PopupMenuButton<MenuAction>(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
@@ -211,11 +235,15 @@ class _NotesViewState extends State<NotesView> {
                   Share.share(_selectedNotes.first.text);
                   break;
                 case MenuAction.delete:
-                  // TODO: Broken when deleting multiple notes
-                  await _onDeleteNotes(
+                  final shouldDelete = await showDeleteDialog(
                     context: context,
-                    notes: _selectedNotes,
+                    content: context.loc.delete_selected_notes_prompt(
+                      _selectedNotes.length,
+                    ),
                   );
+                  if (shouldDelete) {
+                    _onDeleteSelectedNotes();
+                  }
                   break;
                 case MenuAction.copy:
                   await _onCopyNote(
@@ -315,8 +343,8 @@ class _NotesViewState extends State<NotesView> {
                 return NotesListView(
                   notes: allNotes,
                   selectedNotes: _selectedNotes,
-                  onDeleteNote: (notes) => _onDeleteNotes(
-                    notes: notes,
+                  onDeleteNote: (note) => _onDeleteNote(
+                    note: note,
                     context: context,
                   ),
                   onCopyNote: (note) => _onCopyNote(

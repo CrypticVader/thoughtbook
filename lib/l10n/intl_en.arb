@@ -4,6 +4,7 @@
   "note": "Note",
   "cancel": "Cancel",
   "yes": "Yes",
+  "close": "Close",
   "delete": "Delete",
   "sharing": "Sharing",
   "ok": "OK",
@@ -59,6 +60,15 @@
       "count": {
         "type": "int",
         "example": "3 selected"
+      }
+    }
+  },
+  "delete_selected_notes_prompt": "Are you sure you want to delete the selected {count, plural, =1{note} other{notes}}?",
+  "@delete_selected_notes_prompt": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "Are you sure you want to delete the selected notes?"
       }
     }
   }
