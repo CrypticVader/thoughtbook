@@ -24,9 +24,9 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
 
   @override
   void initState() {
+    super.initState();
     _notesService = FirebaseCloudStorage();
     _textController = TextEditingController();
-    super.initState();
   }
 
   void _textControllerListener() async {

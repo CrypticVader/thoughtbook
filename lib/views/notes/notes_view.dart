@@ -154,183 +154,219 @@ class _NotesViewState extends State<NotesView> {
     return null;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 64,
-        backgroundColor: _getTileColor(context),
-        title: Text(
-          context.loc.notes_title(
-            _selectedNotes.length,
-            context.loc.app_title,
+  AppBar _getDefaultAppBar() {
+    return AppBar(
+      key: ValueKey<bool>(_selectedNotes.isEmpty),
+      toolbarHeight: 64,
+      title: Text(
+        context.loc.app_title,
+        style: CustomTextStyle(context).appBarTitle,
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
+          },
+          style: ElevatedButton.styleFrom(
+            shadowColor: Colors.transparent,
+            elevation: 0,
+            backgroundColor:
+                context.theme.colorScheme.secondaryContainer.withOpacity(0.7),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
-          style: CustomTextStyle(context).appBarTitle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 8,
+              horizontal: 0,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.add_rounded,
+                  size: 28,
+                ),
+                const SizedBox(
+                  width: 6,
+                ),
+                Text(
+                  context.loc.note,
+                  style: const TextStyle(
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        leading: (_selectedNotes.isNotEmpty)
-            ? IconButton(
-                tooltip: context.loc.close,
-                onPressed: () => _onClearSelectedNotes(),
-                icon: const Icon(Icons.close_rounded),
-              )
-            : null,
-        actions: [
-          // TODO: Use valueListenableBuilder to update the actions depending on the number of items in SelectedNotes
-          if (_selectedNotes.isEmpty)
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
-              },
-              style: ElevatedButton.styleFrom(
-                shadowColor: Colors.transparent,
-                elevation: 0,
-                backgroundColor: context.theme.colorScheme.secondaryContainer
-                    .withOpacity(0.7),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 0,
-                ),
+        PopupMenuButton<MenuAction>(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+          onSelected: (value) async {
+            switch (value) {
+              case MenuAction.logout:
+                await _onLogout(context);
+                break;
+              default:
+                break;
+            }
+          },
+          itemBuilder: (context) {
+            return [
+              PopupMenuItem<MenuAction>(
+                value: MenuAction.logout,
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.add_rounded,
-                      size: 28,
-                    ),
+                    const Icon(Icons.logout_rounded),
                     const SizedBox(
-                      width: 6,
+                      width: 4,
                     ),
                     Text(
-                      context.loc.note,
+                      context.loc.logout_button,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 15,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          if (_selectedNotes.isNotEmpty)
-            IconButton(
-              tooltip: context.loc.select_all_notes,
-              onPressed: _onSelectAllNotes,
-              icon: const Icon(Icons.select_all_rounded),
-            ),
-          PopupMenuButton<MenuAction>(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-            onSelected: (value) async {
-              switch (value) {
-                case MenuAction.logout:
-                  await _onLogout(context);
-                  break;
-                case MenuAction.share:
-                  Share.share(_selectedNotes.first.text);
-                  break;
-                case MenuAction.delete:
-                  final shouldDelete = await showDeleteDialog(
-                    context: context,
-                    content: context.loc.delete_selected_notes_prompt(
-                      _selectedNotes.length,
-                    ),
-                  );
-                  if (shouldDelete) {
-                    _onDeleteSelectedNotes();
-                  }
-                  break;
-                case MenuAction.copy:
-                  await _onCopyNote(
-                    context: context,
-                    note: _selectedNotes.first,
-                  );
-                  break;
-              }
-            },
-            itemBuilder: (context) {
-              return [
-                if (_selectedNotes.isEmpty)
-                  PopupMenuItem<MenuAction>(
-                    value: MenuAction.logout,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.logout_rounded),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        Text(
-                          context.loc.logout_button,
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  AppBar _getNotesSelectedAppBar() {
+    return AppBar(
+      key: ValueKey<bool>(_selectedNotes.isEmpty),
+      toolbarHeight: 64,
+      backgroundColor: _getTileColor(context),
+      title: Text(
+        context.loc.notes_title(
+          _selectedNotes.length,
+          context.loc.app_title,
+        ),
+        style: CustomTextStyle(context).appBarTitle,
+      ),
+      leading: IconButton(
+        tooltip: context.loc.close,
+        onPressed: () => _onClearSelectedNotes(),
+        icon: const Icon(Icons.close_rounded),
+      ),
+      actions: [
+        // TODO: Use valueListenableBuilder to update the actions depending on the number of items in SelectedNotes
+        IconButton(
+          tooltip: context.loc.select_all_notes,
+          onPressed: _onSelectAllNotes,
+          icon: const Icon(Icons.select_all_rounded),
+        ),
+        PopupMenuButton<MenuAction>(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+          onSelected: (value) async {
+            switch (value) {
+              case MenuAction.share:
+                Share.share(_selectedNotes.first.text);
+                break;
+              case MenuAction.delete:
+                final shouldDelete = await showDeleteDialog(
+                  context: context,
+                  content: context.loc.delete_selected_notes_prompt(
+                    _selectedNotes.length,
                   ),
-                if (_selectedNotes.length == 1)
-                  PopupMenuItem<MenuAction>(
-                    value: MenuAction.share,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.share_rounded),
-                        const SizedBox(
-                          width: 4,
+                );
+                if (shouldDelete) {
+                  _onDeleteSelectedNotes();
+                }
+                break;
+              case MenuAction.copy:
+                await _onCopyNote(
+                  context: context,
+                  note: _selectedNotes.first,
+                );
+                break;
+              default:
+                break;
+            }
+          },
+          itemBuilder: (context) {
+            return [
+              if (_selectedNotes.length == 1)
+                PopupMenuItem<MenuAction>(
+                  value: MenuAction.share,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.share_rounded),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      Text(
+                        context.loc.share_note,
+                        style: const TextStyle(
+                          fontSize: 15,
                         ),
-                        Text(
-                          context.loc.share_note,
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                if (_selectedNotes.length == 1)
-                  PopupMenuItem<MenuAction>(
-                    value: MenuAction.copy,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.copy_rounded),
-                        const SizedBox(
-                          width: 4,
+                ),
+              if (_selectedNotes.length == 1)
+                PopupMenuItem<MenuAction>(
+                  value: MenuAction.copy,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.copy_rounded),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      Text(
+                        context.loc.copy_text,
+                        style: const TextStyle(
+                          fontSize: 15,
                         ),
-                        Text(
-                          context.loc.copy_text,
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                if (_selectedNotes.isNotEmpty)
-                  PopupMenuItem<MenuAction>(
-                    value: MenuAction.delete,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.delete_rounded),
-                        const SizedBox(
-                          width: 4,
-                        ),
-                        Text(
-                          context.loc.delete,
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
+                ),
+              PopupMenuItem<MenuAction>(
+                value: MenuAction.delete,
+                child: Row(
+                  children: [
+                    const Icon(Icons.delete_rounded),
+                    const SizedBox(
+                      width: 4,
                     ),
-                  ),
-              ];
-            },
-          ),
-        ],
+                    Text(
+                      context.loc.delete,
+                      style: const TextStyle(
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ];
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(64),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          child: (_selectedNotes.isEmpty)
+              ? _getDefaultAppBar()
+              : _getNotesSelectedAppBar(),
+        ),
       ),
       body: StreamBuilder(
         stream: _notesService.allNotes(ownerUserId: userId),
