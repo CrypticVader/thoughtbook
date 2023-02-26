@@ -99,6 +99,32 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
+  Widget _getMainLayout({
+    required AuthState state,
+    required BuildContext context,
+  }) {
+    if (state is AuthStateLoggedIn) {
+      return const NotesView();
+    } else if (state is AuthStateForgotPassword) {
+      return const ForgotPasswordView();
+    } else if (state is AuthStateNeedsVerification) {
+      return const VerifyEmailView();
+    } else if (state is AuthStateLoggedOut) {
+      return const LoginView();
+    } else if (state is AuthStateRegistering) {
+      return const RegisterView();
+    } else {
+      return Scaffold(
+        body: Center(
+          child: SpinKitDoubleBounce(
+            color: context.theme.colorScheme.primary,
+            size: 60,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
@@ -114,26 +140,34 @@ class HomePage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        if (state is AuthStateLoggedIn) {
-          return const NotesView();
-        } else if (state is AuthStateForgotPassword) {
-          return const ForgotPasswordView();
-        } else if (state is AuthStateNeedsVerification) {
-          return const VerifyEmailView();
-        } else if (state is AuthStateLoggedOut) {
-          return const LoginView();
-        } else if (state is AuthStateRegistering) {
-          return const RegisterView();
-        } else {
-          return Scaffold(
-            body: Center(
-              child: SpinKitDoubleBounce(
-                color: context.theme.colorScheme.primary,
-                size: 60,
-              ),
+        return Container(
+          color: context.theme.colorScheme.background,
+          child: AnimatedSwitcher(
+            switchInCurve: Curves.easeInOutQuad,
+            switchOutCurve: Curves.easeInOutQuad,
+            duration: const Duration(milliseconds: 400),
+            reverseDuration: const Duration(milliseconds: 1200),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return Stack(
+                children: [
+                  SlideTransition(
+                    position: animation.drive(
+                      Tween<Offset>(
+                        begin: const Offset(1, 0.0),
+                        end: Offset.zero,
+                      ),
+                    ),
+                    child: child,
+                  ),
+                ],
+              );
+            },
+            child: _getMainLayout(
+              state: state,
+              context: context,
             ),
-          );
-        }
+          ),
+        );
       },
     );
   }

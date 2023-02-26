@@ -18,4 +18,15 @@ class CloudNote {
       : documentId = snapshot.id,
         ownerUserId = snapshot.data()[ownerUserIdFieldName],
         text = snapshot.data()[textFieldName] as String;
+
+  @override
+  bool operator ==(covariant CloudNote other) => documentId == other.documentId;
+
+  @override
+  int get hashCode => documentId.hashCode;
+
+  @override
+  String toString() {
+    return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, text: $text}';
+  }
 }

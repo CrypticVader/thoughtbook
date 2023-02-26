@@ -1,1 +1,1 @@
-enum MenuAction { logout }
+enum MenuAction { logout, share, delete, copy }
