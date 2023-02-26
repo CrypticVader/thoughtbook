@@ -48,57 +48,41 @@ class LoadingScreen {
         return Material(
           color: context.theme.colorScheme.background.withAlpha(220),
           child: Center(
-            child: Card(
-              color: Colors.transparent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(32.0),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
               ),
-              child: Container(
-                constraints: BoxConstraints(
-                  maxWidth: size.width * 0.5,
-                  maxHeight: size.height * 0.8,
-                  minWidth: size.width * 0.5,
-                ),
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        SpinKitDoubleBounce(
-                          color: context.theme.colorScheme.primary,
-                          size: 60,
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        StreamBuilder(
-                          stream: text0.stream,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return Text(
-                                snapshot.data as String,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: context.theme.colorScheme.onBackground,
-                                ),
-                              );
-                            } else {
-                              return Container();
-                            }
-                          },
-                        ),
-                      ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      height: 10,
                     ),
-                  ),
+                    SpinKitDoubleBounce(
+                      color: context.theme.colorScheme.primary,
+                      size: 60,
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    StreamBuilder(
+                      stream: text0.stream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Text(
+                            snapshot.data as String,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: context.theme.colorScheme.onBackground,
+                            ),
+                          );
+                        } else {
+                          return Container();
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
