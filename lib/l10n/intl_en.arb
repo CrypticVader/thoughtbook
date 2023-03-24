@@ -38,6 +38,8 @@
   "login_view_not_registered_yet": "Don't have an account? Register here!",
   "email_text_field_placeholder": "Enter your email here",
   "password_text_field_placeholder": "Enter your password here",
+  "reenter_password_text_field_placeholder": "Re-enter your password here",
+  "register_error_passwords_do_not_match": "Passwords do not match",
   "forgot_password": "Forgot Password",
   "forgot_password_view_generic_error": "We could not prcess your request. Please ensure you are a registered user, if not, you can register now by going back to the register scrreen.",
   "forgot_password_view_prompt": "If you forgot your password, enter the email you registered this app with & we will send you an email with a link to reset your password.",

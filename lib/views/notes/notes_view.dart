@@ -358,54 +358,64 @@ class _NotesViewState extends State<NotesView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(64),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
-          child: (_selectedNotes.isEmpty)
-              ? _getDefaultAppBar()
-              : _getNotesSelectedAppBar(),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_selectedNotes.isEmpty) {
+          return true;
+        } else {
+          _onClearSelectedNotes();
+          return false;
+        }
+      },
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: (_selectedNotes.isEmpty)
+                ? _getDefaultAppBar()
+                : _getNotesSelectedAppBar(),
+          ),
         ),
-      ),
-      body: StreamBuilder(
-        stream: _notesService.allNotes(ownerUserId: userId),
-        builder: (context, snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.waiting:
-            case ConnectionState.active:
-              if (snapshot.hasData) {
-                final allNotes = snapshot.data as Iterable<CloudNote>;
-                return NotesListView(
-                  notes: allNotes,
-                  selectedNotes: _selectedNotes,
-                  onDeleteNote: (note) => _onDeleteNote(
-                    note: note,
-                    context: context,
-                  ),
-                  onCopyNote: (note) => _onCopyNote(
-                    note: note,
-                    context: context,
-                  ),
-                  onTap: _onTapNote,
-                  onLongPress: _onLongPressNote,
-                );
-              } else {
+        body: StreamBuilder(
+          stream: _notesService.allNotes(ownerUserId: userId),
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+              case ConnectionState.active:
+                if (snapshot.hasData) {
+                  final allNotes = snapshot.data as Iterable<CloudNote>;
+                  return NotesListView(
+                    notes: allNotes,
+                    selectedNotes: _selectedNotes,
+                    onDeleteNote: (note) => _onDeleteNote(
+                      note: note,
+                      context: context,
+                    ),
+                    onCopyNote: (note) => _onCopyNote(
+                      note: note,
+                      context: context,
+                    ),
+                    onTap: _onTapNote,
+                    onLongPress: _onLongPressNote,
+                  );
+                } else {
+                  return Center(
+                    child: Text(
+                      context.loc.notes_view_create_note_to_see_here,
+                    ),
+                  );
+                }
+              default:
                 return Center(
-                  child: Text(
-                    context.loc.notes_view_create_note_to_see_here,
+                  child: SpinKitDoubleBounce(
+                    color: context.theme.colorScheme.primary,
+                    size: 60,
                   ),
                 );
-              }
-            default:
-              return Center(
-                child: SpinKitDoubleBounce(
-                  color: context.theme.colorScheme.primary,
-                  size: 60,
-                ),
-              );
-          }
-        },
+            }
+          },
+        ),
       ),
     );
   }

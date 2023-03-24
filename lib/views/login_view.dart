@@ -114,6 +114,7 @@ class _LoginViewState extends State<LoginView> {
                       children: [
                         TextField(
                           controller: _email,
+                          textInputAction: TextInputAction.next,
                           autocorrect: false,
                           enableSuggestions: false,
                           keyboardType: TextInputType.emailAddress,
@@ -146,6 +147,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         TextField(
                           controller: _password,
+                          textInputAction: TextInputAction.done,
                           obscureText: true,
                           autocorrect: false,
                           enableSuggestions: false,

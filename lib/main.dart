@@ -145,8 +145,8 @@ class HomePage extends StatelessWidget {
           child: AnimatedSwitcher(
             switchInCurve: Curves.easeInOutQuad,
             switchOutCurve: Curves.easeInOutQuad,
-            duration: const Duration(milliseconds: 400),
-            reverseDuration: const Duration(milliseconds: 1200),
+            duration: const Duration(milliseconds: 270),
+            reverseDuration: const Duration(milliseconds: 700),
             transitionBuilder: (Widget child, Animation<double> animation) {
               return Stack(
                 children: [

@@ -69,7 +69,7 @@ class _NotesListViewState extends State<NotesListView> {
         },
         separatorBuilder: (BuildContext context, int index) {
           return const SizedBox(
-            height: 8,
+            height: 4,
           );
         },
       );

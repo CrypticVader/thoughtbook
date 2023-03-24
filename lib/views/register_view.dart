@@ -16,13 +16,17 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
+  bool _passwordMatches = true;
+
   late final TextEditingController _email;
   late final TextEditingController _password;
+  late final TextEditingController _passwordReEntered;
 
   @override
   void initState() {
     _email = TextEditingController();
     _password = TextEditingController();
+    _passwordReEntered = TextEditingController();
     super.initState();
   }
 
@@ -30,11 +34,36 @@ class _RegisterViewState extends State<RegisterView> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _passwordReEntered.dispose();
     super.dispose();
+  }
+
+  bool _isPasswordMatching() {
+    if (_password.text == _passwordReEntered.text) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void _passwordFieldListener() {
+    setState(() {
+      _passwordMatches = _isPasswordMatching();
+    });
+  }
+
+  void _setupPasswordListener() {
+    _password.removeListener(_passwordFieldListener);
+    _password.addListener(_passwordFieldListener);
+
+    _passwordReEntered.removeListener(_passwordFieldListener);
+    _passwordReEntered.addListener(_passwordFieldListener);
   }
 
   @override
   Widget build(BuildContext context) {
+    _setupPasswordListener();
+
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
         if (state is AuthStateRegistering) {
@@ -114,6 +143,7 @@ class _RegisterViewState extends State<RegisterView> {
                       children: [
                         TextField(
                           controller: _email,
+                          textInputAction: TextInputAction.next,
                           autocorrect: false,
                           enableSuggestions: false,
                           keyboardType: TextInputType.emailAddress,
@@ -146,6 +176,7 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                         TextField(
                           controller: _password,
+                          textInputAction: TextInputAction.next,
                           obscureText: true,
                           autocorrect: false,
                           enableSuggestions: false,
@@ -173,6 +204,57 @@ class _RegisterViewState extends State<RegisterView> {
                             ),
                           ),
                         ),
+                        const SizedBox(
+                          height: 16,
+                        ),
+                        TextField(
+                          controller: _passwordReEntered,
+                          obscureText: true,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          textInputAction: TextInputAction.done,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: _passwordMatches
+                                ? context.theme.colorScheme.primaryContainer
+                                : context.theme.colorScheme.errorContainer,
+                            errorText: _passwordMatches
+                                ? null
+                                : context
+                                    .loc.register_error_passwords_do_not_match,
+                            contentPadding: const EdgeInsets.all(16),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: context.theme.colorScheme.primary,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(32),
+                              borderSide: BorderSide.none,
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(32),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: context.theme.colorScheme.error,
+                              ),
+                            ),
+                            hintText: context
+                                .loc.reenter_password_text_field_placeholder,
+                            prefixIconColor: _passwordMatches
+                                ? context.theme.colorScheme.primary
+                                : context.theme.colorScheme.error,
+                            prefixIcon: const Icon(
+                              Icons.password_rounded,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -184,18 +266,26 @@ class _RegisterViewState extends State<RegisterView> {
                   onPressed: () async {
                     final email = _email.text;
                     final password = _password.text;
-                    context.read<AuthBloc>().add(
-                          AuthEventRegister(
-                            email,
-                            password,
-                          ),
-                        );
+                    if (_isPasswordMatching()) {
+                      context.read<AuthBloc>().add(
+                            AuthEventRegister(
+                              email,
+                              password,
+                            ),
+                          );
+                    } else {
+                      await showErrorDialog(
+                        context,
+                        context.loc.register_error_passwords_do_not_match,
+                      );
+                    }
                   },
                   style: TextButton.styleFrom(
-                      minimumSize: const Size.fromHeight(40),
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                      foregroundColor: context.theme.colorScheme.onPrimary,
-                      backgroundColor: context.theme.colorScheme.primary),
+                    minimumSize: const Size.fromHeight(40),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    foregroundColor: context.theme.colorScheme.onPrimary,
+                    backgroundColor: context.theme.colorScheme.primary,
+                  ),
                   child: Text(
                     context.loc.register,
                     style: const TextStyle(fontSize: 14),
