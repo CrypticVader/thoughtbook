@@ -163,45 +163,9 @@ class _NotesViewState extends State<NotesView> {
         style: CustomTextStyle(context).appBarTitle,
       ),
       actions: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
-          },
-          style: ElevatedButton.styleFrom(
-            shadowColor: Colors.transparent,
-            elevation: 0,
-            backgroundColor:
-                context.theme.colorScheme.secondaryContainer.withOpacity(0.7),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8,
-              horizontal: 0,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.add_rounded,
-                  size: 28,
-                ),
-                const SizedBox(
-                  width: 6,
-                ),
-                Text(
-                  context.loc.note,
-                  style: const TextStyle(
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.grid_view_rounded),
         ),
         PopupMenuButton<MenuAction>(
           shape:
@@ -375,6 +339,16 @@ class _NotesViewState extends State<NotesView> {
             child: (_selectedNotes.isEmpty)
                 ? _getDefaultAppBar()
                 : _getNotesSelectedAppBar(),
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
+          },
+          child: Icon(
+            Icons.add_rounded,
+            size: 36,
+            color: context.theme.colorScheme.primary,
           ),
         ),
         body: StreamBuilder(

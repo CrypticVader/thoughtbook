@@ -53,10 +53,13 @@ class _NotesListViewState extends State<NotesListView> {
         ],
       );
     } else {
-      return ListView.separated(
-        padding: const EdgeInsets.all(8),
-        itemCount: widget.notes.length,
-        itemBuilder: (context, index) {
+      return GridView.count(
+        padding: const EdgeInsets.all(12.0),
+        crossAxisCount: 2,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
+        shrinkWrap: true,
+        children: List.generate(widget.notes.length, (index) {
           final note = widget.notes.elementAt(index);
           return NoteItem(
             note: note,
@@ -66,12 +69,7 @@ class _NotesListViewState extends State<NotesListView> {
             onTap: (note) => widget.onTap(note),
             onLongPress: (note) => widget.onLongPress(note),
           );
-        },
-        separatorBuilder: (BuildContext context, int index) {
-          return const SizedBox(
-            height: 4,
-          );
-        },
+        }),
       );
     }
   }
@@ -113,6 +111,8 @@ class NoteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //TODO: Replace Slidable with Dismissible
+    //TODO: Build custom widget for displaying notes
     return Slidable(
       key: ValueKey(note),
       endActionPane: ActionPane(
@@ -161,7 +161,7 @@ class NoteItem extends StatelessWidget {
           ),
           title: Text(
             note.text,
-            maxLines: 1,
+            maxLines: 10,
             softWrap: true,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(

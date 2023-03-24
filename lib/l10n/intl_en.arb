@@ -73,5 +73,8 @@
         "example": "Are you sure you want to delete the selected notes?"
       }
     }
-  }
+  },
+  "prefs_layout": "Notes Layout",
+  "layout_grid": "Grid Layout",
+  "layout_column": "Column Layout"
 }

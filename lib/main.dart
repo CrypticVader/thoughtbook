@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thoughtbook/constants/routes.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
@@ -20,7 +21,7 @@ import 'package:thoughtbook/views/register_view.dart';
 import 'package:thoughtbook/views/verify_email_view.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
