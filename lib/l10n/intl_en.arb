@@ -56,6 +56,8 @@
   "verify_email_send_email_verification": "Resend verification email",
   "verify_email_view_back_to_login": "Verified? Go to login page",
   "notes_view_create_note_to_see_here": "Create a new note to see it here",
+  "notes_view_list_layout": "List Layout",
+  "notes_view_grid_layout": "Grid Layout",
   "notes_title": "{count, plural, =0{{app_title}} other{{count} selected}}",
   "@notes_title": {
     "placeholders": {
@@ -74,6 +76,7 @@
       }
     }
   },
+  "notes_list_view_invalid_layout_error": "Invalid layout mode. Using List layout as fallback.",
   "prefs_layout": "Notes Layout",
   "layout_grid": "Grid Layout",
   "layout_column": "Column Layout"

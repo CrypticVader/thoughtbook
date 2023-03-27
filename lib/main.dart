@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thoughtbook/constants/routes.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
@@ -141,32 +140,11 @@ class HomePage extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        return Container(
-          color: context.theme.colorScheme.background,
-          child: AnimatedSwitcher(
-            switchInCurve: Curves.easeInOutQuad,
-            switchOutCurve: Curves.easeInOutQuad,
-            duration: const Duration(milliseconds: 270),
-            reverseDuration: const Duration(milliseconds: 700),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return Stack(
-                children: [
-                  SlideTransition(
-                    position: animation.drive(
-                      Tween<Offset>(
-                        begin: const Offset(1, 0.0),
-                        end: Offset.zero,
-                      ),
-                    ),
-                    child: child,
-                  ),
-                ],
-              );
-            },
-            child: _getMainLayout(
-              state: state,
-              context: context,
-            ),
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _getMainLayout(
+            state: state,
+            context: context,
           ),
         );
       },
