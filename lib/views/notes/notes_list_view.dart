@@ -56,7 +56,7 @@ class _NotesListViewState extends State<NotesListView> {
     }
   }
 
-  void onNoteDismissed(CloudNote note, int index) async {
+  void onNoteDismissed(CloudNote note, int index) {
     setState(() {
       widget.notes.remove(note);
     });
@@ -75,16 +75,16 @@ class _NotesListViewState extends State<NotesListView> {
         },
       ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
-    if (shouldDelete) {
-      widget.onDeleteNote(note);
-    } else {
-      // TODO: restore is broken
-      setState(() {
-        widget.notes.insert(index, note);
-      });
-    }
+    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((value) {
+      if (shouldDelete) {
+        widget.onDeleteNote(note);
+      } else {
+        setState(() {
+          widget.notes.insert(index, note);
+        });
+      }
+    });
   }
 
   @override
@@ -164,7 +164,6 @@ class NoteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Wrap with FadeTransition
     return Dismissible(
       onDismissed: (direction) => onDismissNote(note),
       key: ValueKey(note),
