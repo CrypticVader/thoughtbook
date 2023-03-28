@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:thoughtbook/constants/preferences.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
-import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/error_dialog.dart';
 
 typedef NoteCallback = void Function(CloudNote note);
 
 class NotesListView extends StatefulWidget {
   final String layoutPreference;
-  final Iterable<CloudNote> notes;
+  final List<CloudNote> notes;
   final NoteCallback onDeleteNote;
   final NoteCallback onCopyNote;
   final NoteCallback onTap;
@@ -43,7 +41,6 @@ class _NotesListViewState extends State<NotesListView> {
       if (width < 150) {
         return 1;
       }
-
       int count = (width / 280).round();
       if (count < 2) {
         return 2;
@@ -56,6 +53,37 @@ class _NotesListViewState extends State<NotesListView> {
         context.loc.notes_list_view_invalid_layout_error,
       );
       return 1;
+    }
+  }
+
+  void onNoteDismissed(CloudNote note, int index) async {
+    setState(() {
+      widget.notes.remove(note);
+    });
+
+    bool shouldDelete = true;
+
+    final snackBar = SnackBar(
+      content: Text(context.loc.note_deleted),
+      dismissDirection: DismissDirection.startToEnd,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(4.0),
+      action: SnackBarAction(
+        label: context.loc.undo,
+        onPressed: () {
+          shouldDelete = false;
+        },
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+    if (shouldDelete) {
+      widget.onDeleteNote(note);
+    } else {
+      // TODO: restore is broken
+      setState(() {
+        widget.notes.insert(index, note);
+      });
     }
   }
 
@@ -98,6 +126,7 @@ class _NotesListViewState extends State<NotesListView> {
             onCopyNote: (note) => widget.onCopyNote(note),
             onTap: (note) => widget.onTap(note),
             onLongPress: (note) => widget.onLongPress(note),
+            onDismissNote: (note) => onNoteDismissed(note, index),
           );
         },
       );
@@ -111,6 +140,7 @@ class NoteItem extends StatelessWidget {
     required this.note,
     required this.isSelected,
     required this.onDeleteNote,
+    required this.onDismissNote,
     required this.onCopyNote,
     required this.onTap,
     required this.onLongPress,
@@ -119,6 +149,7 @@ class NoteItem extends StatelessWidget {
   final CloudNote note;
   final bool isSelected;
   final NoteCallback onDeleteNote;
+  final NoteCallback onDismissNote;
   final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
@@ -133,34 +164,10 @@ class NoteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //TODO: Replace Slidable with Dismissible
-    return Slidable(
+    // TODO: Wrap with FadeTransition
+    return Dismissible(
+      onDismissed: (direction) => onDismissNote(note),
       key: ValueKey(note),
-      endActionPane: ActionPane(
-        motion: const ScrollMotion(),
-        children: [
-          const SizedBox(
-            width: 8,
-          ),
-          SlidableAction(
-            flex: 1,
-            onPressed: (context) async {
-              final shouldDelete = await showDeleteDialog(
-                context: context,
-                content: context.loc.delete_note_prompt,
-              );
-              if (shouldDelete) {
-                onDeleteNote(note);
-              }
-            },
-            borderRadius: BorderRadius.circular(64),
-            backgroundColor: context.theme.colorScheme.error,
-            foregroundColor: context.theme.colorScheme.onError,
-            icon: Icons.delete_rounded,
-            label: context.loc.delete,
-          ),
-        ],
-      ),
       child: Card(
         elevation: 0,
         surfaceTintColor: Colors.transparent,

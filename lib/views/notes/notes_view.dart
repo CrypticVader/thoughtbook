@@ -28,7 +28,6 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   late final FirebaseCloudStorage _notesService;
-  late String _layoutPreference;
 
   String get userId => AuthService.firebase().currentUser!.id;
   List<CloudNote> _selectedNotes = [];
@@ -36,22 +35,13 @@ class _NotesViewState extends State<NotesView> {
   @override
   void initState() {
     _notesService = FirebaseCloudStorage();
-    initLayoutPreference();
+    LayoutPreferences.initLayoutPreference();
     super.initState();
   }
 
-  void initLayoutPreference() async {
-    final tempPref = await LayoutPreferences.getLayoutPreference();
-    setState(() {
-      _layoutPreference = tempPref;
-    });
-  }
-
   Future<void> _onToggleLayout() async {
-    LayoutPreferences.toggleLayoutPreference();
-    final tempPref = await LayoutPreferences.getLayoutPreference();
     setState(() {
-      _layoutPreference = tempPref;
+      LayoutPreferences.toggleLayoutPreference();
     });
   }
 
@@ -176,7 +166,7 @@ class _NotesViewState extends State<NotesView> {
     return null;
   }
 
-  AppBar _getDefaultAppBar() {
+  AppBar _getDefaultAppBar(String layoutPreference) {
     return AppBar(
       key: ValueKey<bool>(_selectedNotes.isEmpty),
       toolbarHeight: 64,
@@ -188,10 +178,12 @@ class _NotesViewState extends State<NotesView> {
         // To toggle the notes layout
         IconButton(
           onPressed: () => _onToggleLayout(),
-          icon: Icon((_layoutPreference == listLayoutPref)
-              ? Icons.grid_view_rounded
-              : Icons.list_rounded),
-          tooltip: _layoutPreference == listLayoutPref
+          icon: Icon(
+            (layoutPreference == listLayoutPref)
+                ? Icons.grid_view_rounded
+                : Icons.list_rounded,
+          ),
+          tooltip: layoutPreference == listLayoutPref
               ? context.loc.notes_view_grid_layout
               : context.loc.notes_view_list_layout,
         ),
@@ -350,84 +342,108 @@ class _NotesViewState extends State<NotesView> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (_selectedNotes.isEmpty) {
-          return true;
-        } else {
-          _onClearSelectedNotes();
-          return false;
+    return FutureBuilder(
+      future: LayoutPreferences.getLayoutPreference(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+          case ConnectionState.active:
+          case ConnectionState.done:
+            if (snapshot.hasData) {
+              final layoutPref = snapshot.data!;
+              return WillPopScope(
+                onWillPop: () async {
+                  if (_selectedNotes.isEmpty) {
+                    return true;
+                  } else {
+                    _onClearSelectedNotes();
+                    return false;
+                  }
+                },
+                child: Scaffold(
+                  appBar: PreferredSize(
+                    preferredSize: const Size.fromHeight(kToolbarHeight),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: (_selectedNotes.isEmpty)
+                          ? _getDefaultAppBar(layoutPref)
+                          : _getNotesSelectedAppBar(),
+                    ),
+                  ),
+                  floatingActionButton: _selectedNotes.isEmpty
+                      ? FloatingActionButton(
+                          tooltip: context.loc.new_note,
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              createOrUpdateNoteRoute,
+                              arguments: {
+                                'note': null,
+                                'shouldAutofocus': true,
+                              },
+                            );
+                          },
+                          child: Icon(
+                            Icons.add_rounded,
+                            size: 42,
+                            color: context.theme.colorScheme.onPrimaryContainer,
+                          ),
+                        )
+                      : null,
+                  body: StreamBuilder(
+                    stream: _notesService.allNotes(ownerUserId: userId),
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                        case ConnectionState.active:
+                          if (snapshot.hasData) {
+                            final allNotes = snapshot.data!.toList();
+                            return NotesListView(
+                              layoutPreference: layoutPref,
+                              notes: allNotes,
+                              selectedNotes: _selectedNotes,
+                              onDeleteNote: (note) => _onDeleteNote(
+                                note: note,
+                                context: context,
+                              ),
+                              onCopyNote: (note) => _onCopyNote(
+                                note: note,
+                                context: context,
+                              ),
+                              onTap: _onTapNote,
+                              onLongPress: _onLongPressNote,
+                            );
+                          } else {
+                            return Center(
+                              child: Text(
+                                context.loc.notes_view_create_note_to_see_here,
+                              ),
+                            );
+                          }
+                        default:
+                          return Center(
+                            child: SpinKitDoubleBounce(
+                              color: context.theme.colorScheme.primary,
+                              size: 60,
+                            ),
+                          );
+                      }
+                    },
+                  ),
+                ),
+              );
+            } else {
+              return SpinKitChasingDots(
+                color: context.theme.colorScheme.primary,
+                size: 60,
+              );
+            }
+          default:
+            return SpinKitChasingDots(
+              color: context.theme.colorScheme.primary,
+              size: 60,
+            );
         }
       },
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: (_selectedNotes.isEmpty)
-                ? _getDefaultAppBar()
-                : _getNotesSelectedAppBar(),
-          ),
-        ),
-        floatingActionButton: _selectedNotes.isEmpty
-            ? FloatingActionButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    createOrUpdateNoteRoute,
-                    arguments: {
-                      'note': null,
-                      'shouldAutofocus': true,
-                    },
-                  );
-                },
-                child: Icon(
-                  Icons.add_rounded,
-                  size: 42,
-                  color: context.theme.colorScheme.onPrimaryContainer,
-                ),
-              )
-            : null,
-        body: StreamBuilder(
-          stream: _notesService.allNotes(ownerUserId: userId),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-              case ConnectionState.active:
-                if (snapshot.hasData) {
-                  final allNotes = snapshot.data as Iterable<CloudNote>;
-                  return NotesListView(
-                    layoutPreference: _layoutPreference,
-                    notes: allNotes,
-                    selectedNotes: _selectedNotes,
-                    onDeleteNote: (note) => _onDeleteNote(
-                      note: note,
-                      context: context,
-                    ),
-                    onCopyNote: (note) => _onCopyNote(
-                      note: note,
-                      context: context,
-                    ),
-                    onTap: _onTapNote,
-                    onLongPress: _onLongPressNote,
-                  );
-                } else {
-                  return Center(
-                    child: Text(
-                      context.loc.notes_view_create_note_to_see_here,
-                    ),
-                  );
-                }
-              default:
-                return Center(
-                  child: SpinKitDoubleBounce(
-                    color: context.theme.colorScheme.primary,
-                    size: 60,
-                  ),
-                );
-            }
-          },
-        ),
-      ),
     );
   }
 }

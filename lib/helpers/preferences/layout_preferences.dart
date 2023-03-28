@@ -5,7 +5,7 @@ class LayoutPreferences {
   static final Future<SharedPreferences> _prefs =
       SharedPreferences.getInstance();
 
-  static void _initLayoutPreference() async {
+  static void initLayoutPreference() async {
     SharedPreferences prefs = await _prefs;
     if (prefs.getString(layoutPrefKey) == null) {
       await prefs.setString(layoutPrefKey, listLayoutPref);
@@ -21,7 +21,7 @@ class LayoutPreferences {
     final prefs = await _prefs;
     final currentLayout = prefs.getString(layoutPrefKey);
     if (currentLayout == null) {
-      _initLayoutPreference();
+      initLayoutPreference();
     }
     return prefs.getString(layoutPrefKey)!;
   }
