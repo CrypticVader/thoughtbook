@@ -4,7 +4,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/auth_service.dart';
-import 'package:thoughtbook/styles/text_styles.dart';
 import 'package:thoughtbook/utilities/dialogs/cannot_share_empty_note_dialog.dart';
 import 'package:thoughtbook/utilities/generics/get_arguments.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
@@ -20,21 +19,23 @@ class CreateUpdateNoteView extends StatefulWidget {
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   CloudNote? _note;
   late final FirebaseCloudStorage _notesService;
-  late final TextEditingController _textController;
+  late final TextEditingController _noteContentController;
+  late final TextEditingController _noteTitleController;
 
   @override
   void initState() {
     super.initState();
     _notesService = FirebaseCloudStorage();
-    _textController = TextEditingController();
+    _noteContentController = TextEditingController();
+    _noteTitleController = TextEditingController();
   }
 
-  void _textControllerListener() async {
+  void _noteContentControllerListener() async {
     final note = _note;
     if (note == null) {
       return;
     }
-    final text = _textController.text;
+    final text = _noteContentController.text;
     await _notesService.updateNote(
       text: text,
       documentId: note.documentId,
@@ -42,15 +43,15 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   }
 
   void _setupTextControllerListener() {
-    _textController.removeListener(_textControllerListener);
-    _textController.addListener(_textControllerListener);
+    _noteContentController.removeListener(_noteContentControllerListener);
+    _noteContentController.addListener(_noteContentControllerListener);
   }
 
   Future<CloudNote> createOrGetExistingNote(BuildContext context) async {
-    final widgetNote = context.getArgument<CloudNote>();
+    final widgetNote = context.getArgument<Map>()!['note'];
     if (widgetNote != null) {
       _note = widgetNote;
-      _textController.text = widgetNote.text;
+      _noteContentController.text = widgetNote.text;
       return widgetNote;
     }
 
@@ -67,14 +68,14 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
 
   void _deleteNoteIfTextIsEmpty() {
     final note = _note;
-    if (_textController.text.isEmpty && note != null) {
+    if (_noteContentController.text.isEmpty && note != null) {
       _notesService.deleteNote(documentId: note.documentId);
     }
   }
 
   void _saveNoteIfTextIsNotEmpty() async {
     final note = _note;
-    final text = _textController.text;
+    final text = _noteContentController.text;
     if (note != null && text.isNotEmpty) {
       await _notesService.updateNote(
         documentId: note.documentId,
@@ -87,22 +88,24 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   void dispose() {
     _deleteNoteIfTextIsEmpty();
     _saveNoteIfTextIsNotEmpty();
-    _textController.dispose();
+    _noteContentController.dispose();
+    _noteTitleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool shouldAutofocus =
+        context.getArgument<Map>()?['shouldAutofocus'] ?? true;
+
     return Scaffold(
+      backgroundColor: context.theme.colorScheme.primaryContainer,
       appBar: AppBar(
-        title: Text(
-          context.loc.note,
-          style: CustomTextStyle(context).appBarTitle,
-        ),
+        backgroundColor: context.theme.colorScheme.primaryContainer,
         actions: [
           IconButton(
             onPressed: () async {
-              final text = _textController.text;
+              final text = _noteContentController.text;
               if (_note == null || text.isEmpty) {
                 await showCannotShareEmptyNoteDialog(context);
               } else {
@@ -114,45 +117,67 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: FutureBuilder(
-          future: createOrGetExistingNote(context),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.done:
-                _setupTextControllerListener();
-                return AnimatedSize(
-                  duration: const Duration(milliseconds: 200),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-                      child: TextField(
-                          minLines: 4,
-                          autofocus: true,
-                          controller: _textController,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            hintText: context.loc.start_typing_your_note,
-                            border: InputBorder.none,
-                          )),
-                    ),
+      body: FutureBuilder(
+        future: createOrGetExistingNote(context),
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.done:
+              _setupTextControllerListener();
+
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _noteTitleController,
+                        autofocus: false,
+                        style: TextStyle(
+                          color: context.theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 22.0,
+                        ),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Title',
+                          hintStyle: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 22.0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 8,
+                      ),
+                      TextField(
+                        autofocus: shouldAutofocus,
+                        controller: _noteContentController,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        style: TextStyle(
+                          color: context.theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 16.0,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: context.loc.start_typing_your_note,
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              default:
-                return Center(
-                  child: SpinKitDoubleBounce(
-                    color: context.theme.colorScheme.primary,
-                    size: 60,
-                  ),
-                );
-            }
-          },
-        ),
+                ),
+              );
+            default:
+              return Center(
+                child: SpinKitDoubleBounce(
+                  color: context.theme.colorScheme.primary,
+                  size: 60,
+                ),
+              );
+          }
+        },
       ),
     );
   }

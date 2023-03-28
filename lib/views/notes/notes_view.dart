@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' show ReadContext;
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:thoughtbook/constants/preferences.dart';
 import 'package:thoughtbook/constants/routes.dart';
 import 'package:thoughtbook/enums/menu_action.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/helpers/preferences/layout_preferences.dart';
 import 'package:thoughtbook/services/auth/auth_service.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
@@ -26,14 +28,21 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   late final FirebaseCloudStorage _notesService;
-  List<CloudNote> _selectedNotes = [];
 
   String get userId => AuthService.firebase().currentUser!.id;
+  List<CloudNote> _selectedNotes = [];
 
   @override
   void initState() {
     _notesService = FirebaseCloudStorage();
+    LayoutPreferences.initLayoutPreference();
     super.initState();
+  }
+
+  Future<void> _onToggleLayout() async {
+    setState(() {
+      LayoutPreferences.toggleLayoutPreference();
+    });
   }
 
   void _onTapNote(CloudNote note) async {
@@ -53,7 +62,10 @@ class _NotesViewState extends State<NotesView> {
     } else {
       Navigator.of(context).pushNamed(
         createOrUpdateNoteRoute,
-        arguments: note,
+        arguments: {
+          'note': note,
+          'shouldAutofocus': false,
+        },
       );
     }
   }
@@ -154,7 +166,7 @@ class _NotesViewState extends State<NotesView> {
     return null;
   }
 
-  AppBar _getDefaultAppBar() {
+  AppBar _getDefaultAppBar(String layoutPreference) {
     return AppBar(
       key: ValueKey<bool>(_selectedNotes.isEmpty),
       toolbarHeight: 64,
@@ -163,45 +175,17 @@ class _NotesViewState extends State<NotesView> {
         style: CustomTextStyle(context).appBarTitle,
       ),
       actions: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
-          },
-          style: ElevatedButton.styleFrom(
-            shadowColor: Colors.transparent,
-            elevation: 0,
-            backgroundColor:
-                context.theme.colorScheme.secondaryContainer.withOpacity(0.7),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+        // To toggle the notes layout
+        IconButton(
+          onPressed: () => _onToggleLayout(),
+          icon: Icon(
+            (layoutPreference == listLayoutPref)
+                ? Icons.grid_view_rounded
+                : Icons.list_rounded,
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8,
-              horizontal: 0,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.add_rounded,
-                  size: 28,
-                ),
-                const SizedBox(
-                  width: 6,
-                ),
-                Text(
-                  context.loc.note,
-                  style: const TextStyle(
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          tooltip: layoutPreference == listLayoutPref
+              ? context.loc.notes_view_grid_layout
+              : context.loc.notes_view_list_layout,
         ),
         PopupMenuButton<MenuAction>(
           shape:
@@ -358,65 +342,108 @@ class _NotesViewState extends State<NotesView> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (_selectedNotes.isEmpty) {
-          return true;
-        } else {
-          _onClearSelectedNotes();
-          return false;
+    return FutureBuilder(
+      future: LayoutPreferences.getLayoutPreference(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+          case ConnectionState.active:
+          case ConnectionState.done:
+            if (snapshot.hasData) {
+              final layoutPref = snapshot.data!;
+              return WillPopScope(
+                onWillPop: () async {
+                  if (_selectedNotes.isEmpty) {
+                    return true;
+                  } else {
+                    _onClearSelectedNotes();
+                    return false;
+                  }
+                },
+                child: Scaffold(
+                  appBar: PreferredSize(
+                    preferredSize: const Size.fromHeight(kToolbarHeight),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: (_selectedNotes.isEmpty)
+                          ? _getDefaultAppBar(layoutPref)
+                          : _getNotesSelectedAppBar(),
+                    ),
+                  ),
+                  floatingActionButton: _selectedNotes.isEmpty
+                      ? FloatingActionButton(
+                          tooltip: context.loc.new_note,
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              createOrUpdateNoteRoute,
+                              arguments: {
+                                'note': null,
+                                'shouldAutofocus': true,
+                              },
+                            );
+                          },
+                          child: Icon(
+                            Icons.add_rounded,
+                            size: 42,
+                            color: context.theme.colorScheme.onPrimaryContainer,
+                          ),
+                        )
+                      : null,
+                  body: StreamBuilder(
+                    stream: _notesService.allNotes(ownerUserId: userId),
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                        case ConnectionState.active:
+                          if (snapshot.hasData) {
+                            final allNotes = snapshot.data!.toList();
+                            return NotesListView(
+                              layoutPreference: layoutPref,
+                              notes: allNotes,
+                              selectedNotes: _selectedNotes,
+                              onDeleteNote: (note) => _onDeleteNote(
+                                note: note,
+                                context: context,
+                              ),
+                              onCopyNote: (note) => _onCopyNote(
+                                note: note,
+                                context: context,
+                              ),
+                              onTap: _onTapNote,
+                              onLongPress: _onLongPressNote,
+                            );
+                          } else {
+                            return Center(
+                              child: Text(
+                                context.loc.notes_view_create_note_to_see_here,
+                              ),
+                            );
+                          }
+                        default:
+                          return Center(
+                            child: SpinKitDoubleBounce(
+                              color: context.theme.colorScheme.primary,
+                              size: 60,
+                            ),
+                          );
+                      }
+                    },
+                  ),
+                ),
+              );
+            } else {
+              return SpinKitChasingDots(
+                color: context.theme.colorScheme.primary,
+                size: 60,
+              );
+            }
+          default:
+            return SpinKitChasingDots(
+              color: context.theme.colorScheme.primary,
+              size: 60,
+            );
         }
       },
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(64),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: (_selectedNotes.isEmpty)
-                ? _getDefaultAppBar()
-                : _getNotesSelectedAppBar(),
-          ),
-        ),
-        body: StreamBuilder(
-          stream: _notesService.allNotes(ownerUserId: userId),
-          builder: (context, snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-              case ConnectionState.active:
-                if (snapshot.hasData) {
-                  final allNotes = snapshot.data as Iterable<CloudNote>;
-                  return NotesListView(
-                    notes: allNotes,
-                    selectedNotes: _selectedNotes,
-                    onDeleteNote: (note) => _onDeleteNote(
-                      note: note,
-                      context: context,
-                    ),
-                    onCopyNote: (note) => _onCopyNote(
-                      note: note,
-                      context: context,
-                    ),
-                    onTap: _onTapNote,
-                    onLongPress: _onLongPressNote,
-                  );
-                } else {
-                  return Center(
-                    child: Text(
-                      context.loc.notes_view_create_note_to_see_here,
-                    ),
-                  );
-                }
-              default:
-                return Center(
-                  child: SpinKitDoubleBounce(
-                    color: context.theme.colorScheme.primary,
-                    size: 60,
-                  ),
-                );
-            }
-          },
-        ),
-      ),
     );
   }
 }
