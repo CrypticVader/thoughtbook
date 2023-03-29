@@ -30,28 +30,31 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     _noteTitleController = TextEditingController();
   }
 
-  void _noteContentControllerListener() async {
+  void _noteControllerListener() async {
     final note = _note;
     if (note == null) {
       return;
     }
-    final text = _noteContentController.text;
+    final title = _noteTitleController.text;
+    final content = _noteContentController.text;
     await _notesService.updateNote(
-      text: text,
+      title: title,
+      content: content,
       documentId: note.documentId,
     );
   }
 
   void _setupTextControllerListener() {
-    _noteContentController.removeListener(_noteContentControllerListener);
-    _noteContentController.addListener(_noteContentControllerListener);
+    _noteContentController.removeListener(_noteControllerListener);
+    _noteContentController.addListener(_noteControllerListener);
   }
 
   Future<CloudNote> createOrGetExistingNote(BuildContext context) async {
-    final widgetNote = context.getArgument<Map>()!['note'];
+    final CloudNote? widgetNote = context.getArgument<Map>()!['note'];
     if (widgetNote != null) {
       _note = widgetNote;
-      _noteContentController.text = widgetNote.text;
+      _noteTitleController.text = widgetNote.title;
+      _noteContentController.text = widgetNote.content;
       return widgetNote;
     }
 
@@ -75,11 +78,13 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
 
   void _saveNoteIfTextIsNotEmpty() async {
     final note = _note;
-    final text = _noteContentController.text;
-    if (note != null && text.isNotEmpty) {
+    final title = _noteTitleController.text;
+    final content = _noteContentController.text;
+    if (note != null && content.isNotEmpty) {
       await _notesService.updateNote(
         documentId: note.documentId,
-        text: text,
+        content: content,
+        title: title,
       );
     }
   }
@@ -88,8 +93,8 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   void dispose() {
     _deleteNoteIfTextIsEmpty();
     _saveNoteIfTextIsNotEmpty();
-    _noteContentController.dispose();
     _noteTitleController.dispose();
+    _noteContentController.dispose();
     super.dispose();
   }
 
@@ -105,11 +110,12 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         actions: [
           IconButton(
             onPressed: () async {
-              final text = _noteContentController.text;
-              if (_note == null || text.isEmpty) {
+              final title = _noteTitleController.text;
+              final content = _noteContentController.text;
+              if (_note == null || content.isEmpty) {
                 await showCannotShareEmptyNoteDialog(context);
               } else {
-                Share.share(text);
+                Share.share('$title\n$content');
               }
             },
             icon: const Icon(Icons.share_rounded),

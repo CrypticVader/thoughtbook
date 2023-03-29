@@ -64,16 +64,27 @@ class _NotesListViewState extends State<NotesListView> {
     bool shouldDelete = true;
 
     final snackBar = SnackBar(
-      content: Text(context.loc.note_deleted),
+      duration: const Duration(seconds: 4),
+      content: Row(
+        children: [
+          Text(context.loc.note_deleted),
+          const Spacer(
+            flex: 1,
+          ),
+          TextButton(
+            onPressed: () {
+              shouldDelete = false;
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+            child: Text(
+              context.loc.undo,
+            ),
+          ),
+        ],
+      ),
       dismissDirection: DismissDirection.startToEnd,
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.all(4.0),
-      action: SnackBarAction(
-        label: context.loc.undo,
-        onPressed: () {
-          shouldDelete = false;
-        },
-      ),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((value) {
@@ -134,7 +145,7 @@ class _NotesListViewState extends State<NotesListView> {
   }
 }
 
-class NoteItem extends StatelessWidget {
+class NoteItem extends StatefulWidget {
   const NoteItem({
     Key? key,
     required this.note,
@@ -154,8 +165,13 @@ class NoteItem extends StatelessWidget {
   final NoteCallback onTap;
   final NoteCallback onLongPress;
 
+  @override
+  State<NoteItem> createState() => _NoteItemState();
+}
+
+class _NoteItemState extends State<NoteItem> {
   Color _getTileColor(BuildContext context) {
-    if (isSelected) {
+    if (widget.isSelected) {
       return context.theme.colorScheme.primaryContainer;
     } else {
       return context.theme.colorScheme.primaryContainer.withAlpha(140);
@@ -163,10 +179,12 @@ class NoteItem extends StatelessWidget {
   }
 
   @override
+  //TODO: Stack a delete icon with red background on top of the note, and show it when dismissal threshold is reached
   Widget build(BuildContext context) {
     return Dismissible(
-      onDismissed: (direction) => onDismissNote(note),
-      key: ValueKey(note),
+      onUpdate: (details) {},
+      onDismissed: (direction) => widget.onDismissNote(widget.note),
+      key: ValueKey(widget.note),
       child: Card(
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -175,12 +193,12 @@ class NoteItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
         ),
         child: ListTile(
-          onTap: () => onTap(note),
-          onLongPress: () => onLongPress(note),
+          onTap: () => widget.onTap(widget.note),
+          onLongPress: () => widget.onLongPress(widget.note),
           tileColor: _getTileColor(context),
           contentPadding: const EdgeInsets.all(16.0),
           shape: RoundedRectangleBorder(
-            side: isSelected
+            side: widget.isSelected
                 ? BorderSide(
                     width: 3,
                     color: context.theme.colorScheme.primary,
@@ -188,20 +206,24 @@ class NoteItem extends StatelessWidget {
                 : BorderSide.none,
             borderRadius: BorderRadius.circular(18),
           ),
-          title: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 8.0),
-            child: Text('Title',
-                maxLines: 10,
-                softWrap: true,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: context.theme.colorScheme.onSecondaryContainer,
-                  fontSize: 17.0,
-                  fontWeight: FontWeight.w600,
-                )),
-          ),
+          title: widget.note.title.isNotEmpty
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 8.0),
+                  child: Text(
+                    widget.note.title,
+                    maxLines: 10,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.theme.colorScheme.onSecondaryContainer,
+                      fontSize: 17.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : null,
           subtitle: Text(
-            note.text,
+            widget.note.content,
             maxLines: 10,
             softWrap: true,
             overflow: TextOverflow.ellipsis,

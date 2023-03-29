@@ -48,7 +48,7 @@ Future<void> showNoteItemModalBottomSheet({
               ),
               onTap: () {
                 Navigator.of(context).pop();
-                Share.share(note.text);
+                Share.share(note.content);
               },
               leading: const Icon(Icons.share_rounded),
               title: Text(context.loc.share_note),
