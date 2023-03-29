@@ -91,7 +91,7 @@ class _NotesViewState extends State<NotesView> {
     required CloudNote note,
   }) async {
     await Clipboard.setData(
-      ClipboardData(text: note.text),
+      ClipboardData(text: '${note.title}\n${note.content}'),
     ).then(
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -255,7 +255,7 @@ class _NotesViewState extends State<NotesView> {
           onSelected: (value) async {
             switch (value) {
               case MenuAction.share:
-                Share.share(_selectedNotes.first.text);
+                Share.share(_selectedNotes.first.content);
                 break;
               case MenuAction.delete:
                 final shouldDelete = await showDeleteDialog(
