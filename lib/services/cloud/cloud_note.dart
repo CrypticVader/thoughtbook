@@ -8,19 +8,22 @@ class CloudNote {
   final String ownerUserId;
   final String content;
   final String title;
+  final String color;
 
   const CloudNote({
     required this.documentId,
     required this.ownerUserId,
     required this.title,
     required this.content,
+    required this.color,
   });
 
   CloudNote.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
       : documentId = snapshot.id,
         ownerUserId = snapshot.data()[ownerUserIdFieldName],
         content = snapshot.data()[contentFieldName] as String,
-        title = snapshot.data()[titleFieldName] as String;
+        title = snapshot.data()[titleFieldName] as String,
+        color = snapshot.data()[colorFieldName];
 
   @override
   bool operator ==(covariant CloudNote other) => documentId == other.documentId;

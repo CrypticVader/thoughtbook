@@ -56,7 +56,7 @@ class _NotesListViewState extends State<NotesListView> {
     }
   }
 
-  void onNoteDismissed(CloudNote note, int index) {
+  Future<void> onNoteDismissed(CloudNote note, int index) async {
     setState(() {
       widget.notes.remove(note);
     });
@@ -64,20 +64,53 @@ class _NotesListViewState extends State<NotesListView> {
     bool shouldDelete = true;
 
     final snackBar = SnackBar(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 6.0,
+      ),
+      backgroundColor: context.theme.colorScheme.tertiary,
       duration: const Duration(seconds: 4),
       content: Row(
         children: [
-          Text(context.loc.note_deleted),
+          Text(
+            context.loc.note_deleted,
+            style: TextStyle(
+              color: context.theme.colorScheme.onTertiary,
+            ),
+          ),
           const Spacer(
             flex: 1,
           ),
-          TextButton(
-            onPressed: () {
+          InkWell(
+            borderRadius: BorderRadius.circular(24.0),
+            onTap: () {
               shouldDelete = false;
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
             },
-            child: Text(
-              context.loc.undo,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.restore_rounded,
+                    color: context.theme.colorScheme.onTertiary,
+                    size: 22,
+                  ),
+                  const SizedBox(
+                    width: 4.0,
+                  ),
+                  Text(
+                    context.loc.undo,
+                    style: TextStyle(
+                      color: context.theme.colorScheme.onTertiary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -87,7 +120,10 @@ class _NotesListViewState extends State<NotesListView> {
       margin: const EdgeInsets.all(4.0),
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((value) {
+    await ScaffoldMessenger.of(context)
+        .showSnackBar(snackBar)
+        .closed
+        .then((value) {
       if (shouldDelete) {
         widget.onDeleteNote(note);
       } else {
@@ -170,19 +206,13 @@ class NoteItem extends StatefulWidget {
 }
 
 class _NoteItemState extends State<NoteItem> {
-  Color _getTileColor(BuildContext context) {
-    if (widget.isSelected) {
-      return context.theme.colorScheme.primaryContainer;
-    } else {
-      return context.theme.colorScheme.primaryContainer.withAlpha(140);
-    }
-  }
-
   @override
-  //TODO: Stack a delete icon with red background on top of the note, and show it when dismissal threshold is reached
   Widget build(BuildContext context) {
     return Dismissible(
-      onUpdate: (details) {},
+      dismissThresholds: const {
+        DismissDirection.startToEnd: 0.25,
+        DismissDirection.endToStart: 0.25,
+      },
       onDismissed: (direction) => widget.onDismissNote(widget.note),
       key: ValueKey(widget.note),
       child: Card(
@@ -193,9 +223,13 @@ class _NoteItemState extends State<NoteItem> {
           borderRadius: BorderRadius.circular(18),
         ),
         child: ListTile(
+          isThreeLine: true,
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          minVerticalPadding: 0.0,
           onTap: () => widget.onTap(widget.note),
           onLongPress: () => widget.onLongPress(widget.note),
-          tileColor: _getTileColor(context),
+          tileColor: context.theme.colorScheme.surfaceVariant.withAlpha(120),
           contentPadding: const EdgeInsets.all(16.0),
           shape: RoundedRectangleBorder(
             side: widget.isSelected
@@ -215,7 +249,7 @@ class _NoteItemState extends State<NoteItem> {
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: context.theme.colorScheme.onSecondaryContainer,
+                      color: context.theme.colorScheme.onSurface,
                       fontSize: 17.0,
                       fontWeight: FontWeight.w600,
                     ),
@@ -228,7 +262,7 @@ class _NoteItemState extends State<NoteItem> {
             softWrap: true,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: context.theme.colorScheme.onSecondaryContainer,
+              color: context.theme.colorScheme.onSurface,
               fontSize: 14.0,
               fontWeight: FontWeight.normal,
             ),

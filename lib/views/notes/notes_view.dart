@@ -15,6 +15,7 @@ import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
 import 'package:thoughtbook/styles/text_styles.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/logout_dialog.dart';
+import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 import 'package:thoughtbook/views/notes/notes_list_view.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
 import 'package:thoughtbook/services/cloud/firebase_cloud_storage.dart';
@@ -84,6 +85,15 @@ class _NotesViewState extends State<NotesView> {
         },
       );
     }
+  }
+
+  void _onChangeNoteColor(CloudNote note, Color color) {
+    _notesService.updateNote(
+      documentId: note.documentId,
+      title: note.title,
+      content: note.content,
+      color: color.toString(),
+    );
   }
 
   Future<void> _onCopyNote({
@@ -251,9 +261,13 @@ class _NotesViewState extends State<NotesView> {
         ),
         PopupMenuButton<MenuAction>(
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
           onSelected: (value) async {
             switch (value) {
+              case MenuAction.color:
+                //TODO: Implement color change function
+                showColorPickerModalBottomSheet(context);
+                break;
               case MenuAction.share:
                 Share.share(_selectedNotes.first.content);
                 break;
@@ -280,6 +294,24 @@ class _NotesViewState extends State<NotesView> {
           },
           itemBuilder: (context) {
             return [
+              if (_selectedNotes.length == 1)
+                PopupMenuItem<MenuAction>(
+                  value: MenuAction.color,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.palette_rounded),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      Text(
+                        context.loc.change_color,
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               if (_selectedNotes.length == 1)
                 PopupMenuItem<MenuAction>(
                   value: MenuAction.share,

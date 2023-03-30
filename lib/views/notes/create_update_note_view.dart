@@ -4,10 +4,12 @@ import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/auth_service.dart';
+import 'package:thoughtbook/services/cloud/cloud_storage_constants.dart';
 import 'package:thoughtbook/utilities/dialogs/cannot_share_empty_note_dialog.dart';
 import 'package:thoughtbook/utilities/generics/get_arguments.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
 import 'package:thoughtbook/services/cloud/firebase_cloud_storage.dart';
+import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class CreateUpdateNoteView extends StatefulWidget {
 
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   CloudNote? _note;
+  Color? noteColor;
   late final FirebaseCloudStorage _notesService;
   late final TextEditingController _noteContentController;
   late final TextEditingController _noteTitleController;
@@ -41,6 +44,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       title: title,
       content: content,
       documentId: note.documentId,
+      color: note.color,
     );
   }
 
@@ -85,6 +89,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         documentId: note.documentId,
         content: content,
         title: title,
+        color: note.color,
       );
     }
   }
@@ -104,22 +109,52 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
         context.getArgument<Map>()?['shouldAutofocus'] ?? true;
 
     return Scaffold(
-      backgroundColor: context.theme.colorScheme.primaryContainer,
+      backgroundColor: noteColor ?? context.theme.colorScheme.surfaceVariant,
       appBar: AppBar(
-        backgroundColor: context.theme.colorScheme.primaryContainer,
+        toolbarHeight: 64.0,
+        backgroundColor: noteColor ?? context.theme.colorScheme.surfaceVariant,
         actions: [
-          IconButton(
-            onPressed: () async {
-              final title = _noteTitleController.text;
-              final content = _noteContentController.text;
-              if (_note == null || content.isEmpty) {
-                await showCannotShareEmptyNoteDialog(context);
-              } else {
-                Share.share('$title\n$content');
-              }
-            },
-            icon: const Icon(Icons.share_rounded),
-            tooltip: context.loc.share_note,
+          Container(
+            padding: const EdgeInsets.all(0.0),
+            decoration: BoxDecoration(
+              color: noteColor,
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  tooltip: context.loc.change_color,
+                  onPressed: () => showColorPickerModalBottomSheet(context),
+                  icon: const Icon(Icons.palette_rounded),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    final title = _noteTitleController.text;
+                    final content = _noteContentController.text;
+                    if (_note == null || content.isEmpty) {
+                      await showCannotShareEmptyNoteDialog(context);
+                    } else {
+                      Share.share('$title\n$content');
+                    }
+                  },
+                  icon: const Icon(Icons.share_rounded),
+                  tooltip: context.loc.share_note,
+                ),
+                IconButton(
+                  tooltip: context.loc.copy_text,
+                  onPressed: () {},
+                  icon: const Icon(Icons.copy_rounded),
+                ),
+                IconButton(
+                  tooltip: context.loc.delete,
+                  onPressed: () {},
+                  icon: const Icon(Icons.delete_rounded),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 8.0,
           ),
         ],
       ),
@@ -138,18 +173,20 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                     children: [
                       TextField(
                         controller: _noteTitleController,
+                        textInputAction: TextInputAction.next,
                         autofocus: false,
+                        maxLines: null,
                         style: TextStyle(
-                          color: context.theme.colorScheme.onPrimaryContainer,
+                          color: context.theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
-                          fontSize: 22.0,
+                          fontSize: 24.0,
                         ),
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Title',
                           hintStyle: TextStyle(
                             fontWeight: FontWeight.w600,
-                            fontSize: 22.0,
+                            fontSize: 24.0,
                           ),
                         ),
                       ),
@@ -162,7 +199,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
                         style: TextStyle(
-                          color: context.theme.colorScheme.onPrimaryContainer,
+                          color: context.theme.colorScheme.onSurface,
                           fontWeight: FontWeight.w400,
                           fontSize: 16.0,
                         ),
