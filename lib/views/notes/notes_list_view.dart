@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:thoughtbook/constants/preferences.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
@@ -11,11 +12,10 @@ typedef NoteCallback = void Function(CloudNote note);
 class NotesListView extends StatefulWidget {
   final String layoutPreference;
   final List<CloudNote> notes;
+  final List<CloudNote> selectedNotes;
   final NoteCallback onDeleteNote;
-  final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
-  final List<CloudNote> selectedNotes;
 
   const NotesListView({
     Key? key,
@@ -23,7 +23,6 @@ class NotesListView extends StatefulWidget {
     required this.notes,
     required this.selectedNotes,
     required this.onDeleteNote,
-    required this.onCopyNote,
     required this.onTap,
     required this.onLongPress,
   }) : super(key: key);
@@ -169,8 +168,6 @@ class _NotesListViewState extends State<NotesListView> {
           return NoteItem(
             note: note,
             isSelected: widget.selectedNotes.contains(note),
-            onDeleteNote: (note) => widget.onDeleteNote(note),
-            onCopyNote: (note) => widget.onCopyNote(note),
             onTap: (note) => widget.onTap(note),
             onLongPress: (note) => widget.onLongPress(note),
             onDismissNote: (note) => onNoteDismissed(note, index),
@@ -186,18 +183,14 @@ class NoteItem extends StatefulWidget {
     Key? key,
     required this.note,
     required this.isSelected,
-    required this.onDeleteNote,
     required this.onDismissNote,
-    required this.onCopyNote,
     required this.onTap,
     required this.onLongPress,
   }) : super(key: key);
 
   final CloudNote note;
   final bool isSelected;
-  final NoteCallback onDeleteNote;
   final NoteCallback onDismissNote;
-  final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
 
@@ -206,8 +199,21 @@ class NoteItem extends StatefulWidget {
 }
 
 class _NoteItemState extends State<NoteItem> {
+  late bool _isDarkMode;
+
+  Color _getNoteColor(BuildContext context, CloudNote note) {
+    if (note.color != null) {
+      return Color(note.color!);
+    }
+    return context.theme.colorScheme.surfaceVariant;
+  }
+
   @override
   Widget build(BuildContext context) {
+    _isDarkMode =
+        SchedulerBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark;
+
     return Dismissible(
       dismissThresholds: const {
         DismissDirection.startToEnd: 0.25,
@@ -227,9 +233,10 @@ class _NoteItemState extends State<NoteItem> {
           dense: true,
           visualDensity: VisualDensity.compact,
           minVerticalPadding: 0.0,
+          splashColor: _getNoteColor(context, widget.note).withAlpha(120),
           onTap: () => widget.onTap(widget.note),
           onLongPress: () => widget.onLongPress(widget.note),
-          tileColor: context.theme.colorScheme.surfaceVariant.withAlpha(120),
+          tileColor: _getNoteColor(context, widget.note).withAlpha(90),
           contentPadding: const EdgeInsets.all(16.0),
           shape: RoundedRectangleBorder(
             side: widget.isSelected
@@ -249,7 +256,9 @@ class _NoteItemState extends State<NoteItem> {
                     softWrap: true,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: context.theme.colorScheme.onSurface,
+                      color: _isDarkMode
+                          ? Colors.white.withAlpha(220)
+                          : Colors.black.withAlpha(220),
                       fontSize: 17.0,
                       fontWeight: FontWeight.w600,
                     ),
@@ -262,7 +271,9 @@ class _NoteItemState extends State<NoteItem> {
             softWrap: true,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: context.theme.colorScheme.onSurface,
+              color: _isDarkMode
+                  ? Colors.white.withAlpha(220)
+                  : Colors.black.withAlpha(220),
               fontSize: 14.0,
               fontWeight: FontWeight.normal,
             ),

@@ -14,11 +14,11 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<void> updateNote({
+  Future<CloudNote?> updateNote({
     required String documentId,
     required String title,
     required String content,
-    required String color,
+    required int? color,
   }) async {
     try {
       await notes.doc(documentId).update({
@@ -26,6 +26,14 @@ class FirebaseCloudStorage {
         contentFieldName: content,
         colorFieldName: color,
       });
+      final updatedNote = await notes.doc(documentId).get();
+      return CloudNote(
+        documentId: updatedNote.id,
+        ownerUserId: updatedNote[ownerUserIdFieldName],
+        title: updatedNote[titleFieldName],
+        content: updatedNote[contentFieldName],
+        color: updatedNote[colorFieldName],
+      );
     } catch (e) {
       throw CouldNotUpdateNoteException();
     }
@@ -53,7 +61,7 @@ class FirebaseCloudStorage {
         ownerUserIdFieldName: ownerUserId,
         titleFieldName: '',
         contentFieldName: '',
-        colorFieldName: '',
+        colorFieldName: null,
       },
     );
 
@@ -63,7 +71,7 @@ class FirebaseCloudStorage {
       ownerUserId: ownerUserId,
       title: '',
       content: '',
-      color: '',
+      color: null,
     );
   }
 

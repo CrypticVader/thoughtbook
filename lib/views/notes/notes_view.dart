@@ -87,12 +87,12 @@ class _NotesViewState extends State<NotesView> {
     }
   }
 
-  void _onChangeNoteColor(CloudNote note, Color color) {
-    _notesService.updateNote(
+  Future<void> _onChangeNoteColor(CloudNote note, Color? color) async {
+    await _notesService.updateNote(
       documentId: note.documentId,
       title: note.title,
       content: note.content,
-      color: color.toString(),
+      color: (color != null) ? color.value : null,
     );
   }
 
@@ -265,8 +265,16 @@ class _NotesViewState extends State<NotesView> {
           onSelected: (value) async {
             switch (value) {
               case MenuAction.color:
-                //TODO: Implement color change function
-                showColorPickerModalBottomSheet(context);
+                final note = _selectedNotes.first;
+                final currentColor =
+                    (note.color != null) ? Color(note.color!) : null;
+                final color = await showColorPickerModalBottomSheet(
+                  context: context,
+                  currentColor: currentColor,
+                );
+                if (color != currentColor) {
+                  _onChangeNoteColor(note, color);
+                }
                 break;
               case MenuAction.share:
                 Share.share(_selectedNotes.first.content);
@@ -434,10 +442,6 @@ class _NotesViewState extends State<NotesView> {
                               notes: allNotes,
                               selectedNotes: _selectedNotes,
                               onDeleteNote: (note) => _onDeleteNote(
-                                note: note,
-                                context: context,
-                              ),
-                              onCopyNote: (note) => _onCopyNote(
                                 note: note,
                                 context: context,
                               ),

@@ -8,7 +8,7 @@ class CloudNote {
   final String ownerUserId;
   final String content;
   final String title;
-  final String color;
+  final int? color;
 
   const CloudNote({
     required this.documentId,
@@ -33,6 +33,6 @@ class CloudNote {
 
   @override
   String toString() {
-    return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, title: $title, content: $content}';
+    return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, title: $title, color: $color, content: $content}';
   }
 }
