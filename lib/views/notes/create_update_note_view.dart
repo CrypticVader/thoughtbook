@@ -174,7 +174,6 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 actions: [
-                  // TODO: Use FadeTransition
                   Container(
                     padding: const EdgeInsets.all(0.0),
                     decoration: BoxDecoration(
@@ -218,9 +217,10 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                   ),
                 ],
               ),
-              body: Container(
+              body: AnimatedContainer(
                 color: _getNoteColor(context).withAlpha(90),
                 constraints: const BoxConstraints.expand(),
+                duration: const Duration(milliseconds: 200),
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),

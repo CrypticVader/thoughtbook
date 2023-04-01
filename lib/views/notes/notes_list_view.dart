@@ -1,20 +1,24 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:thoughtbook/constants/preferences.dart';
+import 'package:thoughtbook/constants/routes.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
 import 'package:thoughtbook/utilities/dialogs/error_dialog.dart';
+import 'package:thoughtbook/views/notes/create_update_note_view.dart';
 
 typedef NoteCallback = void Function(CloudNote note);
+typedef NoteBoolCallback = bool Function(CloudNote note);
 
 class NotesListView extends StatefulWidget {
   final String layoutPreference;
   final List<CloudNote> notes;
   final List<CloudNote> selectedNotes;
   final NoteCallback onDeleteNote;
-  final NoteCallback onTap;
+  final NoteBoolCallback onTap;
   final NoteCallback onLongPress;
 
   const NotesListView({
@@ -191,7 +195,7 @@ class NoteItem extends StatefulWidget {
   final CloudNote note;
   final bool isSelected;
   final NoteCallback onDismissNote;
-  final NoteCallback onTap;
+  final NoteBoolCallback onTap;
   final NoteCallback onLongPress;
 
   @override
@@ -214,69 +218,88 @@ class _NoteItemState extends State<NoteItem> {
         SchedulerBinding.instance.platformDispatcher.platformBrightness ==
             Brightness.dark;
 
-    return Dismissible(
-      dismissThresholds: const {
-        DismissDirection.startToEnd: 0.25,
-        DismissDirection.endToStart: 0.25,
-      },
-      onDismissed: (direction) => widget.onDismissNote(widget.note),
-      key: ValueKey(widget.note),
-      child: Card(
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        color: Colors.transparent,
-        shape: RoundedRectangleBorder(
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: Dismissible(
+        dismissThresholds: const {
+          DismissDirection.startToEnd: 0.25,
+          DismissDirection.endToStart: 0.25,
+        },
+        onDismissed: (direction) => widget.onDismissNote(widget.note),
+        key: ValueKey(widget.note),
+        child: InkWell(
           borderRadius: BorderRadius.circular(18),
-        ),
-        child: ListTile(
-          isThreeLine: true,
-          dense: true,
-          visualDensity: VisualDensity.compact,
-          minVerticalPadding: 0.0,
-          splashColor: _getNoteColor(context, widget.note).withAlpha(120),
-          onTap: () => widget.onTap(widget.note),
           onLongPress: () => widget.onLongPress(widget.note),
-          tileColor: _getNoteColor(context, widget.note).withAlpha(90),
-          contentPadding: const EdgeInsets.all(16.0),
-          shape: RoundedRectangleBorder(
-            side: widget.isSelected
-                ? BorderSide(
-                    width: 3,
-                    color: context.theme.colorScheme.primary,
-                  )
-                : BorderSide.none,
-            borderRadius: BorderRadius.circular(18),
-          ),
-          title: widget.note.title.isNotEmpty
-              ? Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 8.0),
-                  child: Text(
-                    widget.note.title,
-                    maxLines: 10,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: _isDarkMode
-                          ? Colors.white.withAlpha(220)
-                          : Colors.black.withAlpha(220),
-                      fontSize: 17.0,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )
-              : null,
-          subtitle: Text(
-            widget.note.content,
-            maxLines: 10,
-            softWrap: true,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: _isDarkMode
-                  ? Colors.white.withAlpha(220)
-                  : Colors.black.withAlpha(220),
-              fontSize: 14.0,
-              fontWeight: FontWeight.normal,
+          splashColor: _getNoteColor(context, widget.note).withAlpha(120),
+          child: OpenContainer(
+            transitionType: ContainerTransitionType.fade,
+            transitionDuration: const Duration(milliseconds: 250),
+            routeSettings: RouteSettings(
+              arguments: {
+                'note': widget.note,
+                'shouldAutofocus': false,
+              },
+              name: createOrUpdateNoteRoute,
             ),
+            closedElevation: 0,
+            openElevation: 0,
+            openColor: _getNoteColor(context, widget.note).withAlpha(90),
+            middleColor: _getNoteColor(context, widget.note),
+            closedColor: _getNoteColor(context, widget.note).withAlpha(90),
+            useRootNavigator: true,
+            closedShape: RoundedRectangleBorder(
+              side: widget.isSelected
+                  ? BorderSide(
+                      width: 3,
+                      color: context.theme.colorScheme.primary,
+                    )
+                  : BorderSide.none,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            closedBuilder: (context, action) {
+              return ListTile(
+                isThreeLine: true,
+                dense: true,
+                visualDensity: VisualDensity.compact,
+                minVerticalPadding: 0.0,
+                // onTap: () => widget.onTap(widget.note),
+                contentPadding: const EdgeInsets.all(14.0),
+                title: widget.note.title.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 8.0),
+                        child: Text(
+                          widget.note.title,
+                          maxLines: 10,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: _isDarkMode
+                                ? Colors.white.withAlpha(220)
+                                : Colors.black.withAlpha(220),
+                            fontSize: 17.0,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    : null,
+                subtitle: Text(
+                  widget.note.content,
+                  maxLines: 10,
+                  softWrap: true,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _isDarkMode
+                        ? Colors.white.withAlpha(220)
+                        : Colors.black.withAlpha(220),
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              );
+            },
+            openBuilder: (context, action) {
+              return const CreateUpdateNoteView();
+            },
           ),
         ),
       ),

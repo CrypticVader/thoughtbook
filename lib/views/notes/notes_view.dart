@@ -46,28 +46,23 @@ class _NotesViewState extends State<NotesView> {
     });
   }
 
-  void _onTapNote(CloudNote note) async {
+  bool _onTapNote(CloudNote note) {
     if (_selectedNotes.contains(note)) {
       setState(
         () {
           _selectedNotes.remove(note);
         },
       );
-      return;
+      return false;
     } else if (_selectedNotes.isNotEmpty) {
       setState(
         () {
           _selectedNotes.add(note);
         },
       );
+      return false;
     } else {
-      Navigator.of(context).pushNamed(
-        createOrUpdateNoteRoute,
-        arguments: {
-          'note': note,
-          'shouldAutofocus': false,
-        },
-      );
+      return true;
     }
   }
 
