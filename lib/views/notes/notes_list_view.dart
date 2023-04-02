@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:thoughtbook/constants/preferences.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
@@ -11,11 +12,10 @@ typedef NoteCallback = void Function(CloudNote note);
 class NotesListView extends StatefulWidget {
   final String layoutPreference;
   final List<CloudNote> notes;
+  final List<CloudNote> selectedNotes;
   final NoteCallback onDeleteNote;
-  final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
-  final List<CloudNote> selectedNotes;
 
   const NotesListView({
     Key? key,
@@ -23,7 +23,6 @@ class NotesListView extends StatefulWidget {
     required this.notes,
     required this.selectedNotes,
     required this.onDeleteNote,
-    required this.onCopyNote,
     required this.onTap,
     required this.onLongPress,
   }) : super(key: key);
@@ -56,7 +55,7 @@ class _NotesListViewState extends State<NotesListView> {
     }
   }
 
-  void onNoteDismissed(CloudNote note, int index) {
+  Future<void> onNoteDismissed(CloudNote note, int index) async {
     setState(() {
       widget.notes.remove(note);
     });
@@ -64,19 +63,66 @@ class _NotesListViewState extends State<NotesListView> {
     bool shouldDelete = true;
 
     final snackBar = SnackBar(
-      content: Text(context.loc.note_deleted),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 6.0,
+      ),
+      backgroundColor: context.theme.colorScheme.tertiary,
+      duration: const Duration(seconds: 4),
+      content: Row(
+        children: [
+          Text(
+            context.loc.note_deleted,
+            style: TextStyle(
+              color: context.theme.colorScheme.onTertiary,
+            ),
+          ),
+          const Spacer(
+            flex: 1,
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(24.0),
+            onTap: () {
+              shouldDelete = false;
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.restore_rounded,
+                    color: context.theme.colorScheme.onTertiary,
+                    size: 22,
+                  ),
+                  const SizedBox(
+                    width: 4.0,
+                  ),
+                  Text(
+                    context.loc.undo,
+                    style: TextStyle(
+                      color: context.theme.colorScheme.onTertiary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
       dismissDirection: DismissDirection.startToEnd,
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.all(4.0),
-      action: SnackBarAction(
-        label: context.loc.undo,
-        onPressed: () {
-          shouldDelete = false;
-        },
-      ),
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((value) {
+    await ScaffoldMessenger.of(context)
+        .showSnackBar(snackBar)
+        .closed
+        .then((value) {
       if (shouldDelete) {
         widget.onDeleteNote(note);
       } else {
@@ -122,8 +168,6 @@ class _NotesListViewState extends State<NotesListView> {
           return NoteItem(
             note: note,
             isSelected: widget.selectedNotes.contains(note),
-            onDeleteNote: (note) => widget.onDeleteNote(note),
-            onCopyNote: (note) => widget.onCopyNote(note),
             onTap: (note) => widget.onTap(note),
             onLongPress: (note) => widget.onLongPress(note),
             onDismissNote: (note) => onNoteDismissed(note, index),
@@ -134,39 +178,49 @@ class _NotesListViewState extends State<NotesListView> {
   }
 }
 
-class NoteItem extends StatelessWidget {
+class NoteItem extends StatefulWidget {
   const NoteItem({
     Key? key,
     required this.note,
     required this.isSelected,
-    required this.onDeleteNote,
     required this.onDismissNote,
-    required this.onCopyNote,
     required this.onTap,
     required this.onLongPress,
   }) : super(key: key);
 
   final CloudNote note;
   final bool isSelected;
-  final NoteCallback onDeleteNote;
   final NoteCallback onDismissNote;
-  final NoteCallback onCopyNote;
   final NoteCallback onTap;
   final NoteCallback onLongPress;
 
-  Color _getTileColor(BuildContext context) {
-    if (isSelected) {
-      return context.theme.colorScheme.primaryContainer;
-    } else {
-      return context.theme.colorScheme.primaryContainer.withAlpha(140);
+  @override
+  State<NoteItem> createState() => _NoteItemState();
+}
+
+class _NoteItemState extends State<NoteItem> {
+  late bool _isDarkMode;
+
+  Color _getNoteColor(BuildContext context, CloudNote note) {
+    if (note.color != null) {
+      return Color(note.color!);
     }
+    return context.theme.colorScheme.surfaceVariant;
   }
 
   @override
   Widget build(BuildContext context) {
+    _isDarkMode =
+        SchedulerBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark;
+
     return Dismissible(
-      onDismissed: (direction) => onDismissNote(note),
-      key: ValueKey(note),
+      dismissThresholds: const {
+        DismissDirection.startToEnd: 0.25,
+        DismissDirection.endToStart: 0.25,
+      },
+      onDismissed: (direction) => widget.onDismissNote(widget.note),
+      key: ValueKey(widget.note),
       child: Card(
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -175,12 +229,17 @@ class NoteItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
         ),
         child: ListTile(
-          onTap: () => onTap(note),
-          onLongPress: () => onLongPress(note),
-          tileColor: _getTileColor(context),
+          isThreeLine: true,
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          minVerticalPadding: 0.0,
+          splashColor: _getNoteColor(context, widget.note).withAlpha(120),
+          onTap: () => widget.onTap(widget.note),
+          onLongPress: () => widget.onLongPress(widget.note),
+          tileColor: _getNoteColor(context, widget.note).withAlpha(90),
           contentPadding: const EdgeInsets.all(16.0),
           shape: RoundedRectangleBorder(
-            side: isSelected
+            side: widget.isSelected
                 ? BorderSide(
                     width: 3,
                     color: context.theme.colorScheme.primary,
@@ -188,25 +247,33 @@ class NoteItem extends StatelessWidget {
                 : BorderSide.none,
             borderRadius: BorderRadius.circular(18),
           ),
-          title: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 8.0),
-            child: Text('Title',
-                maxLines: 10,
-                softWrap: true,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: context.theme.colorScheme.onSecondaryContainer,
-                  fontSize: 17.0,
-                  fontWeight: FontWeight.w600,
-                )),
-          ),
+          title: widget.note.title.isNotEmpty
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 8.0),
+                  child: Text(
+                    widget.note.title,
+                    maxLines: 10,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: _isDarkMode
+                          ? Colors.white.withAlpha(220)
+                          : Colors.black.withAlpha(220),
+                      fontSize: 17.0,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : null,
           subtitle: Text(
-            note.text,
+            widget.note.content,
             maxLines: 10,
             softWrap: true,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: context.theme.colorScheme.onSecondaryContainer,
+              color: _isDarkMode
+                  ? Colors.white.withAlpha(220)
+                  : Colors.black.withAlpha(220),
               fontSize: 14.0,
               fontWeight: FontWeight.normal,
             ),

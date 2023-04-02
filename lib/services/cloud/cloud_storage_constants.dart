@@ -1,2 +1,4 @@
 const ownerUserIdFieldName = 'user_id';
-const textFieldName = 'text';
+const contentFieldName = 'content';
+const titleFieldName = 'title';
+const colorFieldName = 'color';
