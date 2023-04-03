@@ -25,6 +25,13 @@ class CloudNote {
         title = snapshot.data()[titleFieldName] as String,
         color = snapshot.data()[colorFieldName];
 
+  CloudNote.copy(CloudNote note)
+      : documentId = note.documentId,
+        ownerUserId = note.ownerUserId,
+        content = note.content,
+        title = note.title,
+        color = note.color;
+
   @override
   bool operator ==(covariant CloudNote other) => documentId == other.documentId;
 
