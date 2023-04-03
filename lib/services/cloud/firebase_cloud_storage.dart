@@ -3,7 +3,7 @@ import 'package:thoughtbook/services/cloud/cloud_note.dart';
 import 'package:thoughtbook/services/cloud/cloud_storage_constants.dart';
 import 'package:thoughtbook/services/cloud/cloud_storage_exceptions.dart';
 
-class FirebaseCloudStorage {
+class FirebaseFirestoreDatabase {
   final notes = FirebaseFirestore.instance.collection('notes');
 
   Future<void> deleteNote({required String documentId}) async {
@@ -14,18 +14,20 @@ class FirebaseCloudStorage {
     }
   }
 
-  Future<CloudNote?> updateNote({
+  Future<CloudNote> updateNote({
     required String documentId,
     required String title,
     required String content,
     required int? color,
   }) async {
     try {
-      await notes.doc(documentId).update({
-        titleFieldName: title,
-        contentFieldName: content,
-        colorFieldName: color,
-      });
+      await notes.doc(documentId).update(
+        {
+          titleFieldName: title,
+          contentFieldName: content,
+          colorFieldName: color,
+        },
+      );
       final updatedNote = await notes.doc(documentId).get();
       return CloudNote(
         documentId: updatedNote.id,
@@ -75,9 +77,9 @@ class FirebaseCloudStorage {
     );
   }
 
-  static final _shared = FirebaseCloudStorage._sharedInstance();
+  static final _shared = FirebaseFirestoreDatabase._sharedInstance();
 
-  FirebaseCloudStorage._sharedInstance();
+  FirebaseFirestoreDatabase._sharedInstance();
 
-  factory FirebaseCloudStorage() => _shared;
+  factory FirebaseFirestoreDatabase() => _shared;
 }

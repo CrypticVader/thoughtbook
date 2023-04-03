@@ -28,14 +28,14 @@ class NotesView extends StatefulWidget {
 }
 
 class _NotesViewState extends State<NotesView> {
-  late final FirebaseCloudStorage _notesService;
+  late final FirebaseFirestoreDatabase _notesService;
 
   String get userId => AuthService.firebase().currentUser!.id;
   List<CloudNote> _selectedNotes = [];
 
   @override
   void initState() {
-    _notesService = FirebaseCloudStorage();
+    _notesService = FirebaseFirestoreDatabase();
     LayoutPreferences.initLayoutPreference();
     super.initState();
   }
@@ -46,7 +46,7 @@ class _NotesViewState extends State<NotesView> {
     });
   }
 
-  void _onTapNote(CloudNote note) async {
+  void _onTapNote(CloudNote note, void Function() openContainer) {
     if (_selectedNotes.contains(note)) {
       setState(
         () {
@@ -60,14 +60,9 @@ class _NotesViewState extends State<NotesView> {
           _selectedNotes.add(note);
         },
       );
+      return;
     } else {
-      Navigator.of(context).pushNamed(
-        createOrUpdateNoteRoute,
-        arguments: {
-          'note': note,
-          'shouldAutofocus': false,
-        },
-      );
+      openContainer();
     }
   }
 
@@ -185,7 +180,6 @@ class _NotesViewState extends State<NotesView> {
         style: CustomTextStyle(context).appBarTitle,
       ),
       actions: [
-        // To toggle the notes layout
         IconButton(
           onPressed: () => _onToggleLayout(),
           icon: Icon(
@@ -217,7 +211,7 @@ class _NotesViewState extends State<NotesView> {
                   children: [
                     const Icon(Icons.logout_rounded),
                     const SizedBox(
-                      width: 4,
+                      width: 16,
                     ),
                     Text(
                       context.loc.logout_button,
@@ -261,7 +255,7 @@ class _NotesViewState extends State<NotesView> {
         ),
         PopupMenuButton<MenuAction>(
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(36.0)),
           onSelected: (value) async {
             switch (value) {
               case MenuAction.color:
@@ -275,9 +269,16 @@ class _NotesViewState extends State<NotesView> {
                 if (color != currentColor) {
                   _onChangeNoteColor(note, color);
                 }
+                setState(() {
+                  _selectedNotes.removeAt(0);
+                });
                 break;
               case MenuAction.share:
-                Share.share(_selectedNotes.first.content);
+                final note = _selectedNotes.first;
+                Share.share(note.content);
+                setState(() {
+                  _selectedNotes.removeAt(0);
+                });
                 break;
               case MenuAction.delete:
                 final shouldDelete = await showDeleteDialog(
@@ -291,10 +292,14 @@ class _NotesViewState extends State<NotesView> {
                 }
                 break;
               case MenuAction.copy:
+                final note = _selectedNotes.first;
                 await _onCopyNote(
                   context: context,
-                  note: _selectedNotes.first,
+                  note: note,
                 );
+                setState(() {
+                  _selectedNotes.removeAt(0);
+                });
                 break;
               default:
                 break;
@@ -309,7 +314,7 @@ class _NotesViewState extends State<NotesView> {
                     children: [
                       const Icon(Icons.palette_rounded),
                       const SizedBox(
-                        width: 4,
+                        width: 16,
                       ),
                       Text(
                         context.loc.change_color,
@@ -327,7 +332,7 @@ class _NotesViewState extends State<NotesView> {
                     children: [
                       const Icon(Icons.share_rounded),
                       const SizedBox(
-                        width: 4,
+                        width: 16,
                       ),
                       Text(
                         context.loc.share_note,
@@ -345,7 +350,7 @@ class _NotesViewState extends State<NotesView> {
                     children: [
                       const Icon(Icons.copy_rounded),
                       const SizedBox(
-                        width: 4,
+                        width: 16,
                       ),
                       Text(
                         context.loc.copy_text,
@@ -362,7 +367,7 @@ class _NotesViewState extends State<NotesView> {
                   children: [
                     const Icon(Icons.delete_rounded),
                     const SizedBox(
-                      width: 4,
+                      width: 16,
                     ),
                     Text(
                       context.loc.delete,

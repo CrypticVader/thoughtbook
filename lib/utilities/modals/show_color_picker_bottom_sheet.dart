@@ -12,6 +12,10 @@ Future<Color?> showColorPickerModalBottomSheet({
 }) async {
   Color? pickedColor = currentColor;
 
+  // Get the GridView column count
+  final availableWidth = MediaQuery.of(context).size.width - 56;
+  final columnCount = availableWidth ~/ 70;
+
   await showModalBottomSheet(
     isDismissible: true,
     isScrollControlled: true,
@@ -28,10 +32,17 @@ Future<Color?> showColorPickerModalBottomSheet({
                 const SizedBox(
                   width: 16.0,
                 ),
+                Icon(
+                  Icons.color_lens_rounded,
+                  color: context.theme.colorScheme.onBackground,
+                ),
+                const SizedBox(
+                  width: 8.0,
+                ),
                 Text(
                   context.loc.pick_color_for_note,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                   ),
                 ),
                 const Spacer(
@@ -55,32 +66,57 @@ Future<Color?> showColorPickerModalBottomSheet({
                 padding: const EdgeInsets.all(16.0),
                 mainAxisSpacing: 12.0,
                 crossAxisSpacing: 12.0,
-                crossAxisCount: 6,
+                crossAxisCount: columnCount,
                 children: noteColors.values.toList().map((color) {
+                  final colorName = noteColors.keys
+                      .toList()[noteColors.values.toList().indexOf(color)];
                   return InkWell(
                     onTap: () {
                       Navigator.of(context).pop();
-                      pickedColor = color.withAlpha(150);
+                      pickedColor = color;
                     },
                     splashColor: color,
                     borderRadius: BorderRadius.circular(200),
                     child: Tooltip(
-                      message: noteColors.keys
-                          .toList()[noteColors.values.toList().indexOf(color)],
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: context.theme.colorScheme.onSurface
-                                  .withAlpha(50),
-                              spreadRadius: 1,
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
+                      message: colorName,
+                      child: Stack(
+                        children: [
+                          (color == currentColor)
+                              ? Container(
+                                  height: 66,
+                                  width: 66,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      strokeAlign: BorderSide.strokeAlignInside,
+                                      color: context.theme.colorScheme.outline,
+                                      width: 2.0,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_rounded,
+                                    size: 40,
+                                  ),
+                                )
+                              : const SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                ),
+                          Container(
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black45.withAlpha(50),
+                                  spreadRadius: 1,
+                                  blurRadius: 2,
+                                  offset: const Offset(0.0, 1.0),
+                                ),
+                              ],
+                              color: color.withAlpha(120),
+                              shape: BoxShape.circle,
                             ),
-                          ],
-                          color: color.withAlpha(120),
-                          shape: BoxShape.circle,
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -90,12 +126,19 @@ Future<Color?> showColorPickerModalBottomSheet({
             const SizedBox(
               height: 8.0,
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(elevation: 4.0),
-              onPressed: () {
-                Navigator.of(context).pop();
-                pickedColor = null;
-              },
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor:
+                    context.theme.colorScheme.primaryContainer.withAlpha(150),
+                disabledBackgroundColor:
+                    context.theme.colorScheme.primaryContainer.withAlpha(50),
+              ),
+              onPressed: (currentColor == null)
+                  ? null
+                  : () {
+                      Navigator.of(context).pop();
+                      pickedColor = null;
+                    },
               child: Row(
                 children: const [
                   Spacer(
@@ -129,7 +172,7 @@ Map<String, Color> noteColors = {
   'Coral Pink': const Color(0xFFFF7F50),
   'Lavender Purple': const Color(0xFF967bb6),
   'Sandy Brown': const Color(0xFFf4a460),
-  'Cosmic Latte': const Color(0xFFFDF8E7),
+  // 'Cosmic Latte': const Color(0xFFFDF8E7),
   'Galactic Blue': const Color(0xFF1F75FE),
   'Nebula Pink': const Color(0xFFD4578C),
   'Supernova Yellow': const Color(0xFFFFC300),
@@ -145,7 +188,7 @@ Map<String, Color> noteColors = {
   'Liberty Blue': const Color(0xFF61609A),
   'Lilac Tiptoe': const Color(0xFFE2B5F8),
   'Ravishing Coral': const Color(0xFFFF9683),
-  'Peaceful Leaf': const Color(0xFF95B971),
+  // 'Peaceful Leaf': const Color(0xFF95B971),
   'Mediterranean Blue': const Color(0xFF027EBC),
   'Begonia': const Color(0xFFFF747A),
   'Calamansi': const Color(0xFFFFF4A6),

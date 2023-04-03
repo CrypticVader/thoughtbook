@@ -49,7 +49,7 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
   );
 
   static final _defaultDarkColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.cyan,
+    seedColor: Colors.deepOrangeAccent,
     brightness: Brightness.dark,
   );
 
