@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
-import 'package:thoughtbook/services/cloud/cloud_storage_constants.dart';
-import 'package:thoughtbook/services/cloud/cloud_storage_exceptions.dart';
+import 'package:thoughtbook/services/cloud/firestore_notes_constants.dart';
+import 'package:thoughtbook/services/cloud/firestore_notes_exceptions.dart';
 
-class FirebaseFirestoreDatabase {
+class FirestoreNoteService {
   final notes = FirebaseFirestore.instance.collection('notes');
 
   Future<void> deleteNote({required String documentId}) async {
@@ -14,27 +14,21 @@ class FirebaseFirestoreDatabase {
     }
   }
 
-  Future<CloudNote> updateNote({
+  Future<void> updateNote({
     required String documentId,
     required String title,
     required String content,
     required int? color,
   }) async {
     try {
+      final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
       await notes.doc(documentId).update(
         {
           titleFieldName: title,
           contentFieldName: content,
           colorFieldName: color,
+          modifiedFieldName: currentTime,
         },
-      );
-      final updatedNote = await notes.doc(documentId).get();
-      return CloudNote(
-        documentId: updatedNote.id,
-        ownerUserId: updatedNote[ownerUserIdFieldName],
-        title: updatedNote[titleFieldName],
-        content: updatedNote[contentFieldName],
-        color: updatedNote[colorFieldName],
       );
     } catch (e) {
       throw CouldNotUpdateNoteException();
@@ -47,6 +41,7 @@ class FirebaseFirestoreDatabase {
           ownerUserIdFieldName,
           isEqualTo: ownerUserId,
         )
+        .orderBy(createdFieldName, descending: true)
         .snapshots()
         .map(
           (event) => event.docs.map(
@@ -58,12 +53,15 @@ class FirebaseFirestoreDatabase {
   }
 
   Future<CloudNote> createNewNote({required String ownerUserId}) async {
+    final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
     final document = await notes.add(
       {
         ownerUserIdFieldName: ownerUserId,
         titleFieldName: '',
         contentFieldName: '',
         colorFieldName: null,
+        createdFieldName: currentTime,
+        modifiedFieldName: currentTime,
       },
     );
 
@@ -74,12 +72,14 @@ class FirebaseFirestoreDatabase {
       title: '',
       content: '',
       color: null,
+      created: currentTime,
+      modified: currentTime,
     );
   }
 
-  static final _shared = FirebaseFirestoreDatabase._sharedInstance();
+  static final _shared = FirestoreNoteService._sharedInstance();
 
-  FirebaseFirestoreDatabase._sharedInstance();
+  FirestoreNoteService._sharedInstance();
 
-  factory FirebaseFirestoreDatabase() => _shared;
+  factory FirestoreNoteService() => _shared;
 }

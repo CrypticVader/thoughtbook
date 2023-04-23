@@ -18,7 +18,7 @@
 //
 //   NotesService._sharedInstance() {
 //     // using broadcast makes the StreamController lose hold of previous values on every listen
-//     // This is mitigated by add _notes to the stream broadcast every time it is subscribed to
+//     // This is mitigated by adding _notes to the stream broadcast every time it is subscribed to
 //     _notesStreamController =
 //         StreamController<List<DatabaseNote>>.broadcast(onListen: () {
 //       _notesStreamController.sink.add(_notes);

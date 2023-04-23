@@ -18,7 +18,7 @@ import 'package:thoughtbook/utilities/dialogs/logout_dialog.dart';
 import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 import 'package:thoughtbook/views/notes/notes_list_view.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
-import 'package:thoughtbook/services/cloud/firebase_cloud_storage.dart';
+import 'package:thoughtbook/services/cloud/firestore_notes_service.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -28,14 +28,14 @@ class NotesView extends StatefulWidget {
 }
 
 class _NotesViewState extends State<NotesView> {
-  late final FirebaseFirestoreDatabase _notesService;
+  late final FirestoreNoteService _notesService;
 
   String get userId => AuthService.firebase().currentUser!.id;
   List<CloudNote> _selectedNotes = [];
 
   @override
   void initState() {
-    _notesService = FirebaseFirestoreDatabase();
+    _notesService = FirestoreNoteService();
     LayoutPreferences.initLayoutPreference();
     super.initState();
   }

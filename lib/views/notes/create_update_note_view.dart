@@ -6,12 +6,13 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/extensions/dateTime/custom_format.dart';
 import 'package:thoughtbook/services/auth/auth_service.dart';
 import 'package:thoughtbook/utilities/dialogs/cannot_share_empty_note_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/generics/get_arguments.dart';
 import 'package:thoughtbook/services/cloud/cloud_note.dart';
-import 'package:thoughtbook/services/cloud/firebase_cloud_storage.dart';
+import 'package:thoughtbook/services/cloud/firestore_notes_service.dart';
 import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 
 typedef NoteCallback = void Function(CloudNote note);
@@ -27,14 +28,19 @@ class CreateUpdateNoteView extends StatefulWidget {
 
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   CloudNote? _note;
-  late final FirebaseFirestoreDatabase _notesService;
+
+  late final FirestoreNoteService _notesService;
   late final TextEditingController _noteContentController;
   late final TextEditingController _noteTitleController;
+
+  bool get _isDarkMode =>
+      SchedulerBinding.instance.platformDispatcher.platformBrightness ==
+      Brightness.dark;
 
   @override
   void initState() {
     super.initState();
-    _notesService = FirebaseFirestoreDatabase();
+    _notesService = FirestoreNoteService();
     _noteContentController = TextEditingController();
     _noteTitleController = TextEditingController();
   }
@@ -110,7 +116,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       currentColor: currentColor,
     );
     if (color != currentColor) {
-      note = await _notesService.updateNote(
+      await _notesService.updateNote(
         documentId: note.documentId,
         color: (color != null) ? color.value : null,
         title: note.title,
@@ -123,10 +129,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   }
 
   Color _getNoteTextColor() {
-    bool isDarkMode =
-        SchedulerBinding.instance.platformDispatcher.platformBrightness ==
-            Brightness.dark;
-    if (isDarkMode) {
+    if (_isDarkMode) {
       return Colors.white;
     } else {
       return Colors.black;
@@ -229,6 +232,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                               IconButton(
                                 tooltip: context.loc.delete,
                                 onPressed: () async {
+                                  final navigator = Navigator.of(context);
                                   final note = _note;
                                   if (note != null) {
                                     final shouldDelete = await showDeleteDialog(
@@ -236,8 +240,8 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                                       content: context.loc.delete_note_prompt,
                                     );
                                     if (shouldDelete) {
-                                      Navigator.of(context).pop();
-                                      _notesService.deleteNote(
+                                      navigator.pop();
+                                      await _notesService.deleteNote(
                                         documentId: note.documentId,
                                       );
                                     }
@@ -265,6 +269,24 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 6.0, horizontal: 8.0),
+                            decoration: BoxDecoration(
+                              color: _isDarkMode
+                                  ? Colors.black.withAlpha(40)
+                                  : Colors.white.withAlpha(60),
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Text(
+                              _note!.modified.toDate().customFormat(),
+                              style: TextStyle(
+                                color: _getNoteTextColor().withAlpha(200),
+                                fontWeight: FontWeight.w400,
+                                fontSize: 12.0,
+                              ),
+                            ),
+                          ),
                           TextField(
                             controller: _noteTitleController,
                             textInputAction: TextInputAction.next,
