@@ -16,6 +16,9 @@ class LocalNoteService {
   static final LocalNoteService _shared = LocalNoteService._sharedInstance();
 
   LocalNoteService._sharedInstance() {
+    // using broadcast makes the StreamController lose hold of previous values on every listen
+    // This is mitigated by adding _notes to the stream broadcast every time it is subscribed to
+    _ensureDbIsOpen();
     _notesStreamController = StreamController<List<LocalNote>>.broadcast(
       onListen: () {
         _notesStreamController.sink.add(_notes);
@@ -74,7 +77,7 @@ class LocalNoteService {
   Future<List<LocalNote>> getAllNotes() async {
     await _ensureDbIsOpen();
     final notesCollection = _getNotesCollection;
-    return await notesCollection.where().findAll();
+    return await notesCollection.where().anyModified().findAll();
   }
 
   Future<LocalNote> getNote({required int id}) async {
@@ -164,6 +167,7 @@ class LocalNoteService {
         inspector: true,
       );
       _isar = isar;
+      await _cacheNotes();
       log("Within open() - after isar = await Isar.open(...)");
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentsDirectory();

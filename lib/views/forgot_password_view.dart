@@ -6,7 +6,6 @@ import 'package:thoughtbook/services/auth/auth_exceptions.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_state.dart';
-import 'package:thoughtbook/styles/text_styles.dart';
 import 'package:thoughtbook/utilities/dialogs/error_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/password_reset_email_sent_dialog.dart';
 
@@ -70,7 +69,11 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
         appBar: AppBar(
           title: Text(
             context.loc.forgot_password,
-            style: CustomTextStyle(context).appBarTitle,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
           ),
         ),
         body: Padding(

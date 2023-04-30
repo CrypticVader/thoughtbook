@@ -14,14 +14,10 @@ import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
 import 'package:thoughtbook/services/crud/local_note.dart';
 import 'package:thoughtbook/services/crud/local_note_service.dart';
-import 'package:thoughtbook/styles/text_styles.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/logout_dialog.dart';
 import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 import 'package:thoughtbook/views/notes/notes_list_view.dart';
-
-// import 'package:thoughtbook/services/cloud/cloud_note.dart';
-// import 'package:thoughtbook/services/cloud/firestore_notes_service.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -33,7 +29,10 @@ class NotesView extends StatefulWidget {
 class _NotesViewState extends State<NotesView> {
   late final LocalNoteService _notesService;
 
-  String get userId => AuthService.firebase().currentUser!.id;
+  String? get userId => AuthService.firebase().currentUser?.id;
+
+  String? get userEmail => AuthService.firebase().currentUser?.email;
+
   List<LocalNote> _selectedNotes = [];
 
   @override
@@ -147,6 +146,7 @@ class _NotesViewState extends State<NotesView> {
     final bloc = context.read<AuthBloc>();
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout) {
+      _notesService.deleteAllNotes();
       bloc.add(const AuthEventLogOut());
     }
   }
@@ -181,7 +181,11 @@ class _NotesViewState extends State<NotesView> {
       toolbarHeight: 64,
       title: Text(
         context.loc.app_title,
-        style: CustomTextStyle(context).appBarTitle,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).colorScheme.onBackground,
+        ),
       ),
       actions: [
         IconButton(
@@ -194,40 +198,6 @@ class _NotesViewState extends State<NotesView> {
           tooltip: layoutPreference == listLayoutPref
               ? context.loc.notes_view_grid_layout
               : context.loc.notes_view_list_layout,
-        ),
-        PopupMenuButton<MenuAction>(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-          onSelected: (value) async {
-            switch (value) {
-              case MenuAction.logout:
-                await _onLogout(context);
-                break;
-              default:
-                break;
-            }
-          },
-          itemBuilder: (context) {
-            return [
-              PopupMenuItem<MenuAction>(
-                value: MenuAction.logout,
-                child: Row(
-                  children: [
-                    const Icon(Icons.logout_rounded),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    Text(
-                      context.loc.logout_button,
-                      style: const TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ];
-          },
         ),
       ],
     );
@@ -243,7 +213,11 @@ class _NotesViewState extends State<NotesView> {
           _selectedNotes.length,
           context.loc.app_title,
         ),
-        style: CustomTextStyle(context).appBarTitle,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).colorScheme.onBackground,
+        ),
       ),
       leading: IconButton(
         tooltip: context.loc.close,
@@ -438,7 +412,134 @@ class _NotesViewState extends State<NotesView> {
                           ),
                         )
                       : null,
-                  //TODO: Should replace it later with a stream builder
+                  drawer: Drawer(
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.fromLTRB(12.0, 48.0, 12.0, 32.0),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(
+                              context.loc.app_title,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                              ),
+                            ),
+                          ),
+                          const Spacer(
+                            flex: 1,
+                          ),
+                          if (AuthService.firebase().currentUser != null)
+                            Container(
+                              padding: const EdgeInsets.all(12.0),
+                              decoration: BoxDecoration(
+                                color:
+                                    context.theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(28.0),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.person_rounded,
+                                        size: 28.0,
+                                        color: context.theme.colorScheme
+                                            .onPrimaryContainer,
+                                      ),
+                                      const SizedBox(
+                                        width: 8.0,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          userEmail ?? "",
+                                          style: TextStyle(
+                                            fontSize: 15.0,
+                                            fontWeight: FontWeight.w500,
+                                            color: context.theme.colorScheme
+                                                .onPrimaryContainer,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(
+                                    height: 8.0,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      _onLogout(context);
+                                    },
+                                    style: TextButton.styleFrom(
+                                      backgroundColor:
+                                          context.theme.colorScheme.primary,
+                                      foregroundColor:
+                                          context.theme.colorScheme.onPrimary,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.logout_rounded,
+                                        ),
+                                        const SizedBox(
+                                          width: 8.0,
+                                        ),
+                                        Text(
+                                          context.loc.logout_button,
+                                          style: const TextStyle(
+                                            fontSize: 15.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (AuthService.firebase().currentUser == null)
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                context
+                                    .read<AuthBloc>()
+                                    .add(const AuthEventLogOut());
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor:
+                                    context.theme.colorScheme.primary,
+                                foregroundColor:
+                                    context.theme.colorScheme.onPrimary,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.login_rounded,
+                                  ),
+                                  const SizedBox(
+                                    width: 8.0,
+                                  ),
+                                  Text(
+                                    context.loc.login,
+                                    style: const TextStyle(
+                                      fontSize: 15.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
                   body: StreamBuilder(
                     stream: _notesService.allNotes,
                     builder: (context, snapshot) {

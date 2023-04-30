@@ -49,6 +49,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       },
     );
+
     // send verification email
     on<AuthEventSendEmailVerification>(
       (event, emit) async {
@@ -56,6 +57,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(state);
       },
     );
+
     // register
     on<AuthEventRegister>(
       (event, emit) async {
@@ -84,6 +86,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       },
     );
+
     // initialize
     on<AuthEventInitialize>(
       (event, emit) async {
@@ -106,6 +109,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       },
     );
+
     // log in
     on<AuthEventLogIn>(
       (event, emit) async {
@@ -155,6 +159,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
       },
     );
+
+    // log in as guest
+    on<AuthEventLoginAsGuest>(
+      (event, emit) {
+        emit(
+          const AuthStateLoggedInAsGuest(
+            isLoading: false,
+          ),
+        );
+      },
+    );
+
     // should register
     on<AuthEventShouldRegister>(
       (event, emit) {
@@ -166,6 +182,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       },
     );
+
     // log out
     on<AuthEventLogOut>(
       (event, emit) async {

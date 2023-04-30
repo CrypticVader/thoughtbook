@@ -105,6 +105,8 @@ class HomePage extends StatelessWidget {
   }) {
     if (state is AuthStateLoggedIn) {
       return const NotesView();
+    } else if (state is AuthStateLoggedInAsGuest) {
+      return const NotesView();
     } else if (state is AuthStateForgotPassword) {
       return const ForgotPasswordView();
     } else if (state is AuthStateNeedsVerification) {

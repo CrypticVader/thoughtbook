@@ -23,6 +23,10 @@ class AuthEventLogIn extends AuthEvent {
   );
 }
 
+class AuthEventLoginAsGuest extends AuthEvent {
+  const AuthEventLoginAsGuest();
+}
+
 class AuthEventRegister extends AuthEvent {
   final String email;
   final String password;

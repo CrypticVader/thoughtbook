@@ -217,15 +217,22 @@ class _LoginViewState extends State<LoginView> {
               ),
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor:
-                      context.theme.colorScheme.surface.withOpacity(0.6),
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 ),
                 onPressed: () {
                   context.read<AuthBloc>().add(const AuthEventShouldRegister());
                 },
                 child: Text(context.loc.login_view_not_registered_yet),
-              )
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                ),
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventLoginAsGuest());
+                },
+                child: const Text("Continue as guest"),
+              ),
             ],
           ),
         ),

@@ -4,7 +4,6 @@ import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
-import 'package:thoughtbook/styles/text_styles.dart';
 
 class VerifyEmailView extends StatefulWidget {
   const VerifyEmailView({Key? key}) : super(key: key);
@@ -20,7 +19,11 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
       appBar: AppBar(
         title: Text(
           context.loc.verify_email,
-          style: CustomTextStyle(context).appBarTitle,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onBackground,
+          ),
         ),
       ),
       body: Padding(

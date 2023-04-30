@@ -47,6 +47,11 @@ class AuthStateLoggedIn extends AuthState {
   }) : super(isLoading: isLoading);
 }
 
+class AuthStateLoggedInAsGuest extends AuthState {
+  const AuthStateLoggedInAsGuest({required bool isLoading})
+      : super(isLoading: isLoading);
+}
+
 class AuthStateNeedsVerification extends AuthState {
   const AuthStateNeedsVerification({required bool isLoading})
       : super(isLoading: isLoading);
