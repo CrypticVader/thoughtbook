@@ -12,13 +12,16 @@ import 'package:thoughtbook/helpers/preferences/layout_preferences.dart';
 import 'package:thoughtbook/services/auth/auth_service.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
+import 'package:thoughtbook/services/crud/local_note.dart';
+import 'package:thoughtbook/services/crud/local_note_service.dart';
 import 'package:thoughtbook/styles/text_styles.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/logout_dialog.dart';
 import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 import 'package:thoughtbook/views/notes/notes_list_view.dart';
-import 'package:thoughtbook/services/cloud/cloud_note.dart';
-import 'package:thoughtbook/services/cloud/firestore_notes_service.dart';
+
+// import 'package:thoughtbook/services/cloud/cloud_note.dart';
+// import 'package:thoughtbook/services/cloud/firestore_notes_service.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -28,14 +31,14 @@ class NotesView extends StatefulWidget {
 }
 
 class _NotesViewState extends State<NotesView> {
-  late final FirestoreNoteService _notesService;
+  late final LocalNoteService _notesService;
 
   String get userId => AuthService.firebase().currentUser!.id;
-  List<CloudNote> _selectedNotes = [];
+  List<LocalNote> _selectedNotes = [];
 
   @override
   void initState() {
-    _notesService = FirestoreNoteService();
+    _notesService = LocalNoteService();
     LayoutPreferences.initLayoutPreference();
     super.initState();
   }
@@ -46,7 +49,7 @@ class _NotesViewState extends State<NotesView> {
     });
   }
 
-  void _onTapNote(CloudNote note, void Function() openContainer) {
+  void _onTapNote(LocalNote note, void Function() openContainer) {
     if (_selectedNotes.contains(note)) {
       setState(
         () {
@@ -66,7 +69,7 @@ class _NotesViewState extends State<NotesView> {
     }
   }
 
-  void _onLongPressNote(CloudNote note) {
+  void _onLongPressNote(LocalNote note) {
     if (_selectedNotes.contains(note)) {
       setState(
         () {
@@ -82,18 +85,19 @@ class _NotesViewState extends State<NotesView> {
     }
   }
 
-  Future<void> _onChangeNoteColor(CloudNote note, Color? color) async {
+  Future<void> _onChangeNoteColor(LocalNote note, Color? color) async {
     await _notesService.updateNote(
-      documentId: note.documentId,
+      id: note.isarId,
       title: note.title,
       content: note.content,
       color: (color != null) ? color.value : null,
+      isSyncedWithCloud: false,
     );
   }
 
   Future<void> _onCopyNote({
     required BuildContext context,
-    required CloudNote note,
+    required LocalNote note,
   }) async {
     await Clipboard.setData(
       ClipboardData(text: '${note.title}\n${note.content}'),
@@ -114,10 +118,10 @@ class _NotesViewState extends State<NotesView> {
 
   Future<void> _onDeleteNote({
     required BuildContext context,
-    required CloudNote note,
+    required LocalNote note,
   }) async {
     _notesService.deleteNote(
-      documentId: note.documentId,
+      isarId: note.isarId,
     );
     setState(
       () {
@@ -131,7 +135,7 @@ class _NotesViewState extends State<NotesView> {
       () {
         for (var note in _selectedNotes) {
           _notesService.deleteNote(
-            documentId: note.documentId,
+            isarId: note.isarId,
           );
         }
         _selectedNotes = [];
@@ -154,7 +158,7 @@ class _NotesViewState extends State<NotesView> {
   }
 
   void _onSelectAllNotes() async {
-    final allNotes = await _notesService.allNotes(ownerUserId: userId).first;
+    final allNotes = await _notesService.getAllNotes();
     setState(() {
       for (var element in allNotes) {
         if (!_selectedNotes.contains(element)) {
@@ -434,11 +438,13 @@ class _NotesViewState extends State<NotesView> {
                           ),
                         )
                       : null,
+                  //TODO: Should replace it later with a stream builder
                   body: StreamBuilder(
-                    stream: _notesService.allNotes(ownerUserId: userId),
+                    stream: _notesService.allNotes,
                     builder: (context, snapshot) {
                       switch (snapshot.connectionState) {
                         case ConnectionState.waiting:
+                        case ConnectionState.done:
                         case ConnectionState.active:
                           if (snapshot.hasData) {
                             final allNotes = snapshot.data!.toList();

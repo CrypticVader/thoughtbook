@@ -62,7 +62,7 @@ const LocalNoteSchema = CollectionSchema(
   serialize: _localNoteSerialize,
   deserialize: _localNoteDeserialize,
   deserializeProp: _localNoteDeserializeProp,
-  idName: r'localId',
+  idName: r'isarId',
   indexes: {
     r'created': IndexSchema(
       id: 9089682803336859617,
@@ -96,7 +96,7 @@ const LocalNoteSchema = CollectionSchema(
   getId: _localNoteGetId,
   getLinks: _localNoteGetLinks,
   attach: _localNoteAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _localNoteEstimateSize(
@@ -147,6 +147,7 @@ LocalNote _localNoteDeserialize(
     modified: reader.readDateTime(offsets[6]),
     title: reader.readString(offsets[7]),
   );
+  object.isarId = id;
   return object;
 }
 
@@ -179,18 +180,20 @@ P _localNoteDeserializeProp<P>(
 }
 
 Id _localNoteGetId(LocalNote object) {
-  return object.localId;
+  return object.isarId;
 }
 
 List<IsarLinkBase<dynamic>> _localNoteGetLinks(LocalNote object) {
   return [];
 }
 
-void _localNoteAttach(IsarCollection<dynamic> col, Id id, LocalNote object) {}
+void _localNoteAttach(IsarCollection<dynamic> col, Id id, LocalNote object) {
+  object.isarId = id;
+}
 
 extension LocalNoteQueryWhereSort
     on QueryBuilder<LocalNote, LocalNote, QWhere> {
-  QueryBuilder<LocalNote, LocalNote, QAfterWhere> anyLocalId() {
+  QueryBuilder<LocalNote, LocalNote, QAfterWhere> anyIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
@@ -215,70 +218,70 @@ extension LocalNoteQueryWhereSort
 
 extension LocalNoteQueryWhere
     on QueryBuilder<LocalNote, LocalNote, QWhereClause> {
-  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> localIdEqualTo(
-      Id localId) {
+  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> isarIdEqualTo(
+      Id isarId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
-        lower: localId,
-        upper: localId,
+        lower: isarId,
+        upper: isarId,
       ));
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> localIdNotEqualTo(
-      Id localId) {
+  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> isarIdNotEqualTo(
+      Id isarId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(
-              IdWhereClause.lessThan(upper: localId, includeUpper: false),
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
             )
             .addWhereClause(
-              IdWhereClause.greaterThan(lower: localId, includeLower: false),
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
             );
       } else {
         return query
             .addWhereClause(
-              IdWhereClause.greaterThan(lower: localId, includeLower: false),
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
             )
             .addWhereClause(
-              IdWhereClause.lessThan(upper: localId, includeUpper: false),
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
             );
       }
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> localIdGreaterThan(
-      Id localId,
+  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> isarIdGreaterThan(
+      Id isarId,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: localId, includeLower: include),
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
       );
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> localIdLessThan(
-      Id localId,
+  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> isarIdLessThan(
+      Id isarId,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        IdWhereClause.lessThan(upper: localId, includeUpper: include),
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
       );
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> localIdBetween(
-    Id lowerLocalId,
-    Id upperLocalId, {
+  QueryBuilder<LocalNote, LocalNote, QAfterWhereClause> isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
-        lower: lowerLocalId,
+        lower: lowerIsarId,
         includeLower: includeLower,
-        upper: upperLocalId,
+        upper: upperIsarId,
         includeUpper: includeUpper,
       ));
     });
@@ -937,43 +940,43 @@ extension LocalNoteQueryFilter
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> localIdEqualTo(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> isarIdEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'localId',
+        property: r'isarId',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> localIdGreaterThan(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> isarIdGreaterThan(
     Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'localId',
+        property: r'isarId',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> localIdLessThan(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> isarIdLessThan(
     Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'localId',
+        property: r'isarId',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> localIdBetween(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> isarIdBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
@@ -981,7 +984,7 @@ extension LocalNoteQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'localId',
+        property: r'isarId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1354,15 +1357,15 @@ extension LocalNoteQuerySortThenBy
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByLocalId() {
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'localId', Sort.asc);
+      return query.addSortBy(r'isarId', Sort.asc);
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByLocalIdDesc() {
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByIsarIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'localId', Sort.desc);
+      return query.addSortBy(r'isarId', Sort.desc);
     });
   }
 
@@ -1448,9 +1451,9 @@ extension LocalNoteQueryWhereDistinct
 
 extension LocalNoteQueryProperty
     on QueryBuilder<LocalNote, LocalNote, QQueryProperty> {
-  QueryBuilder<LocalNote, int, QQueryOperations> localIdProperty() {
+  QueryBuilder<LocalNote, int, QQueryOperations> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'localId');
+      return query.addPropertyName(r'isarId');
     });
   }
 

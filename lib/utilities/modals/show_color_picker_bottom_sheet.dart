@@ -17,21 +17,19 @@ Future<Color?> showColorPickerModalBottomSheet({
   final columnCount = availableWidth ~/ 70;
 
   await showModalBottomSheet(
+    barrierColor: Colors.black.withAlpha(170),
     isDismissible: true,
     isScrollControlled: true,
     enableDrag: true,
     context: context,
     builder: (context) {
       return Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
         child: ListView(
           shrinkWrap: true,
           children: [
             Row(
               children: [
-                const SizedBox(
-                  width: 16.0,
-                ),
                 Icon(
                   Icons.color_lens_rounded,
                   color: context.theme.colorScheme.onBackground,

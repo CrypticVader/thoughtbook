@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
-import 'package:thoughtbook/services/cloud/cloud_note.dart';
+
+// import 'package:thoughtbook/services/cloud/cloud_note.dart';
+import 'package:thoughtbook/services/crud/local_note.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/views/notes/notes_list_view.dart';
 
 Future<void> showNoteItemModalBottomSheet({
   required BuildContext context,
-  required CloudNote note,
+  required LocalNote note,
   required NoteCallback onDeleteNote,
   required NoteCallback onCopyNote,
 }) async {

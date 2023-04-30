@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -7,15 +9,14 @@ import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/extensions/dateTime/custom_format.dart';
-import 'package:thoughtbook/services/auth/auth_service.dart';
+import 'package:thoughtbook/services/crud/local_note.dart';
+import 'package:thoughtbook/services/crud/local_note_service.dart';
 import 'package:thoughtbook/utilities/dialogs/cannot_share_empty_note_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
 import 'package:thoughtbook/utilities/generics/get_arguments.dart';
-import 'package:thoughtbook/services/cloud/cloud_note.dart';
-import 'package:thoughtbook/services/cloud/firestore_notes_service.dart';
 import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 
-typedef NoteCallback = void Function(CloudNote note);
+typedef NoteCallback = void Function(LocalNote note);
 
 class CreateUpdateNoteView extends StatefulWidget {
   const CreateUpdateNoteView({
@@ -27,9 +28,9 @@ class CreateUpdateNoteView extends StatefulWidget {
 }
 
 class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
-  CloudNote? _note;
+  LocalNote? _note;
 
-  late final FirestoreNoteService _notesService;
+  late final LocalNoteService _notesService;
   late final TextEditingController _noteContentController;
   late final TextEditingController _noteTitleController;
 
@@ -40,7 +41,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   @override
   void initState() {
     super.initState();
-    _notesService = FirestoreNoteService();
+    _notesService = LocalNoteService();
     _noteContentController = TextEditingController();
     _noteTitleController = TextEditingController();
   }
@@ -55,8 +56,9 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     await _notesService.updateNote(
       title: title,
       content: content,
-      documentId: note.documentId,
+      id: note.isarId,
       color: note.color,
+      isSyncedWithCloud: false,
     );
   }
 
@@ -67,11 +69,11 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     _noteTitleController.addListener(_noteControllerListener);
   }
 
-  Future<CloudNote> createOrGetExistingNote(BuildContext context) async {
+  Future<LocalNote> createOrGetExistingNote(BuildContext context) async {
     // widgetNote can be outdated & saveOnExit will end up updating the note to this outdated version
     // The below check prevents that
     if (_note == null) {
-      final CloudNote? widgetNote = context.getArgument<Map>()!['note'];
+      final LocalNote? widgetNote = context.getArgument<Map>()!['note'];
       if (widgetNote != null) {
         _note = widgetNote;
         _noteTitleController.text = widgetNote.title;
@@ -84,9 +86,11 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
       return existingNote;
     }
     // In case the note is not passed as an argument, create a new note
-    final currentUser = AuthService.firebase().currentUser!;
-    final userId = currentUser.id;
-    final newNote = await _notesService.createNewNote(ownerUserId: userId);
+    // final currentUser = AuthService.firebase().currentUser!;
+    // final userId = currentUser.id;
+    log("Trying to create new note");
+    final newNote = await _notesService.createNote();
+    log("New note created");
     _note = newNote;
     return newNote;
   }
@@ -94,7 +98,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   Future<void> _deleteNoteIfTextIsEmpty() async {
     final note = _note;
     if (_noteContentController.text.isEmpty && note != null) {
-      await _notesService.deleteNote(documentId: note.documentId);
+      await _notesService.deleteNote(isarId: note.isarId);
     }
   }
 
@@ -109,7 +113,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   }
 
   void _updateNoteColor() async {
-    CloudNote note = _note!;
+    LocalNote note = _note!;
     final currentColor = (note.color != null) ? Color(note.color!) : null;
     final color = await showColorPickerModalBottomSheet(
       context: context,
@@ -117,11 +121,13 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
     );
     if (color != currentColor) {
       await _notesService.updateNote(
-        documentId: note.documentId,
+        id: note.isarId,
         color: (color != null) ? color.value : null,
         title: note.title,
         content: note.content,
+        isSyncedWithCloud: false,
       );
+      note = await _notesService.getNote(id: note.isarId);
       setState(() {
         _note = note;
       });
@@ -137,9 +143,9 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   }
 
   @override
-  Future<void> dispose() async {
+  void dispose() {
     super.dispose();
-    await _deleteNoteIfTextIsEmpty();
+    _deleteNoteIfTextIsEmpty();
     _noteTitleController.dispose();
     _noteContentController.dispose();
   }
@@ -242,7 +248,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                                     if (shouldDelete) {
                                       navigator.pop();
                                       await _notesService.deleteNote(
-                                        documentId: note.documentId,
+                                        isarId: note.isarId,
                                       );
                                     }
                                   }
@@ -279,7 +285,7 @@ class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
                               borderRadius: BorderRadius.circular(10.0),
                             ),
                             child: Text(
-                              _note!.modified.toDate().customFormat(),
+                              _note!.modified.customFormat(),
                               style: TextStyle(
                                 color: _getNoteTextColor().withAlpha(200),
                                 fontWeight: FontWeight.w400,

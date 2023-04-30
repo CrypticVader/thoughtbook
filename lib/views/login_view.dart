@@ -67,176 +67,168 @@ class _LoginViewState extends State<LoginView> {
         }
       },
       child: Scaffold(
-        body: Stack(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
-            child: Column(
-              children: [
-                const Spacer(
-                  flex: 1,
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+          child: Column(
+            children: [
+              const Spacer(
+                flex: 1,
+              ),
+              Text(
+                context.loc.welcome_to,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                  color: context.theme.colorScheme.onBackground,
                 ),
-                Text(
-                  context.loc.welcome_to,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                    color: context.theme.colorScheme.onBackground,
-                  ),
+              ),
+              Text(
+                context.loc.app_title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 28,
+                  color: context.theme.colorScheme.primary,
                 ),
-                Text(
-                  context.loc.app_title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 28,
-                    color: context.theme.colorScheme.primary,
-                  ),
+              ),
+              const Spacer(
+                flex: 1,
+              ),
+              Text(
+                context.loc.login_view_prompt,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(
+                height: 12,
+              ),
+              Card(
+                elevation: 0,
+                color:
+                    context.theme.colorScheme.primaryContainer.withOpacity(0.4),
+                shape: ContinuousRectangleBorder(
+                  borderRadius: BorderRadius.circular(128),
                 ),
-                const Spacer(
-                  flex: 1,
-                ),
-                Text(
-                  context.loc.login_view_prompt,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Card(
-                  elevation: 0,
-                  color: context.theme.colorScheme.primaryContainer
-                      .withOpacity(0.4),
-                  shape: ContinuousRectangleBorder(
-                    borderRadius: BorderRadius.circular(128),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(28.0),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _email,
-                          textInputAction: TextInputAction.next,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.all(16),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                width: 2,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                child: Padding(
+                  padding: const EdgeInsets.all(28.0),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _email,
+                        textInputAction: TextInputAction.next,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.all(16),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              width: 2,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(32),
-                              borderSide: BorderSide.none,
-                            ),
-                            fillColor:
-                                Theme.of(context).colorScheme.primaryContainer,
-                            filled: true,
-                            prefixIconColor:
-                                Theme.of(context).colorScheme.primary,
-                            prefixIcon: const Icon(
-                              Icons.email_rounded,
-                            ),
-                            hintText: context.loc.email_text_field_placeholder,
                           ),
-                        ),
-                        const SizedBox(
-                          height: 16,
-                        ),
-                        TextField(
-                          controller: _password,
-                          textInputAction: TextInputAction.done,
-                          obscureText: true,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.all(16),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                width: 2,
-                                color: context.theme.colorScheme.primary,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(32),
-                              borderSide: BorderSide.none,
-                            ),
-                            fillColor:
-                                context.theme.colorScheme.primaryContainer,
-                            filled: true,
-                            prefixIconColor: context.theme.colorScheme.primary,
-                            prefixIcon: const Icon(
-                              Icons.password_rounded,
-                            ),
-                            hintText:
-                                context.loc.password_text_field_placeholder,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(32),
+                            borderSide: BorderSide.none,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                TextButton(
-                  onPressed: () async {
-                    final email = _email.text;
-                    final password = _password.text;
-                    context.read<AuthBloc>().add(
-                          AuthEventLogIn(
-                            email,
-                            password,
+                          fillColor:
+                              Theme.of(context).colorScheme.primaryContainer,
+                          filled: true,
+                          prefixIconColor:
+                              Theme.of(context).colorScheme.primary,
+                          prefixIcon: const Icon(
+                            Icons.email_rounded,
                           ),
-                        );
-                  },
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size.fromHeight(40),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    foregroundColor: context.theme.colorScheme.onPrimary,
-                    backgroundColor: context.theme.colorScheme.primary,
-                  ),
-                  child: Text(
-                    context.loc.login,
-                    style: const TextStyle(fontSize: 14),
+                          hintText: context.loc.email_text_field_placeholder,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      TextField(
+                        controller: _password,
+                        textInputAction: TextInputAction.done,
+                        obscureText: true,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.all(16),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide(
+                              width: 2,
+                              color: context.theme.colorScheme.primary,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(32),
+                            borderSide: BorderSide.none,
+                          ),
+                          fillColor: context.theme.colorScheme.primaryContainer,
+                          filled: true,
+                          prefixIconColor: context.theme.colorScheme.primary,
+                          prefixIcon: const Icon(
+                            Icons.password_rounded,
+                          ),
+                          hintText: context.loc.password_text_field_placeholder,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor:
-                        context.theme.colorScheme.surface.withOpacity(0.6),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  ),
-                  onPressed: () {
-                    context
-                        .read<AuthBloc>()
-                        .add(const AuthEventForgotPassword());
-                  },
-                  child: Text(context.loc.login_view_forgot_password),
+              ),
+              const SizedBox(
+                height: 24,
+              ),
+              TextButton(
+                onPressed: () async {
+                  final email = _email.text;
+                  final password = _password.text;
+                  context.read<AuthBloc>().add(
+                        AuthEventLogIn(
+                          email,
+                          password,
+                        ),
+                      );
+                },
+                style: TextButton.styleFrom(
+                  minimumSize: const Size.fromHeight(40),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  foregroundColor: context.theme.colorScheme.onPrimary,
+                  backgroundColor: context.theme.colorScheme.primary,
                 ),
-                const Spacer(
-                  flex: 1,
+                child: Text(
+                  context.loc.login,
+                  style: const TextStyle(fontSize: 14),
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor:
-                        context.theme.colorScheme.surface.withOpacity(0.6),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  ),
-                  onPressed: () {
-                    context
-                        .read<AuthBloc>()
-                        .add(const AuthEventShouldRegister());
-                  },
-                  child: Text(context.loc.login_view_not_registered_yet),
-                )
-              ],
-            ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      context.theme.colorScheme.surface.withOpacity(0.6),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                ),
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventForgotPassword());
+                },
+                child: Text(context.loc.login_view_forgot_password),
+              ),
+              const Spacer(
+                flex: 1,
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      context.theme.colorScheme.surface.withOpacity(0.6),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                ),
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthEventShouldRegister());
+                },
+                child: Text(context.loc.login_view_not_registered_yet),
+              )
+            ],
           ),
-        ]),
+        ),
       ),
     );
   }

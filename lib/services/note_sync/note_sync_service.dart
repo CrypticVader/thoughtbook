@@ -1,0 +1,5 @@
+class NoteSyncService {
+  void syncNotes() {
+
+  }
+}
