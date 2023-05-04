@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:thoughtbook/services/cloud/firestore_notes_constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Data model for notes stored in the Firebase Firestore database.
 @immutable
 class CloudNote {
   final String documentId;

@@ -13,7 +13,7 @@ import 'package:thoughtbook/services/crud/local_note.dart';
 import 'package:thoughtbook/services/crud/local_note_service.dart';
 import 'package:thoughtbook/utilities/dialogs/cannot_share_empty_note_dialog.dart';
 import 'package:thoughtbook/utilities/dialogs/delete_dialog.dart';
-import 'package:thoughtbook/utilities/generics/get_arguments.dart';
+import 'package:thoughtbook/extensions/buildContext/get_arguments.dart';
 import 'package:thoughtbook/utilities/modals/show_color_picker_bottom_sheet.dart';
 
 typedef NoteCallback = void Function(LocalNote note);

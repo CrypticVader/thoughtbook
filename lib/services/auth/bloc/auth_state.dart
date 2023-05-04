@@ -39,17 +39,14 @@ class AuthStateForgotPassword extends AuthState {
 }
 
 class AuthStateLoggedIn extends AuthState {
-  final AuthUser user;
+  final AuthUser? user;
+  final bool isUserGuest;
 
   const AuthStateLoggedIn({
+    required this.isUserGuest,
     required this.user,
     required bool isLoading,
   }) : super(isLoading: isLoading);
-}
-
-class AuthStateLoggedInAsGuest extends AuthState {
-  const AuthStateLoggedInAsGuest({required bool isLoading})
-      : super(isLoading: isLoading);
 }
 
 class AuthStateNeedsVerification extends AuthState {

@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:thoughtbook/services/app_preference/app_preference_service.dart';
+import 'package:thoughtbook/services/app_preference/enums/preference_keys.dart';
 import 'package:thoughtbook/services/auth/auth_provider.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_state.dart';
@@ -93,19 +95,41 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await provider.initialize();
         final user = provider.currentUser;
         if (user == null) {
-          emit(
-            const AuthStateLoggedOut(
-              exception: null,
-              isLoading: false,
-            ),
-          );
-        } else if (!user.isEmailVerified) {
-          emit(const AuthStateNeedsVerification(isLoading: false));
+          final isUserGuest = AppPreferenceService().isUserLoggedInAsGuest;
+          if (isUserGuest) {
+            emit(
+              const AuthStateLoggedIn(
+                isLoading: false,
+                isUserGuest: true,
+                user: null,
+              ),
+            );
+          } else {
+            emit(
+              const AuthStateLoggedOut(
+                exception: null,
+                isLoading: false,
+              ),
+            );
+          }
         } else {
-          emit(AuthStateLoggedIn(
-            user: user,
-            isLoading: false,
-          ));
+          AppPreferenceService().setPreference(
+            key: PreferenceKey.isGuest,
+            value: false,
+          );
+          if (!user.isEmailVerified) {
+            emit(
+              const AuthStateNeedsVerification(
+                isLoading: false,
+              ),
+            );
+          } else {
+            emit(AuthStateLoggedIn(
+              user: user,
+              isLoading: false,
+              isUserGuest: false,
+            ));
+          }
         }
       },
     );
@@ -125,6 +149,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final user = await provider.logIn(
             email: email,
             password: password,
+          );
+          AppPreferenceService().setPreference(
+            key: PreferenceKey.isGuest,
+            value: false,
           );
           if (!user.isEmailVerified) {
             emit(
@@ -146,6 +174,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               AuthStateLoggedIn(
                 user: user,
                 isLoading: false,
+                isUserGuest: false,
               ),
             );
           }
@@ -163,9 +192,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // log in as guest
     on<AuthEventLoginAsGuest>(
       (event, emit) {
+        AppPreferenceService().setPreference(
+          key: PreferenceKey.isGuest,
+          value: true,
+        );
         emit(
-          const AuthStateLoggedInAsGuest(
+          const AuthStateLoggedIn(
             isLoading: false,
+            isUserGuest: true,
+            user: null,
           ),
         );
       },

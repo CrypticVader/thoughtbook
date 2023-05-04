@@ -1,4 +1,6 @@
+import 'package:animated_background/animated_background.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
@@ -15,7 +17,8 @@ class RegisterView extends StatefulWidget {
   State<RegisterView> createState() => _RegisterViewState();
 }
 
-class _RegisterViewState extends State<RegisterView> {
+class _RegisterViewState extends State<RegisterView>
+    with TickerProviderStateMixin {
   bool _passwordMatches = true;
 
   late final TextEditingController _email;
@@ -96,49 +99,63 @@ class _RegisterViewState extends State<RegisterView> {
         }
       },
       child: Scaffold(
-        body: Stack(children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
-            child: Column(
-              children: [
-                const Spacer(
-                  flex: 1,
-                ),
-                Text(
-                  context.loc.welcome_to,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                    color: context.theme.colorScheme.onBackground,
+        body: AnimatedBackground(
+          vsync: this,
+          behaviour: RandomParticleBehaviour(
+            options: ParticleOptions(
+              baseColor: context.theme.colorScheme.secondary,
+              spawnOpacity: 0.0,
+              opacityChangeRate: 0.25,
+              minOpacity: 0.1,
+              maxOpacity: 0.4,
+              spawnMinSpeed: 20.0,
+              spawnMaxSpeed: 30.0,
+              spawnMinRadius: 10.0,
+              spawnMaxRadius: 20.0,
+              particleCount: 26,
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.1,
                   ),
-                ),
-                Text(
-                  context.loc.app_title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 28,
-                    color: context.theme.colorScheme.primary,
+                  Text(
+                    context.loc.welcome_to,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 26,
+                      color: context.theme.colorScheme.onBackground,
+                    ),
                   ),
-                ),
-                const Spacer(
-                  flex: 1,
-                ),
-                Text(
-                  context.loc.register_view_prompt,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Card(
-                  elevation: 0,
-                  color: context.theme.colorScheme.primaryContainer
-                      .withOpacity(0.4),
-                  shape: ContinuousRectangleBorder(
-                    borderRadius: BorderRadius.circular(128),
+                  Text(
+                    context.loc.app_title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 28,
+                      color: context.theme.colorScheme.primary,
+                    ),
+                  ).animate(adapter: ValueAdapter(0.5)).shimmer(
+                    colors: [
+                      context.theme.colorScheme.primary,
+                      context.theme.colorScheme.tertiary,
+                    ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(28.0),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.1,
+                  ),
+                  Text(
+                    context.loc.register_view_prompt,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
                         TextField(
@@ -161,8 +178,9 @@ class _RegisterViewState extends State<RegisterView> {
                               borderRadius: BorderRadius.circular(32),
                               borderSide: BorderSide.none,
                             ),
-                            fillColor:
-                                context.theme.colorScheme.primaryContainer,
+                            fillColor: context
+                                .theme.colorScheme.primaryContainer
+                                .withAlpha(200),
                             filled: true,
                             prefixIconColor: context.theme.colorScheme.primary,
                             prefixIcon: const Icon(
@@ -193,8 +211,9 @@ class _RegisterViewState extends State<RegisterView> {
                               borderRadius: BorderRadius.circular(32),
                               borderSide: BorderSide.none,
                             ),
-                            fillColor:
-                                context.theme.colorScheme.primaryContainer,
+                            fillColor: context
+                                .theme.colorScheme.primaryContainer
+                                .withAlpha(200),
                             filled: true,
                             hintText:
                                 context.loc.password_text_field_placeholder,
@@ -217,6 +236,7 @@ class _RegisterViewState extends State<RegisterView> {
                             filled: true,
                             fillColor: _passwordMatches
                                 ? context.theme.colorScheme.primaryContainer
+                                    .withAlpha(200)
                                 : context.theme.colorScheme.errorContainer,
                             errorText: _passwordMatches
                                 ? null
@@ -258,59 +278,59 @@ class _RegisterViewState extends State<RegisterView> {
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
-                TextButton(
-                  onPressed: () async {
-                    final email = _email.text;
-                    final password = _password.text;
-                    if (_isPasswordMatching()) {
-                      context.read<AuthBloc>().add(
-                            AuthEventRegister(
-                              email,
-                              password,
-                            ),
-                          );
-                    } else {
-                      await showErrorDialog(
-                        context,
-                        context.loc.register_error_passwords_do_not_match,
-                      );
-                    }
-                  },
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size.fromHeight(40),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    foregroundColor: context.theme.colorScheme.onPrimary,
-                    backgroundColor: context.theme.colorScheme.primary,
+                  const SizedBox(
+                    height: 24,
                   ),
-                  child: Text(
-                    context.loc.register,
-                    style: const TextStyle(fontSize: 14),
+                  TextButton(
+                    onPressed: () async {
+                      final email = _email.text;
+                      final password = _password.text;
+                      if (_isPasswordMatching()) {
+                        context.read<AuthBloc>().add(
+                              AuthEventRegister(
+                                email,
+                                password,
+                              ),
+                            );
+                      } else {
+                        await showErrorDialog(
+                          context,
+                          context.loc.register_error_passwords_do_not_match,
+                        );
+                      }
+                    },
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size.fromHeight(40),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      foregroundColor: context.theme.colorScheme.onPrimary,
+                      backgroundColor: context.theme.colorScheme.primary,
+                    ),
+                    child: Text(
+                      context.loc.register,
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ),
-                ),
-                const Spacer(
-                  flex: 1,
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor:
-                        context.theme.colorScheme.surface.withOpacity(0.6),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.1,
                   ),
-                  onPressed: () {
-                    context.read<AuthBloc>().add(const AuthEventLogOut());
-                  },
-                  child: Text(
-                    context.loc.register_view_already_registered,
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor:
+                          context.theme.colorScheme.surface.withOpacity(0.6),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    ),
+                    onPressed: () {
+                      context.read<AuthBloc>().add(const AuthEventLogOut());
+                    },
+                    child: Text(
+                      context.loc.register_view_already_registered,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ]),
+        ),
       ),
     );
   }

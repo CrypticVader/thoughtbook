@@ -8,6 +8,7 @@ import 'package:thoughtbook/constants/routes.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/helpers/loading/loading_screen.dart';
+import 'package:thoughtbook/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
 import 'package:thoughtbook/services/auth/bloc/auth_state.dart';
@@ -30,6 +31,8 @@ void main() {
     ),
   );
 
+  AppPreferenceService().initPrefs();
+
   runApp(
     const ThoughtbookApp(),
   );
@@ -44,7 +47,7 @@ class ThoughtbookApp extends StatefulWidget {
 
 class _ThoughtbookAppState extends State<ThoughtbookApp> {
   static final _defaultLightColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.cyan,
+    seedColor: Colors.deepOrangeAccent,
     brightness: Brightness.light,
   );
 
@@ -60,7 +63,7 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
+        title: 'Thoughtbook',
         theme: ThemeData(
           fontFamily:
               (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
@@ -105,8 +108,6 @@ class HomePage extends StatelessWidget {
   }) {
     if (state is AuthStateLoggedIn) {
       return const NotesView();
-    } else if (state is AuthStateLoggedInAsGuest) {
-      return const NotesView();
     } else if (state is AuthStateForgotPassword) {
       return const ForgotPasswordView();
     } else if (state is AuthStateNeedsVerification) {
@@ -143,7 +144,15 @@ class HomePage extends StatelessWidget {
       },
       builder: (context, state) {
         return AnimatedSwitcher(
+          switchInCurve: Curves.easeIn,
+          switchOutCurve: Curves.easeOut,
           duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
           child: _getMainLayout(
             state: state,
             context: context,

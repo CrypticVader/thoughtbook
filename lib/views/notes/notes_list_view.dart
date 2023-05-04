@@ -2,10 +2,10 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:thoughtbook/constants/preferences.dart';
 import 'package:thoughtbook/constants/routes.dart';
 import 'package:thoughtbook/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/services/app_preference/enums/preference_values.dart';
 import 'package:thoughtbook/services/crud/local_note.dart';
 import 'package:thoughtbook/utilities/dialogs/error_dialog.dart';
 import 'package:thoughtbook/views/notes/create_update_note_view.dart';
@@ -36,9 +36,9 @@ class NotesListView extends StatefulWidget {
 
 class _NotesListViewState extends State<NotesListView> {
   int _getLayoutColumnCount(context) {
-    if (widget.layoutPreference == listLayoutPref) {
+    if (widget.layoutPreference == LayoutPreference.list.value) {
       return 1;
-    } else if (widget.layoutPreference == gridLayoutPref) {
+    } else if (widget.layoutPreference == LayoutPreference.grid.value) {
       final width = MediaQuery.of(context).size.width;
       if (width < 150) {
         return 1;
