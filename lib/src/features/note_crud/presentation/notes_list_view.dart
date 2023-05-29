@@ -21,7 +21,6 @@ class NotesListView extends StatefulWidget {
   final NoteCallback onDeleteNote;
   final void Function(LocalNote note, void Function() openContainer) onTap;
   final NoteCallback onLongPress;
-  final NoteCallback onEditorNoteDelete;
 
   const NotesListView({
     Key? key,
@@ -31,7 +30,6 @@ class NotesListView extends StatefulWidget {
     required this.onDeleteNote,
     required this.onTap,
     required this.onLongPress,
-    required this.onEditorNoteDelete,
   }) : super(key: key);
 
   @override
@@ -86,6 +84,7 @@ class _NotesListViewState extends State<NotesListView> {
       );
     } else {
       return MasonryGridView.count(
+        key: ValueKey<int>(_getLayoutColumnCount(context)),
         primary: true,
         itemCount: widget.notes.length,
         crossAxisSpacing: 8.0,
@@ -95,6 +94,7 @@ class _NotesListViewState extends State<NotesListView> {
         itemBuilder: (BuildContext context, int index) {
           final note = widget.notes.elementAt(index);
           return NoteItem(
+            key: ValueKey<LocalNote>(note),
             note: note,
             isSelected: widget.selectedNotes.contains(note),
             onTap: (note, openContainer) => widget.onTap(note, openContainer),
@@ -106,7 +106,6 @@ class _NotesListViewState extends State<NotesListView> {
               widget.onDeleteNote(note);
             },
             enableDismissible: widget.selectedNotes.isEmpty,
-            onEditorNoteDeleted: (note) => widget.onEditorNoteDelete(note),
           );
         },
       );
@@ -121,7 +120,6 @@ class NoteItem extends StatefulWidget {
   final void Function(LocalNote note, void Function() openContainer) onTap;
   final NoteCallback onLongPress;
   final bool enableDismissible;
-  final NoteCallback onEditorNoteDeleted;
 
   const NoteItem({
     Key? key,
@@ -131,7 +129,6 @@ class NoteItem extends StatefulWidget {
     required this.onTap,
     required this.onLongPress,
     required this.enableDismissible,
-    required this.onEditorNoteDeleted,
   }) : super(key: key);
 
   @override
@@ -158,7 +155,7 @@ class _NoteItemState extends State<NoteItem> {
       key: ValueKey<LocalNote>(widget.note),
       onUpdate: (details) async {
         if (details.progress > 0.34 && details.progress < 0.36) {
-          HapticFeedback.lightImpact();
+          await HapticFeedback.lightImpact();
         }
         setState(() {
           _noteOpacity = 1 - details.progress;
@@ -255,7 +252,9 @@ class _NoteItemState extends State<NoteItem> {
                 child: NoteEditorView(
                   note: widget.note,
                   shouldAutoFocusContent: false,
-                  onNoteDelete: (note) => widget.onEditorNoteDeleted(note),
+                  onDeleteNote: (note) async {
+                    widget.onDeleteNote(note);
+                  },
                 ),
               );
             },

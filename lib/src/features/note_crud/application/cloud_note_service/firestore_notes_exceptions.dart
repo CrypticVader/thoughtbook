@@ -8,4 +8,4 @@ class CouldNotGetAllNotesException implements CloudStorageException {}
 
 class CouldNotUpdateNoteException implements CloudStorageException {}
 
-class CouldNotDeleteNoteException implements CloudStorageException {}
+// class CouldNotDeleteNoteException implements CloudStorageException {}

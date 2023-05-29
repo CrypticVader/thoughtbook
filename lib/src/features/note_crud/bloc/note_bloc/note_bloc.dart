@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
@@ -17,7 +18,7 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
   Stream<List<LocalNote>> get allNotes => LocalNoteService().allNotes;
 
-  AuthUser? get user => AuthService.firebase().currentUser;
+  AuthUser? user = AuthService.firebase().currentUser;
 
   String get layoutPreference =>
       AppPreferenceService().getPreference(PreferenceKey.layout) as String;
@@ -41,9 +42,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             ),
           );
         } else {
-          // Start local to cloud sync service
-          NoteSyncService().syncLocalToCloud();
-
           emit(
             NoteInitializedState(
               isLoading: false,
@@ -53,6 +51,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               layoutPreference: layoutPreference,
             ),
           );
+
+          // Start local to cloud sync service
+          unawaited(NoteSyncService().setup());
         }
       },
     );

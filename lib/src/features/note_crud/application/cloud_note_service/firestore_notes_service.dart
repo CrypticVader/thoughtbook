@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:thoughtbook/src/features/authentication/application/auth_service.dart';
 import 'package:thoughtbook/src/features/note_crud/application/cloud_note_service/firestore_notes_constants.dart';
-import 'package:thoughtbook/src/features/note_crud/application/cloud_note_service/firestore_notes_exceptions.dart';
+import 'package:thoughtbook/src/features/note_crud/application/local_note_service/crud_exceptions.dart';
 import 'package:thoughtbook/src/features/note_crud/domain/cloud_note.dart';
 
 //TODO: Handle exceptions due to network errors/timeouts
@@ -14,9 +14,9 @@ class FirestoreNoteService {
 
   Future<void> deleteNote({required String documentId}) async {
     try {
-      notes.doc(documentId).delete();
+      await notes.doc(documentId).delete();
     } catch (e) {
-      throw CouldNotGetAllNotesException();
+      throw CouldNotDeleteNoteException();
     }
   }
 
@@ -42,6 +42,7 @@ class FirestoreNoteService {
         },
       );
     } catch (e) {
+      // throw
       throw CouldNotUpdateNoteException();
     }
   }

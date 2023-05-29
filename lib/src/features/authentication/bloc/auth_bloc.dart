@@ -117,7 +117,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             );
           }
         } else {
-          AppPreferenceService().setPreference(
+          await AppPreferenceService().setPreference(
             key: PreferenceKey.isGuest,
             value: false,
           );
@@ -179,7 +179,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
             // After logging in, retrieve all the notes belonging to the user from
             // the Firstore collection to the local database
-            await NoteSyncService().initLocalNotes();
+            final Stream<int> loadProgress = NoteSyncService().initLocalNotes();
+            await for (int progress in loadProgress) {
+              log('CloudNote retrieval progress: ${progress.toString()}%');
+            }
             log('Successfully retrieved notes from Firestore');
 
             emit(

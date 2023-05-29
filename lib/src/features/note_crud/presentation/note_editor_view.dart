@@ -25,12 +25,12 @@ class NoteEditorView extends StatefulWidget {
   /// This callback, provided by [NotesView], will facilitate showing a [SnackBar]
   /// to undo the deletion, by adding a [NoteDeleteEvent] to the [NoteBloc] which is
   /// not accessible from this view's [context]
-  final NoteCallback onNoteDelete;
+  final NoteCallback onDeleteNote;
 
   const NoteEditorView({
     required this.note,
     required this.shouldAutoFocusContent,
-    required this.onNoteDelete,
+    required this.onDeleteNote,
     Key? key,
   }) : super(key: key);
 
@@ -130,7 +130,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
         } else if (state is NoteEditorDeletedState) {
           Navigator.of(context).pop();
-          widget.onNoteDelete(state.deletedNote);
+          widget.onDeleteNote(state.deletedNote);
         }
       },
       buildWhen: (previousState, currentState) {

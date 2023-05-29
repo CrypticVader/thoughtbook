@@ -12,7 +12,7 @@ class AppPreferenceService {
 
   Future<void> initPrefs() async {
     _prefs = await SharedPreferences.getInstance();
-    _initAllPreferences();
+    await _initAllPreferences();
   }
 
   static final _shared = AppPreferenceService._sharedInstance();

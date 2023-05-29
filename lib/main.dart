@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +24,7 @@ import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  AppPreferenceService().initPrefs();
+  unawaited(AppPreferenceService().initPrefs());
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(

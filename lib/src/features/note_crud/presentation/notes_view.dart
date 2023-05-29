@@ -19,6 +19,7 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 import 'package:thoughtbook/src/utilities/dialogs/logout_dialog.dart';
 import 'package:thoughtbook/src/utilities/modals/show_color_picker_bottom_sheet.dart';
 
+//TODO: Convert to StateLess
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
 
@@ -104,7 +105,6 @@ class _NotesViewState extends State<NotesView> {
         icon: const Icon(Icons.close_rounded),
       ),
       actions: [
-        // TODO: Use ValueListenableBuilder to update the actions depending on the number of items in SelectedNotes
         IconButton(
           tooltip: context.loc.select_all_notes,
           onPressed: () async => context.read<NoteBloc>().add(
@@ -353,15 +353,16 @@ class _NotesViewState extends State<NotesView> {
                       tappable: false,
                       transitionDuration: const Duration(milliseconds: 320),
                       transitionType: ContainerTransitionType.fadeThrough,
-                      openBuilder: (context, _) => BlocProvider<NoteEditorBloc>(
+                      // Using this context resultes in scope error when accessing NoteBloc
+                      openBuilder: (_, __) => BlocProvider<NoteEditorBloc>(
                         create: (BuildContext context) => NoteEditorBloc(),
                         child: NoteEditorView(
-                            note: null,
-                            shouldAutoFocusContent: true,
-                            // TODO: This event will simply restore the note.
-                            onNoteDelete: (note) => context
-                                .read<NoteBloc>()
-                                .add(NoteDeleteEvent(notes: [note]))),
+                          note: null,
+                          shouldAutoFocusContent: true,
+                          onDeleteNote: (note) => context
+                              .read<NoteBloc>()
+                              .add(NoteDeleteEvent(notes: [note])),
+                        ),
                       ),
                       closedElevation: 6.0,
                       closedShape: const RoundedRectangleBorder(
@@ -426,7 +427,7 @@ class _NotesViewState extends State<NotesView> {
                                   ),
                                   Expanded(
                                     child: Text(
-                                      state.user?.email ?? "",
+                                      state.user?.email ?? '',
                                       style: TextStyle(
                                         fontSize: 15.0,
                                         fontWeight: FontWeight.w500,
@@ -505,34 +506,34 @@ class _NotesViewState extends State<NotesView> {
                       if (snapshot.hasData) {
                         final allNotes = snapshot.data!;
 
-                        return NotesListView(
-                          layoutPreference: state.layoutPreference,
-                          notes: allNotes,
-                          selectedNotes: state.selectedNotes,
-                          onDeleteNote: (LocalNote note) => context
-                              .read<NoteBloc>()
-                              .add(NoteDeleteEvent(notes: [note])),
-                          onTap: (
-                            LocalNote note,
-                            void Function() openNote,
-                          ) {
-                            if (state.selectedNotes.isEmpty) {
-                              openNote();
-                            } else {
-                              context.read<NoteBloc>().add(NoteTapEvent(
-                                    note: note,
-                                    selectedNotes: state.selectedNotes,
-                                  ));
-                            }
-                          },
-                          onLongPress: (LocalNote note) =>
-                              context.read<NoteBloc>().add(NoteLongPressEvent(
-                                    note: note,
-                                    selectedNotes: state.selectedNotes,
-                                  )),
-                          onEditorNoteDelete: (note) => context
-                              .read<NoteBloc>()
-                              .add(NoteDeleteEvent(notes: [note])),
+                        return BlocProvider<NoteBloc>.value(
+                          value: context.read<NoteBloc>(),
+                          child: NotesListView(
+                            layoutPreference: state.layoutPreference,
+                            notes: allNotes,
+                            selectedNotes: state.selectedNotes,
+                            onDeleteNote: (LocalNote note) => context
+                                .read<NoteBloc>()
+                                .add(NoteDeleteEvent(notes: [note])),
+                            onTap: (
+                              LocalNote note,
+                              void Function() openNote,
+                            ) {
+                              if (state.selectedNotes.isEmpty) {
+                                openNote();
+                              } else {
+                                context.read<NoteBloc>().add(NoteTapEvent(
+                                      note: note,
+                                      selectedNotes: state.selectedNotes,
+                                    ));
+                              }
+                            },
+                            onLongPress: (LocalNote note) =>
+                                context.read<NoteBloc>().add(NoteLongPressEvent(
+                                      note: note,
+                                      selectedNotes: state.selectedNotes,
+                                    )),
+                          ),
                         );
                       } else {
                         return Center(

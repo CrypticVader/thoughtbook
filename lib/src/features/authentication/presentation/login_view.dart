@@ -308,7 +308,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                           .add(const AuthEventLoginAsGuest());
                                     },
                                     label: const Text(
-                                        "Continue without an account"),
+                                        'Continue without an account'),
                                     icon: const Icon(Icons.no_accounts_rounded),
                                   ),
                                 ],

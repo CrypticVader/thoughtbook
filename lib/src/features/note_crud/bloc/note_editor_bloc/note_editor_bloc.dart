@@ -15,15 +15,15 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   Future<Stream<LocalNote>> get noteStream async =>
       await LocalNoteService().getNoteAsStream(isarId: noteIsarId);
 
-  Future<LocalNote?> get note async {
+  Future<LocalNote> get note async {
     LocalNote note;
     try {
       note = await LocalNoteService().getNote(id: noteIsarId);
       return note;
-    } on CouldNotFindNote {
+    } on CouldNotFindNoteException {
       log(
-        name: "NoteEditorBloc",
-        "LocalNote does not exist to handle NoteEditorEvent",
+        name: 'NoteEditorBloc',
+        'LocalNote does not exist to handle NoteEditorEvent',
       );
       rethrow;
     }
@@ -32,7 +32,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   NoteEditorBloc() : super(const NoteEditorUninitializedState()) {
     // Initialize editor state
     on<NoteEditorInitializeEvent>(
-          (event, emit) async {
+      (event, emit) async {
         if (state is NoteEditorInitializedState) {
           throw NoteEditorBlocAlreadyInitializedException();
         }
@@ -43,6 +43,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
         } else {
           noteIsarId = event.note!.isarId;
         }
+
         emit(
           NoteEditorInitializedState(noteStream: await noteStream),
         );
@@ -51,15 +52,12 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
     // Close note editor
     on<NoteEditorCloseEvent>(
-          (event, emit) async {
+      (event, emit) async {
         if (state is NoteEditorDeletedState) {
           return;
         }
 
         final note = await this.note;
-        if (note == null) {
-          return;
-        }
         if (note.title.isEmpty && note.content.isEmpty) {
           await LocalNoteService().deleteNote(isarId: note.isarId);
         }
@@ -68,12 +66,8 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
     // Update note shown by editor
     on<NoteEditorUpdateEvent>(
-          (event, emit) async {
+      (event, emit) async {
         final note = await this.note;
-        if (note == null) {
-          return;
-        }
-
         if (note.content != event.newContent || note.title != event.newTitle) {
           await LocalNoteService().updateNote(
             isarId: note.isarId,
@@ -88,12 +82,8 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
     // Share note
     on<NoteEditorShareEvent>(
-          (event, emit) async {
+      (event, emit) async {
         final note = await this.note;
-        if (note == null) {
-          return;
-        }
-
         if (note.content.isEmpty && note.title.isEmpty) {
           emit(
             const NoteEditorWithSnackbarState(
@@ -101,19 +91,15 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             ),
           );
         } else {
-          Share.share('${note.title}\n${note.content}');
+          await Share.share('${note.title}\n${note.content}');
         }
       },
     );
 
     // Update the color of the note
     on<NoteEditorUpdateColorEvent>(
-          (event, emit) async {
+      (event, emit) async {
         final note = await this.note;
-        if (note == null) {
-          return;
-        }
-
         final newColor = event.newColor;
         await LocalNoteService().updateNote(
           isarId: note.isarId,
@@ -127,12 +113,8 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
     // Copy note
     on<NoteEditorCopyEvent>(
-          (event, emit) async {
+      (event, emit) async {
         final note = await this.note;
-        if (note == null) {
-          return;
-        }
-
         String snackBarText;
         if (note.content.isEmpty && note.title.isEmpty) {
           snackBarText = 'Cannot copy empty note.';
@@ -154,17 +136,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
     // Delete note
     on<NoteEditorDeleteEvent>(
-          (event, emit) async {
+      (event, emit) async {
         final note = await this.note;
-        if (note == null) {
-          return;
-        }
-
-        // await LocalNoteService().deleteNote(
-        //   isarId: note.isarId,
-        // );
-
-        // The actual delete operation is delegated to the NoteBloc.
+        // The actual delete operation is delegated to the NoteBloc by the presentation layer.
         // This facilitates showing a SnackBar to undo the deletion.
         emit(NoteEditorDeletedState(deletedNote: note));
       },
