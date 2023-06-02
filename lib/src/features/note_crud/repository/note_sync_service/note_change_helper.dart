@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:thoughtbook/src/features/note_crud/application/local_note_service/crud_exceptions.dart';
-import 'package:thoughtbook/src/features/note_crud/application/note_sync_service/note_sync_service.dart';
 import 'package:thoughtbook/src/features/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note_crud/domain/note_change.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/local_note_service/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/note_sync_service/note_sync_exceptions.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/note_sync_service/note_sync_service.dart';
 
 class NoteChangeHelper {
   Isar? _isar;
@@ -16,6 +18,7 @@ class NoteChangeHelper {
 
   NoteChangeHelper._sharedInstance() {
     _ensureCollectionIsOpen();
+    eventNotifierController = StreamController<void>.broadcast();
   }
 
   factory NoteChangeHelper() => _shared;
@@ -25,15 +28,20 @@ class NoteChangeHelper {
     return (await changeCollection.count() == 0) ? true : false;
   }
 
+  late StreamController<void> eventNotifierController;
+
   Future<Stream<void>> get eventNotifier async {
     await _ensureCollectionIsOpen();
-    return changeCollection.watchLazy(fireImmediately: false);
+    return eventNotifierController.stream;
   }
 
   /// For a [NoteChange] of type [NoteChangeType.create], the change is simply
   /// added to the [NoteChange] collection.
   Future<void> handleCreateChange({required NoteChange change}) async {
     await NoteChangeHelper().createChange(change: change);
+
+    // Notify event stream controller
+    eventNotifierController.sink.add(null);
   }
 
   /// For a [NoteChange] of type [NoteChangeType.update], all existing changes
@@ -60,6 +68,9 @@ class NoteChangeHelper {
     );
     // Add the given change to the collection
     await createChange(change: change);
+
+    // Notify event stream controller
+    eventNotifierController.sink.add(null);
   }
 
   /// For a [NoteChange] of type [NoteChangeType.delete], if a [NoteChange] of
@@ -115,6 +126,9 @@ class NoteChangeHelper {
         name: 'NoteChangeHelper',
       );
     }
+
+    // Notify event stream controller
+    eventNotifierController.sink.add(null);
   }
 
   Future<List<NoteChange>> get getAllChanges async {
@@ -147,7 +161,7 @@ class NoteChangeHelper {
     ).then(
       (bool couldDelete) {
         if (!couldDelete) {
-          throw CouldNotDeleteChangeException();
+          throw CouldNotDeleteChangeSyncException();
         }
       },
     );
@@ -194,6 +208,15 @@ class NoteChangeHelper {
         }
       },
     );
+  }
+
+  Future<void> deleteAllChangesToNote({required int isarNoteId}) async {
+    await _ensureCollectionIsOpen();
+    final isar = _isar!;
+
+    await isar.writeTxn(() async {
+      await changeCollection.where().noteIsarIdEqualTo(isarNoteId).deleteAll();
+    });
   }
 
   Future<NoteChange> getChangeAndDelete({required int isarId}) async {

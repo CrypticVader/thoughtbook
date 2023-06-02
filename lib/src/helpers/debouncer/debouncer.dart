@@ -14,9 +14,6 @@ import 'dart:async';
 /// ```
 class Debouncer<T> {
   final Duration delay;
-
-  /// Used to keep track of the previous event
-  T? previousEvent;
   Timer? _timer;
 
   /// Helper class that can be used to debounce events
@@ -37,9 +34,5 @@ class Debouncer<T> {
   run(Function() action) {
     _timer?.cancel();
     _timer = Timer(delay, action);
-  }
-
-  void cancelTimer() {
-    _timer?.cancel();
   }
 }

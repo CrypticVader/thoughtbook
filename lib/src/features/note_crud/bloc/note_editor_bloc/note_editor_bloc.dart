@@ -3,11 +3,11 @@ import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:thoughtbook/src/features/note_crud/application/local_note_service/crud_exceptions.dart';
-import 'package:thoughtbook/src/features/note_crud/application/local_note_service/local_note_service.dart';
 import 'package:thoughtbook/src/features/note_crud/bloc/note_editor_bloc/note_editor_event.dart';
 import 'package:thoughtbook/src/features/note_crud/bloc/note_editor_bloc/note_editor_state.dart';
 import 'package:thoughtbook/src/features/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/local_note_service/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/local_note_service/local_note_service.dart';
 
 class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   late final int noteIsarId;
@@ -18,7 +18,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   Future<LocalNote> get note async {
     LocalNote note;
     try {
-      note = await LocalNoteService().getNote(id: noteIsarId);
+      note = await LocalNoteService().getNote(isarId: noteIsarId);
       return note;
     } on CouldNotFindNoteException {
       log(
@@ -75,6 +75,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             content: event.newContent,
             color: note.color,
             isSyncedWithCloud: false,
+            debounceChangeFeedEvent: true,
           );
         }
       },

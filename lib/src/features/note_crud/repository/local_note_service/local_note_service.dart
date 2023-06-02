@@ -3,13 +3,16 @@ import 'dart:developer';
 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:thoughtbook/src/features/note_crud/application/local_note_service/crud_exceptions.dart';
-import 'package:thoughtbook/src/features/note_crud/application/note_sync_service/note_sync_service.dart';
 import 'package:thoughtbook/src/features/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note_crud/domain/note_change.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/local_note_service/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/helpers/debouncer/debouncer.dart';
 
 class LocalNoteService {
   Isar? _isar;
+  final _debouncer =
+      Debouncer<NoteChange>(delay: const Duration(milliseconds: 250));
 
   List<LocalNote> _notes = [];
 
@@ -51,6 +54,7 @@ class LocalNoteService {
     required bool isSyncedWithCloud,
     String? cloudDocumentId,
     bool addToChangeFeed = true,
+    bool debounceChangeFeedEvent = false,
     DateTime? created,
     DateTime? modified,
   }) async {
@@ -88,20 +92,32 @@ class LocalNoteService {
       );
 
       // Add event to notes stream
-      final updatedNote = await getNote(id: note.isarId);
+      final updatedNote = await getNote(isarId: note.isarId);
       _notes.removeWhere((note) => note.isarId == updatedNote.isarId);
       _notes.add(updatedNote);
       _notesStreamController.add(_notes);
 
       // Add event to note change feed
       if (addToChangeFeed) {
-        noteChangeFeedController.add(
-          NoteChange.fromLocalNote(
-            note: updatedNote,
-            type: NoteChangeType.update,
-            timestamp: DateTime.now().toUtc(),
-          ),
-        );
+        if (debounceChangeFeedEvent) {
+          _debouncer.run(
+            () => noteChangeFeedController.add(
+              NoteChange.fromLocalNote(
+                note: updatedNote,
+                type: NoteChangeType.update,
+                timestamp: DateTime.now().toUtc(),
+              ),
+            ),
+          );
+        } else {
+          noteChangeFeedController.add(
+            NoteChange.fromLocalNote(
+              note: updatedNote,
+              type: NoteChangeType.update,
+              timestamp: DateTime.now().toUtc(),
+            ),
+          );
+        }
       }
     }
   }
@@ -112,14 +128,33 @@ class LocalNoteService {
     return await notesCollection.where().anyModified().findAll();
   }
 
-  Future<LocalNote> getNote({required int id}) async {
+  Future<LocalNote> getNote({
+    int? isarId,
+    String? cloudDocumentId,
+  }) async {
     await _ensureCollectionIsOpen();
     final notesCollection = _getNotesCollection;
-    final note = await notesCollection.get(id);
-    if (note == null) {
-      throw CouldNotFindNoteException();
+    if (isarId == null) {
+      if (cloudDocumentId == null) {
+        throw CouldNotFindNoteException();
+      }
+      try {
+        final note = (await notesCollection
+                .filter()
+                .cloudDocumentIdEqualTo(cloudDocumentId)
+                .findAll())
+            .first;
+        return note;
+      } on StateError {
+        throw CouldNotFindNoteException();
+      }
     } else {
-      return note;
+      final note = await notesCollection.get(isarId);
+      if (note == null) {
+        throw CouldNotFindNoteException();
+      } else {
+        return note;
+      }
     }
   }
 
@@ -145,8 +180,11 @@ class LocalNoteService {
     }
   }
 
-  /// Creates a [LocalNote] object and returns it.
-  Future<LocalNote> createNote({bool addToChangeFeed = true}) async {
+  /// Creates a [LocalNote] object in the collection & and returns its instance.
+  Future<LocalNote> createNote({
+    bool addToChangeFeed = true,
+    bool debounceChangeFeedEvent = false,
+  }) async {
     log('Within createNote()');
     await _ensureCollectionIsOpen();
     final isar = _isar!;
@@ -178,18 +216,31 @@ class LocalNoteService {
 
     // Add event to note change feed
     if (addToChangeFeed) {
-      noteChangeFeedController.add(
-        NoteChange.fromLocalNote(
-          type: NoteChangeType.create,
-          note: note,
-          timestamp: DateTime.now().toUtc(),
-        ),
-      );
+      if (debounceChangeFeedEvent) {
+        _debouncer.run(
+          () => noteChangeFeedController.add(
+            NoteChange.fromLocalNote(
+              type: NoteChangeType.create,
+              note: note,
+              timestamp: DateTime.now().toUtc(),
+            ),
+          ),
+        );
+      } else {
+        noteChangeFeedController.add(
+          NoteChange.fromLocalNote(
+            type: NoteChangeType.create,
+            note: note,
+            timestamp: DateTime.now().toUtc(),
+          ),
+        );
+      }
     }
 
     return note;
   }
 
+  // TODO: Get rid of this, as it is useless if we consider cloud to local sync
   Future<void> markNoteAsSynced({required int isarId}) async {
     await _ensureCollectionIsOpen();
     final isar = _isar!;
@@ -218,7 +269,7 @@ class LocalNoteService {
       );
 
       // Add event to notes stream
-      final updatedNote = await getNote(id: note.isarId);
+      final updatedNote = await getNote(isarId: note.isarId);
       _notes.removeWhere((note) => note.isarId == updatedNote.isarId);
       _notes.add(updatedNote);
       _notesStreamController.add(_notes);
@@ -253,10 +304,11 @@ class LocalNoteService {
   Future<void> deleteNote({
     required int isarId,
     bool addToChangeFeed = true,
+    bool debounceChangeFeedEvent = false,
   }) async {
     await _ensureCollectionIsOpen();
     final isar = _isar!;
-    final note = await getNote(id: isarId);
+    final note = await getNote(isarId: isarId);
     await isar.writeTxn(
       () async {
         return await _getNotesCollection.delete(isarId);
@@ -277,13 +329,25 @@ class LocalNoteService {
 
     // Add event to note change feed
     if (addToChangeFeed) {
-      noteChangeFeedController.add(
-        NoteChange.fromLocalNote(
-          type: NoteChangeType.delete,
-          note: note,
-          timestamp: DateTime.now().toUtc(),
-        ),
-      );
+      if (debounceChangeFeedEvent) {
+        _debouncer.run(
+          () => noteChangeFeedController.add(
+            NoteChange.fromLocalNote(
+              type: NoteChangeType.delete,
+              note: note,
+              timestamp: DateTime.now().toUtc(),
+            ),
+          ),
+        );
+      } else {
+        noteChangeFeedController.add(
+          NoteChange.fromLocalNote(
+            type: NoteChangeType.delete,
+            note: note,
+            timestamp: DateTime.now().toUtc(),
+          ),
+        );
+      }
     }
   }
 

@@ -9,18 +9,18 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/authentication/application/firebase_auth_provider.dart';
+import 'package:thoughtbook/src/features/authentication/bloc/auth_bloc.dart';
+import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_state.dart';
 import 'package:thoughtbook/src/features/authentication/presentation/forgot_password_view.dart';
 import 'package:thoughtbook/src/features/authentication/presentation/login_view.dart';
 import 'package:thoughtbook/src/features/authentication/presentation/register_view.dart';
 import 'package:thoughtbook/src/features/authentication/presentation/verify_email_view.dart';
+import 'package:thoughtbook/src/features/authentication/repository/firebase_auth_provider.dart';
 import 'package:thoughtbook/src/features/note_crud/bloc/note_bloc/note_bloc.dart';
 import 'package:thoughtbook/src/features/note_crud/presentation/notes_view.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/helpers/loading/loading_screen.dart';
-import 'package:thoughtbook/src/features/authentication/bloc/auth_bloc.dart';
-import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

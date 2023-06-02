@@ -20,7 +20,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 2.0.0-alpha+1
 
 environment:
-  sdk: '>=2.19.0 <=3.0.0'
+  sdk: '>=3.0.0 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -63,9 +63,9 @@ dependencies:
   animated_background:
   flutter_animate:
   internet_connection_checker:
-  test: ^1.24.1
-  async: ^2.11.0
-  flutter_keyboard_visibility: ^5.4.1
+  test:
+  async:
+  flutter_keyboard_visibility:
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -73,7 +73,7 @@ dev_dependencies:
   flutter_lints:
   isar_generator:
   build_runner:
-  lints: ^2.1.0
+  lints:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

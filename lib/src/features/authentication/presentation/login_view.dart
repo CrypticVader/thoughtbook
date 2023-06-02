@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/authentication/application/auth_exceptions.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_bloc.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_state.dart';
+import 'package:thoughtbook/src/features/authentication/repository/auth_exceptions.dart';
 import 'package:thoughtbook/src/utilities/dialogs/error_dialog.dart';
 
 class LoginView extends StatefulWidget {

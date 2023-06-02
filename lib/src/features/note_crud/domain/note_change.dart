@@ -1,5 +1,5 @@
 import 'package:isar/isar.dart';
-import 'package:thoughtbook/src/features/note_crud/application/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note_crud/repository/note_sync_service/note_sync_service.dart';
 
 import 'local_note.dart';
 

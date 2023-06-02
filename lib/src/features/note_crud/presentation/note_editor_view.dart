@@ -51,9 +51,9 @@ class _NoteEditorViewState extends State<NoteEditorView> {
   void initState() {
     super.initState();
     _noteContentController =
-        TextEditingController(text: widget.note?.content ?? "");
+        TextEditingController(text: widget.note?.content ?? '');
     _noteTitleController =
-        TextEditingController(text: widget.note?.title ?? "");
+        TextEditingController(text: widget.note?.title ?? '');
     _setupTextControllerListener();
   }
 
@@ -151,7 +151,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
             child: CircularProgressIndicator(),
           );
         } else if (state is NoteEditorInitializedState) {
-          log("Editor bloc initialized");
+          log('Editor bloc initialized');
 
           return StreamBuilder<LocalNote>(
             stream: state.noteStream,
@@ -162,7 +162,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                 case ConnectionState.done:
                   if (snapshot.hasData) {
                     final LocalNote note = snapshot.data!;
-                    log("Note stream event");
+                    log('Note stream event');
                     return Scaffold(
                       appBar: PreferredSize(
                         preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -291,8 +291,8 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                           const SizedBox(width: 4.0),
                                           Text(
                                             note.isSyncedWithCloud
-                                                ? "Synced with the cloud"
-                                                : "Not synced with the cloud",
+                                                ? 'Synced with the cloud'
+                                                : 'Not synced with the cloud',
                                             style: TextStyle(
                                               color: _getNoteTextColor()
                                                   .withAlpha(220),
