@@ -4,8 +4,8 @@ import 'package:bloc/bloc.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_state.dart';
 import 'package:thoughtbook/src/features/authentication/repository/auth_provider.dart';
-import 'package:thoughtbook/src/features/note_crud/repository/local_note_service/local_note_service.dart';
-import 'package:thoughtbook/src/features/note_crud/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/local_note_service.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_keys.dart';
 

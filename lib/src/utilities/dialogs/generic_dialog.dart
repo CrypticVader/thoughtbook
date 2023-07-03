@@ -28,9 +28,13 @@ Future<T?> showGenericDialog<T>({
               padding: const EdgeInsets.symmetric(
                 vertical: 6.0,
               ),
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(45),
+              child: FilledButton.tonal(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .inversePrimary
+                      .withAlpha(150),
+                  minimumSize: const Size.fromHeight(46),
                 ),
                 onPressed: () {
                   if (value != null) {

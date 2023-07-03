@@ -17,8 +17,8 @@ import 'package:thoughtbook/src/features/authentication/presentation/login_view.
 import 'package:thoughtbook/src/features/authentication/presentation/register_view.dart';
 import 'package:thoughtbook/src/features/authentication/presentation/verify_email_view.dart';
 import 'package:thoughtbook/src/features/authentication/repository/firebase_auth_provider.dart';
-import 'package:thoughtbook/src/features/note_crud/bloc/note_bloc/note_bloc.dart';
-import 'package:thoughtbook/src/features/note_crud/presentation/notes_view.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_view.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/helpers/loading/loading_screen.dart';
 
