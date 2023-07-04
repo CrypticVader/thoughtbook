@@ -13,7 +13,7 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/no
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/utilities/modals/show_color_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/show_color_picker_bottom_sheet.dart';
 
 typedef NoteCallback = void Function(LocalNote note);
 
@@ -235,7 +235,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                       ),
                       floatingActionButton: FloatingActionButton.extended(
                         onPressed: () => context.read<NoteEditorBloc>().add(
-                              NoteEditorChangeAccessEvent(
+                              NoteEditorChangeViewTypeEvent(
                                 wasEditable: isEditable,
                               ),
                             ),

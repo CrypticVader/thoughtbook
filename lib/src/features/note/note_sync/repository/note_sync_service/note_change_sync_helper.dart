@@ -59,6 +59,7 @@ class NoteChangeSyncHelper {
       documentId: newCloudNote.documentId,
       title: change.title,
       content: change.content,
+      tags: change.tags,
       color: change.color,
       created: change.created,
       modified: change.modified,
@@ -82,6 +83,7 @@ class NoteChangeSyncHelper {
       isSyncedWithCloud: true,
       title: localNote.title,
       content: localNote.content,
+      tags: localNote.tags,
       color: localNote.color,
       addToChangeFeed: false,
     );
@@ -123,6 +125,7 @@ class NoteChangeSyncHelper {
           isSyncedWithCloud: true,
           title: localNote.title,
           content: localNote.content,
+          tags: localNote.tags,
           color: localNote.color,
           addToChangeFeed: false,
         );
@@ -138,6 +141,7 @@ class NoteChangeSyncHelper {
         documentId: localNote.cloudDocumentId!,
         title: localNote.title,
         content: localNote.content,
+        tags: localNote.tags,
         color: localNote.color,
         created: localNote.created,
         modified: localNote.modified,
@@ -156,7 +160,7 @@ class NoteChangeSyncHelper {
     } on CouldNotUpdateNoteException {
       log(
         name: 'NoteSync',
-        'Something went wrong. Could not update LocalNote with isarId=${change.noteIsarId} to mark it as synced.',
+        'Could not update LocalNote with isarId=${change.noteIsarId} to mark it as synced.',
       );
       return;
     }

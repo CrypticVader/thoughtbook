@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
 
 @immutable
 abstract class NoteEvent {
@@ -93,4 +94,26 @@ class NoteUndoDeleteEvent extends NoteEvent {
   final List<LocalNote> deletedNotes;
 
   const NoteUndoDeleteEvent({required this.deletedNotes});
+}
+
+class NoteCreateTagEvent extends NoteEvent {
+  final String name;
+
+  const NoteCreateTagEvent({required this.name});
+}
+
+class NoteEditTagEvent extends NoteEvent {
+  final NoteTag tag;
+  final String newName;
+
+  const NoteEditTagEvent({
+    required this.tag,
+    required this.newName,
+  });
+}
+
+class NoteDeleteTagEvent extends NoteEvent {
+  final NoteTag tag;
+
+  const NoteDeleteTagEvent({required this.tag});
 }

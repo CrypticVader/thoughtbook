@@ -52,8 +52,13 @@ const LocalNoteSchema = CollectionSchema(
       name: r'modified',
       type: IsarType.dateTime,
     ),
-    r'title': PropertySchema(
+    r'tags': PropertySchema(
       id: 7,
+      name: r'tags',
+      type: IsarType.longList,
+    ),
+    r'title': PropertySchema(
+      id: 8,
       name: r'title',
       type: IsarType.string,
     )
@@ -112,6 +117,7 @@ int _localNoteEstimateSize(
     }
   }
   bytesCount += 3 + object.content.length * 3;
+  bytesCount += 3 + object.tags.length * 8;
   bytesCount += 3 + object.title.length * 3;
   return bytesCount;
 }
@@ -129,7 +135,8 @@ void _localNoteSerialize(
   writer.writeLong(offsets[4], object.hashCode);
   writer.writeBool(offsets[5], object.isSyncedWithCloud);
   writer.writeDateTime(offsets[6], object.modified);
-  writer.writeString(offsets[7], object.title);
+  writer.writeLongList(offsets[7], object.tags);
+  writer.writeString(offsets[8], object.title);
 }
 
 LocalNote _localNoteDeserialize(
@@ -145,7 +152,8 @@ LocalNote _localNoteDeserialize(
     created: reader.readDateTime(offsets[3]),
     isSyncedWithCloud: reader.readBool(offsets[5]),
     modified: reader.readDateTime(offsets[6]),
-    title: reader.readString(offsets[7]),
+    tags: reader.readLongList(offsets[7]) ?? [],
+    title: reader.readString(offsets[8]),
   );
   object.isarId = id;
   return object;
@@ -173,6 +181,8 @@ P _localNoteDeserializeProp<P>(
     case 6:
       return (reader.readDateTime(offset)) as P;
     case 7:
+      return (reader.readLongList(offset) ?? []) as P;
+    case 8:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1046,6 +1056,145 @@ extension LocalNoteQueryFilter
     });
   }
 
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsElementEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tags',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
+      tagsElementGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tags',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsElementLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tags',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsElementBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tags',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
+      tagsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1441,6 +1590,12 @@ extension LocalNoteQueryWhereDistinct
     });
   }
 
+  QueryBuilder<LocalNote, LocalNote, QDistinct> distinctByTags() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tags');
+    });
+  }
+
   QueryBuilder<LocalNote, LocalNote, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1496,6 +1651,12 @@ extension LocalNoteQueryProperty
   QueryBuilder<LocalNote, DateTime, QQueryOperations> modifiedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'modified');
+    });
+  }
+
+  QueryBuilder<LocalNote, List<int>, QQueryOperations> tagsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tags');
     });
   }
 

@@ -16,6 +16,16 @@ import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_ser
 /// Service used to keep the local and cloud databases up to date with the latest changes in notes.
 /// Works only when a user is signed in to the application.
 class NoteSyncService {
+  static final NoteSyncService _shared = NoteSyncService._sharedInstance();
+
+  factory NoteSyncService() => _shared;
+
+  NoteSyncService._sharedInstance() {
+    // Sets up the local change-feed stream as a StreamQueue
+    _localChangeFeed =
+        StreamQueue<NoteChange>(LocalNoteService().getNoteChangeFeed);
+  }
+
   /// A getter which returns the device's current internet connection status
   Future<bool> get hasInternetConnection async =>
       await InternetConnectionChecker().hasConnection;
@@ -26,16 +36,6 @@ class NoteSyncService {
   /// A [StreamQueue] to handle the local change feed stream
   late final StreamQueue<NoteChange> _localChangeFeed;
 
-  static final NoteSyncService _shared = NoteSyncService._sharedInstance();
-
-  factory NoteSyncService() => _shared;
-
-  NoteSyncService._sharedInstance() {
-    // Sets up the local change feed stream as a StreamQueue
-    _localChangeFeed =
-        StreamQueue<NoteChange>(LocalNoteService().getNoteChangeFeed);
-  }
-
   /// Should be called after the first user login to retrieve notes from the Firestore collection.
   ///
   /// Returns a [Stream] indicating the progress, in percentage, of the operation.
@@ -43,14 +43,12 @@ class NoteSyncService {
     _ensureUserIsSignedInOrThrow();
 
     // Take first event from the stream, and map each element from CloudNote to LocalNote
-    Iterable<LocalNote> notes = await FirestoreNoteService()
-        .allNotes(ownerUserId: currentUser.id)
-        .first
-        .then(
-          (notesIterable) => notesIterable.map(
-            (note) => LocalNote.fromCloudNote(note),
-          ),
-        );
+    Iterable<LocalNote> notes =
+        await FirestoreNoteService().allNotes().first.then(
+              (notesIterable) => notesIterable.map(
+                (note) => LocalNote.fromCloudNote(note),
+              ),
+            );
 
     final int cloudNotesCount = notes.length;
     int loadedCount = 0;
@@ -63,6 +61,7 @@ class NoteSyncService {
         cloudDocumentId: note.cloudDocumentId,
         title: note.title,
         content: note.content,
+        tags: note.tags,
         color: note.color,
         created: note.created,
         modified: note.modified,

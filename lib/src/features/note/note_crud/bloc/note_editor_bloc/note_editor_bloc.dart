@@ -69,14 +69,13 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     );
 
     // Change Editor view type (Preview/Edit)
-    on<NoteEditorChangeAccessEvent>(
+    on<NoteEditorChangeViewTypeEvent>(
       (event, emit) async {
-        emit(
-          NoteEditorInitializedState(
-              snackBarText: '',
-              isEditable: !event.wasEditable,
-              noteStream: await noteStream),
-        );
+        emit(NoteEditorInitializedState(
+          snackBarText: '',
+          isEditable: !event.wasEditable,
+          noteStream: await noteStream,
+        ));
       },
     );
 
@@ -89,6 +88,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             isarId: note.isarId,
             title: event.newTitle,
             content: event.newContent,
+            tags: note.tags,
             color: note.color,
             isSyncedWithCloud: false,
             debounceChangeFeedEvent: true,
@@ -119,6 +119,21 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
       },
     );
 
+    // Update the tags of the note
+    on<NoteEditorUpdateTagsEvent>(
+      (event, emit) async {
+        final note = await this.note;
+        await LocalNoteService().updateNote(
+          isarId: note.isarId,
+          title: note.title,
+          content: note.content,
+          tags: event.tags,
+          color: note.color,
+          isSyncedWithCloud: false,
+        );
+      },
+    );
+
     // Update the color of the note
     on<NoteEditorUpdateColorEvent>(
       (event, emit) async {
@@ -128,6 +143,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           isarId: note.isarId,
           title: note.title,
           content: note.content,
+          tags: note.tags,
           color: (newColor != null) ? newColor.value : null,
           isSyncedWithCloud: false,
         );

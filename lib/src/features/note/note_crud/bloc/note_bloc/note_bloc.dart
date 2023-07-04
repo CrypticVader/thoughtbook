@@ -9,6 +9,8 @@ import 'package:thoughtbook/src/features/authentication/repository/auth_service.
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/crud_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/local_note_service.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
@@ -18,7 +20,9 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
   Stream<List<LocalNote>> get allNotes => LocalNoteService().allNotes;
 
-  AuthUser? user = AuthService.firebase().currentUser;
+  Stream<List<NoteTag>> get allNoteTags => LocalNoteService().allNoteTags;
+
+  AuthUser? get user => AuthService.firebase().currentUser;
 
   String get layoutPreference =>
       AppPreferenceService().getPreference(PreferenceKey.layout) as String;
@@ -36,7 +40,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: null,
-              notes: allNotes,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
             ),
@@ -46,7 +51,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: allNotes,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
             ),
@@ -68,7 +74,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: const [],
             deletedNotes: event.notes,
             layoutPreference: layoutPreference,
@@ -88,7 +95,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: allNotes,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: layoutPreference,
             ),
@@ -98,7 +106,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: allNotes,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: layoutPreference,
             ),
@@ -118,7 +127,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: allNotes,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: layoutPreference,
             ),
@@ -128,7 +138,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: allNotes,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: layoutPreference,
             ),
@@ -144,7 +155,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
           ),
@@ -160,7 +172,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: notes,
             layoutPreference: layoutPreference,
           ),
@@ -178,6 +191,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             isarId: event.note.isarId,
             title: event.note.title,
             content: event.note.content,
+            tags: event.note.tags,
             color: newColor,
             isSyncedWithCloud: false,
           );
@@ -186,7 +200,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
           ),
@@ -204,7 +219,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: const [],
             snackBarText: 'Note copied to clipboard',
             layoutPreference: layoutPreference,
@@ -221,7 +237,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
           ),
@@ -250,7 +267,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
           ),
@@ -267,6 +285,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             isarId: newNote.isarId,
             title: note.title,
             content: note.content,
+            tags: note.tags,
             color: note.color,
             isSyncedWithCloud: false,
             created: note.created,
@@ -277,11 +296,88 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: allNotes,
+            notes: () => allNotes,
+            noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
           ),
         );
+      },
+    );
+
+    // On creating a new note tag
+    on<NoteCreateTagEvent>(
+      (event, emit) async {
+        await LocalNoteService().createNoteTag(name: event.name);
+      },
+    );
+
+    // On cediting an existing note tag
+    on<NoteEditTagEvent>(
+      (event, emit) async {
+        try {
+          await LocalNoteService().updateNoteTag(
+            id: event.tag.id,
+            name: event.tag.name,
+          );
+        } on CouldNotFindNoteTagException {
+          emit(
+            NoteInitializedState(
+              isLoading: false,
+              user: user,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
+              selectedNotes: const [],
+              layoutPreference: layoutPreference,
+              snackBarText: 'Could not find the tag to update.',
+            ),
+          );
+        } on CouldNotUpdateNoteTagException {
+          emit(
+            NoteInitializedState(
+              isLoading: false,
+              user: user,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
+              selectedNotes: const [],
+              layoutPreference: layoutPreference,
+              snackBarText: 'Oops. Could not update tag',
+            ),
+          );
+        }
+      },
+    );
+
+    // On deleting an existing note tag
+    on<NoteDeleteTagEvent>(
+      (event, emit) async {
+        try {
+          await LocalNoteService().deleteNoteTag(id: event.tag.id);
+        } on CouldNotFindNoteTagException {
+          emit(
+            NoteInitializedState(
+              isLoading: false,
+              user: user,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
+              selectedNotes: const [],
+              layoutPreference: layoutPreference,
+              snackBarText: 'Could not find the tag to delete.',
+            ),
+          );
+        } on CouldNotDeleteNoteTagException {
+          emit(
+            NoteInitializedState(
+              isLoading: false,
+              user: user,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
+              selectedNotes: const [],
+              layoutPreference: layoutPreference,
+              snackBarText: 'Oops. Could not delete tag',
+            ),
+          );
+        }
       },
     );
   }

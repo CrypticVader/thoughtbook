@@ -17,7 +17,7 @@ class NoteEditorInitializedState extends NoteEditorState {
   final bool isEditable;
 
   const NoteEditorInitializedState({
-    required snackBarText,
+    required String snackBarText,
     required this.isEditable,
     required this.noteStream,
   }) : super(snackBarText);
@@ -28,6 +28,6 @@ class NoteEditorDeletedState extends NoteEditorState {
 
   const NoteEditorDeletedState({
     required this.deletedNote,
-    required snackBarText,
+    required String snackBarText,
   }) : super(snackBarText);
 }

@@ -13,6 +13,8 @@ class CloudNote {
 
   final String title;
 
+  final List<int> tags;
+
   final int? color;
 
   final Timestamp created;
@@ -24,6 +26,7 @@ class CloudNote {
     required this.ownerUserId,
     required this.title,
     required this.content,
+    required this.tags,
     required this.color,
     required this.created,
     required this.modified,
@@ -34,6 +37,7 @@ class CloudNote {
         ownerUserId = snapshot.data()[ownerUserIdFieldName],
         content = snapshot.data()[contentFieldName] as String,
         title = snapshot.data()[titleFieldName] as String,
+        tags = List<int>.from(snapshot.data()[tagsFieldName]),
         // do not cast as int as it is nullable
         color = snapshot.data()[colorFieldName] as int?,
         created = snapshot.data()[createdFieldName] as Timestamp,

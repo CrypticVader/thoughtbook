@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/crud_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
@@ -15,19 +16,27 @@ class LocalNoteService {
       Debouncer<NoteChange>(delay: const Duration(milliseconds: 250));
 
   List<LocalNote> _notes = [];
+  List<NoteTag> _tags = [];
 
   IsarCollection<LocalNote> get _getNotesCollection => _isar!.localNotes;
+
+  IsarCollection<NoteTag> get _getNoteTagsCollection => _isar!.noteTags;
 
   static final LocalNoteService _shared = LocalNoteService._sharedInstance();
 
   LocalNoteService._sharedInstance() {
-    // using broadcast makes the StreamController lose hold of previous values on every listen
-    // This is mitigated by adding _notes to the stream broadcast every time it is subscribed to
     _ensureCollectionIsOpen();
 
+    // Using broadcast makes the StreamController lose hold of previous values on every listen
+    // This is mitigated by adding _notes to the stream broadcast every time it is subscribed to
     _notesStreamController = StreamController<List<LocalNote>>.broadcast(
       onListen: () {
         _notesStreamController.sink.add(_notes);
+      },
+    );
+    _noteTagsStreamController = StreamController<List<NoteTag>>.broadcast(
+      onListen: () {
+        _noteTagsStreamController.sink.add(_tags);
       },
     );
 
@@ -37,19 +46,23 @@ class LocalNoteService {
   factory LocalNoteService() => _shared;
 
   late final StreamController<List<LocalNote>> _notesStreamController;
-
+  late final StreamController<List<NoteTag>> _noteTagsStreamController;
   late final StreamController<NoteChange> noteChangeFeedController;
 
-  /// Returns a [Stream] of collection of all the notes in the local note database.
+  /// Returns a [Stream] of collection of all the [LocalNote] in the local note database.
   Stream<List<LocalNote>> get allNotes => _notesStreamController.stream;
 
-  /// Returns a [Stream] of changes in the local note database.
+  /// Returns a [Stream] of collection of all the [NoteTag] in the local note tags database.
+  Stream<List<NoteTag>> get allNoteTags => _noteTagsStreamController.stream;
+
+  /// Returns a [Stream] of changes occurring in the local note database.
   Stream<NoteChange> get getNoteChangeFeed => noteChangeFeedController.stream;
 
   Future<void> updateNote({
     required int isarId,
     required String title,
     required String content,
+    required List<int> tags,
     required int? color,
     required bool isSyncedWithCloud,
     String? cloudDocumentId,
@@ -68,6 +81,7 @@ class LocalNoteService {
       final newNote = note
         ..title = title
         ..content = content
+        ..tags = tags
         ..color = color
         ..isSyncedWithCloud = isSyncedWithCloud
         ..cloudDocumentId = cloudDocumentId ?? note.cloudDocumentId
@@ -125,7 +139,13 @@ class LocalNoteService {
   Future<List<LocalNote>> getAllNotes() async {
     await _ensureCollectionIsOpen();
     final notesCollection = _getNotesCollection;
-    return await notesCollection.where().anyModified().findAll();
+    return await notesCollection.where().sortByModifiedDesc().findAll();
+  }
+
+  Future<List<NoteTag>> getAllNoteTags() async {
+    await _ensureCollectionIsOpen();
+    final noteTagsCollection = _getNoteTagsCollection;
+    return await noteTagsCollection.where().anyId().findAll();
   }
 
   Future<LocalNote> getNote({
@@ -195,6 +215,7 @@ class LocalNoteService {
       cloudDocumentId: null,
       title: '',
       content: '',
+      tags: [],
       color: null,
       created: currentTime,
       modified: currentTime,
@@ -351,6 +372,83 @@ class LocalNoteService {
     }
   }
 
+  Future<NoteTag> createNoteTag({required String name}) async {
+    final isar = _isar!;
+    final NoteTag newTag = NoteTag(
+      name: name,
+      cloudDocumentId: null,
+    );
+    //TODO: Handle duplicate tag name exception
+    await isar.writeTxn(
+      () async {
+        final tagId = await _getNoteTagsCollection.put(newTag);
+        return tagId;
+      },
+    ).then((value) => newTag..id = value);
+    log('New NoteTag with id=${newTag.id} created');
+
+    _tags.add(newTag);
+    _noteTagsStreamController.add(_tags);
+
+    return newTag;
+  }
+
+  Future<NoteTag> getNoteTag({required int id}) async {
+    NoteTag? noteTag;
+    try {
+      noteTag = await _getNoteTagsCollection.get(id);
+      if (noteTag == null) {
+        throw CouldNotFindNoteTagException();
+      }
+      return noteTag;
+    } on StateError {
+      throw CouldNotFindNoteTagException();
+    }
+  }
+
+  Future<void> updateNoteTag({
+    required int id,
+    String? name,
+    String? cloudDocumentId,
+  }) async {
+    NoteTag? tag;
+    try {
+      tag = await getNoteTag(id: id);
+    } catch (e) {
+      throw CouldNotFindNoteTagException();
+    }
+    try {
+      final newTag = NoteTag(
+        name: (name != null) ? name : tag.name,
+        cloudDocumentId:
+            (cloudDocumentId != null) ? cloudDocumentId : tag.cloudDocumentId,
+      )..id = tag.id;
+      await _getNoteTagsCollection.put(newTag);
+
+      _tags.removeWhere((tag) => tag.id == newTag.id);
+      _tags.add(newTag);
+      _noteTagsStreamController.add(_tags);
+    } catch (e) {
+      throw CouldNotUpdateNoteTagException();
+    }
+  }
+
+  Future<void> deleteNoteTag({required int id}) async {
+    try {
+      await getNoteTag(id: id);
+    } catch (e) {
+      throw CouldNotFindNoteTagException();
+    }
+    try {
+      await _getNoteTagsCollection.delete(id);
+
+      _tags.removeWhere((tag) => tag.id == id);
+      _noteTagsStreamController.add(_tags);
+    } catch (e) {
+      throw CouldNotDeleteNoteTagException();
+    }
+  }
+
   Future<void> close() async {
     final isar = _isar;
     if (isar == null) {
@@ -360,7 +458,7 @@ class LocalNoteService {
     }
   }
 
-  Future<void> open() async {
+  Future<void> _open() async {
     if (_isar != null) throw CollectionAlreadyOpenException();
     try {
       final docsPath = await getApplicationDocumentsDirectory();
@@ -369,14 +467,15 @@ class LocalNoteService {
         [
           LocalNoteSchema,
           NoteChangeSchema,
+          NoteTagSchema,
         ],
         directory: docsPath.path,
         inspector: true,
       );
       _isar = isar;
-      await _cacheNotes();
+      await _cacheNotesAndTags();
       log(
-        'LocalNote collection opened',
+        'All Isar collections opened',
         name: 'LocalNoteService',
       );
     } on MissingPlatformDirectoryException {
@@ -386,15 +485,18 @@ class LocalNoteService {
 
   Future<void> _ensureCollectionIsOpen() async {
     try {
-      await open();
+      await _open();
     } on CollectionAlreadyOpenException {
       // empty
     }
   }
 
-  Future<void> _cacheNotes() async {
+  Future<void> _cacheNotesAndTags() async {
     final allNotes = await getAllNotes();
+    final allNoteTags = await getAllNoteTags();
     _notes = allNotes;
+    _tags = allNoteTags;
     _notesStreamController.add(_notes);
+    _noteTagsStreamController.add(_tags);
   }
 }

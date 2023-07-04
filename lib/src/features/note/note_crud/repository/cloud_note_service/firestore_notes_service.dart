@@ -6,11 +6,21 @@ import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_se
 
 //TODO: Handle exceptions due to network errors/timeouts
 class FirestoreNoteService {
-  CollectionReference<Map<String, dynamic>> get notes {
-    final authUserId = AuthService.firebase().currentUser!.id;
-    return FirebaseFirestore.instance
-        .collection('thoughtbookData/$authUserId/notes');
-  }
+  static final _shared = FirestoreNoteService._sharedInstance();
+
+  FirestoreNoteService._sharedInstance();
+
+  factory FirestoreNoteService() => _shared;
+
+  final FirebaseFirestore _firestoreInstance = FirebaseFirestore.instance;
+
+  String get userId => AuthService.firebase().currentUser!.id;
+
+  CollectionReference<Map<String, dynamic>> get notes =>
+      _firestoreInstance.collection('thoughtbookData/$userId/notes');
+
+  CollectionReference<Map<String, dynamic>> get noteTags =>
+      _firestoreInstance.collection('thoughtbookData/$userId/noteTags');
 
   Future<void> deleteNote({required String documentId}) async {
     try {
@@ -24,6 +34,7 @@ class FirestoreNoteService {
     required String documentId,
     required String title,
     required String content,
+    required List<int> tags,
     required int? color,
     DateTime? created,
     DateTime? modified,
@@ -34,11 +45,10 @@ class FirestoreNoteService {
         {
           titleFieldName: title,
           contentFieldName: content,
+          tagsFieldName: tags,
           colorFieldName: color,
           modifiedFieldName: modified ?? currentTime,
-
-          //TODO: Fix this later
-          createdFieldName: created ?? currentTime,
+          if (created != null) createdFieldName: created,
         },
       );
     } catch (e) {
@@ -48,12 +58,12 @@ class FirestoreNoteService {
   }
 
   /// Returns a [Stream] of an [Iterable] of [CloudNote] from the Firestore 'notes'
-  /// collection belonging to the user with the given userId.
-  Stream<Iterable<CloudNote>> allNotes({required String ownerUserId}) {
+  /// collection belonging to the logged in user
+  Stream<Iterable<CloudNote>> allNotes() {
     final allNotes = notes
         .where(
           ownerUserIdFieldName,
-          isEqualTo: ownerUserId,
+          isEqualTo: userId,
         )
         .snapshots()
         .map(
@@ -72,6 +82,7 @@ class FirestoreNoteService {
       ownerUserId: note.data()?[ownerUserIdFieldName],
       content: note.data()?[contentFieldName] as String,
       title: note.data()?[titleFieldName] as String,
+      tags: List<int>.from(note.data()?[tagsFieldName]),
       color: note.data()?[colorFieldName] as int?,
       created: note.data()?[createdFieldName] as Timestamp,
       modified: note.data()?[modifiedFieldName] as Timestamp,
@@ -85,6 +96,7 @@ class FirestoreNoteService {
         ownerUserIdFieldName: ownerUserId,
         titleFieldName: '',
         contentFieldName: '',
+        tagsFieldName: [],
         colorFieldName: null,
         createdFieldName: currentTime,
         modifiedFieldName: currentTime,
@@ -97,15 +109,10 @@ class FirestoreNoteService {
       ownerUserId: ownerUserId,
       title: '',
       content: '',
+      tags: const [],
       color: null,
       created: currentTime,
       modified: currentTime,
     );
   }
-
-  static final _shared = FirestoreNoteService._sharedInstance();
-
-  FirestoreNoteService._sharedInstance();
-
-  factory FirestoreNoteService() => _shared;
 }

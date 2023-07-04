@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/crud_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_exceptions.dart';
@@ -258,6 +259,7 @@ class NoteChangeHelper {
       [
         LocalNoteSchema,
         NoteChangeSchema,
+        NoteTagSchema,
       ],
       directory: docsPath.path,
       inspector: true,

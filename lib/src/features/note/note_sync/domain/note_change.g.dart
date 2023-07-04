@@ -47,18 +47,23 @@ const NoteChangeSchema = CollectionSchema(
       name: r'noteIsarId',
       type: IsarType.long,
     ),
-    r'timestamp': PropertySchema(
+    r'tags': PropertySchema(
       id: 6,
+      name: r'tags',
+      type: IsarType.longList,
+    ),
+    r'timestamp': PropertySchema(
+      id: 7,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'title': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'title',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'type',
       type: IsarType.byte,
       enumMap: _NoteChangetypeEnumValueMap,
@@ -144,6 +149,7 @@ int _noteChangeEstimateSize(
     }
   }
   bytesCount += 3 + object.content.length * 3;
+  bytesCount += 3 + object.tags.length * 8;
   bytesCount += 3 + object.title.length * 3;
   return bytesCount;
 }
@@ -160,9 +166,10 @@ void _noteChangeSerialize(
   writer.writeDateTime(offsets[3], object.created);
   writer.writeDateTime(offsets[4], object.modified);
   writer.writeLong(offsets[5], object.noteIsarId);
-  writer.writeDateTime(offsets[6], object.timestamp);
-  writer.writeString(offsets[7], object.title);
-  writer.writeByte(offsets[8], object.type.index);
+  writer.writeLongList(offsets[6], object.tags);
+  writer.writeDateTime(offsets[7], object.timestamp);
+  writer.writeString(offsets[8], object.title);
+  writer.writeByte(offsets[9], object.type.index);
 }
 
 NoteChange _noteChangeDeserialize(
@@ -178,9 +185,10 @@ NoteChange _noteChangeDeserialize(
     created: reader.readDateTime(offsets[3]),
     modified: reader.readDateTime(offsets[4]),
     noteIsarId: reader.readLong(offsets[5]),
-    timestamp: reader.readDateTime(offsets[6]),
-    title: reader.readString(offsets[7]),
-    type: _NoteChangetypeValueEnumMap[reader.readByteOrNull(offsets[8])] ??
+    tags: reader.readLongList(offsets[6]) ?? [],
+    timestamp: reader.readDateTime(offsets[7]),
+    title: reader.readString(offsets[8]),
+    type: _NoteChangetypeValueEnumMap[reader.readByteOrNull(offsets[9])] ??
         NoteChangeType.create,
   );
   object.id = id;
@@ -207,10 +215,12 @@ P _noteChangeDeserializeProp<P>(
     case 5:
       return (reader.readLong(offset)) as P;
     case 6:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLongList(offset) ?? []) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
       return (_NoteChangetypeValueEnumMap[reader.readByteOrNull(offset)] ??
           NoteChangeType.create) as P;
     default:
@@ -1283,6 +1293,148 @@ extension NoteChangeQueryFilter
     });
   }
 
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
+      tagsElementEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tags',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
+      tagsElementGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tags',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
+      tagsElementLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tags',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
+      tagsElementBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tags',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> tagsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> tagsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> tagsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
+      tagsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
+      tagsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> tagsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'tags',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> timestampEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -1805,6 +1957,12 @@ extension NoteChangeQueryWhereDistinct
     });
   }
 
+  QueryBuilder<NoteChange, NoteChange, QDistinct> distinctByTags() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tags');
+    });
+  }
+
   QueryBuilder<NoteChange, NoteChange, QDistinct> distinctByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'timestamp');
@@ -1867,6 +2025,12 @@ extension NoteChangeQueryProperty
   QueryBuilder<NoteChange, int, QQueryOperations> noteIsarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'noteIsarId');
+    });
+  }
+
+  QueryBuilder<NoteChange, List<int>, QQueryOperations> tagsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tags');
     });
   }
 
