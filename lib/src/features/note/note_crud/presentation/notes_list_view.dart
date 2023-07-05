@@ -260,8 +260,8 @@ class _NoteItemState extends State<NoteItem> {
                           controller: null,
                           physics: const NeverScrollableScrollPhysics(),
                           child: MarkdownBody(
-                            data:
-                                '${widget.note.content.substring(0, min(250, widget.note.content.length))}}',
+                            data: widget.note.content.substring(
+                                0, min(250, widget.note.content.length)),
                             softLineBreak: true,
                             shrinkWrap: true,
                             fitContent: true,

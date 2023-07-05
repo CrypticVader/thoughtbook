@@ -17,10 +17,10 @@ class FirestoreNoteService {
   String get userId => AuthService.firebase().currentUser!.id;
 
   CollectionReference<Map<String, dynamic>> get notes =>
-      _firestoreInstance.collection('thoughtbookData/$userId/notes');
+      _firestoreInstance.collection(getFirestoreNotesCollectionPath(userId));
 
   CollectionReference<Map<String, dynamic>> get noteTags =>
-      _firestoreInstance.collection('thoughtbookData/$userId/noteTags');
+      _firestoreInstance.collection(getFirestoreNoteTagsCollectionPath(userId));
 
   Future<void> deleteNote({required String documentId}) async {
     try {

@@ -248,7 +248,11 @@ class _NotesViewState extends State<NotesView> {
               content: Text(state.snackBarText!),
               dismissDirection: DismissDirection.startToEnd,
               behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(4.0),
+              margin: const EdgeInsets.all(8.0),
+              shape: RoundedRectangleBorder(
+                side: BorderSide.none,
+                borderRadius: BorderRadius.circular(32),
+              ),
             );
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
           }
@@ -311,7 +315,11 @@ class _NotesViewState extends State<NotesView> {
               ),
               dismissDirection: DismissDirection.startToEnd,
               behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.all(4.0),
+              shape: RoundedRectangleBorder(
+                side: BorderSide.none,
+                borderRadius: BorderRadius.circular(32),
+              ),
+              margin: const EdgeInsets.all(8.0),
             );
             await ScaffoldMessenger.of(context)
                 .showSnackBar(snackBar)
@@ -390,333 +398,460 @@ class _NotesViewState extends State<NotesView> {
                     )
                   : null,
               drawer: Drawer(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 32.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 32.0),
-                          child: Text(
-                            context.loc.app_title,
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).colorScheme.onBackground,
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding:
+                          const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 32.0),
+                      child: Column(
+                        children: [
+                          const Spacer(
+                            flex: 1,
+                          ),
+                          const Divider(
+                            indent: 8.0,
+                            endIndent: 8.0,
+                            thickness: 1,
+                          ),
+                          ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const SettingsView(),
+                                ),
+                              );
+                            },
+                            leading: const Icon(Icons.settings_rounded),
+                            title: const Text(
+                              'Settings',
+                              style: TextStyle(fontWeight: FontWeight.w500),
                             ),
                           ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withAlpha(150),
+                          const SizedBox(
+                            height: 8.0,
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ListTile(
-                                leading: Icon(
-                                  Icons.tag_rounded,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer
-                                      .withAlpha(200),
-                                  size: 26,
-                                ),
-                                title: Text(
-                                  'Tags',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
+                          if (state.user != null)
+                            Container(
+                              padding: const EdgeInsets.all(12.0),
+                              decoration: BoxDecoration(
+                                color: context
+                                    .theme.colorScheme.tertiaryContainer
+                                    .withAlpha(150),
+                                borderRadius: BorderRadius.circular(32.0),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.person_rounded,
+                                        size: 28.0,
+                                        color: context.theme.colorScheme
+                                            .onTertiaryContainer,
+                                      ),
+                                      const SizedBox(
+                                        width: 8.0,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          state.user?.email ?? '',
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            overflow: TextOverflow.ellipsis,
+                                            fontSize: 16.0,
+                                            fontWeight: FontWeight.w500,
+                                            color: context.theme.colorScheme
+                                                .onTertiaryContainer,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(
+                                    height: 8.0,
+                                  ),
+                                  FilledButton.icon(
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                      await _onLogout(context);
+                                    },
+                                    icon: const Icon(
+                                      Icons.logout_rounded,
+                                    ),
+                                    label: Text(
+                                      context.loc.logout_button,
+                                      style: const TextStyle(
+                                        fontSize: 15.0,
+                                      ),
+                                    ),
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: context
+                                          .theme.colorScheme.background
+                                          .withAlpha(150),
+                                      foregroundColor: context
+                                          .theme.colorScheme.onBackground,
+                                      minimumSize: const Size.fromHeight(40.0),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (state.user == null)
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                context
+                                    .read<AuthBloc>()
+                                    .add(const AuthEventLogOut());
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor:
+                                    context.theme.colorScheme.primary,
+                                foregroundColor:
+                                    context.theme.colorScheme.onPrimary,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.login_rounded,
+                                  ),
+                                  const SizedBox(
+                                    width: 8.0,
+                                  ),
+                                  Text(
+                                    context.loc.login,
+                                    style: const TextStyle(
+                                      fontSize: 15.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 225),
+                      child: ListView(
+                        shrinkWrap: true,
+                        padding:
+                            const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 0.0),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                                16.0, 32.0, 16.0, 32.0),
+                            child: Text(
+                              context.loc.app_title,
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(32),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer
+                                  .withAlpha(70),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ListTile(
+                                  leading: Icon(
+                                    Icons.tag_rounded,
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onPrimaryContainer,
+                                        .onPrimaryContainer
+                                        .withAlpha(200),
+                                    size: 26,
                                   ),
-                                ),
-                                trailing: IconButton.filled(
-                                  onPressed: () {
-                                    showNoteTagEditorModalBottomSheet(
-                                      context: context,
-                                      tags: () => state.noteTags(),
-                                      onCreateTag: (tagName) => context
-                                          .read<NoteBloc>()
-                                          .add(NoteCreateTagEvent(
-                                              name: tagName)),
-                                      onEditTag: (tag, newName) => context
-                                          .read<NoteBloc>()
-                                          .add(NoteEditTagEvent(
-                                            tag: tag,
-                                            newName: newName,
-                                          )),
-                                      onDeleteTag: (tag) => context
-                                          .read<NoteBloc>()
-                                          .add(NoteDeleteTagEvent(tag: tag)),
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.edit_rounded,
-                                    color:
-                                        Theme.of(context).colorScheme.onPrimary,
+                                  title: Text(
+                                    'Tags',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer,
+                                    ),
                                   ),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.primary,
+                                  trailing: IconButton.filled(
+                                    onPressed: () {
+                                      showNoteTagEditorModalBottomSheet(
+                                        context: context,
+                                        tags: () => state.noteTags(),
+                                        onCreateTag: (tagName) => context
+                                            .read<NoteBloc>()
+                                            .add(NoteCreateTagEvent(
+                                                name: tagName)),
+                                        onEditTag: (tag, newName) => context
+                                            .read<NoteBloc>()
+                                            .add(NoteEditTagEvent(
+                                              tag: tag,
+                                              newName: newName,
+                                            )),
+                                        onDeleteTag: (tag) => context
+                                            .read<NoteBloc>()
+                                            .add(NoteDeleteTagEvent(tag: tag)),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      Icons.edit_rounded,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer,
+                                    ),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer,
+                                    ),
                                   ),
+                                  horizontalTitleGap: 8.0,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 4.0),
                                 ),
-                                horizontalTitleGap: 8.0,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(8.0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(40),
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .background
-                                      .withAlpha(140),
-                                ),
-                                child: StreamBuilder<List<NoteTag>>(
-                                  stream: state.noteTags(),
-                                  builder: (context, snapshot) {
-                                    switch (snapshot.connectionState) {
-                                      case ConnectionState.active:
-                                      case ConnectionState.waiting:
-                                      case ConnectionState.done:
-                                        if (snapshot.hasData &&
-                                            snapshot.data!.isNotEmpty) {
-                                          final List<NoteTag> noteTags =
-                                              snapshot.data!;
-                                          return ListView.builder(
-                                            itemBuilder: (context, index) {
-                                              final tag = noteTags[index];
-                                              return ListTile(
-                                                dense: true,
-                                                shape: RoundedRectangleBorder(
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      3.0, 0.0, 3.0, 3.0),
+                                  child: StreamBuilder<List<NoteTag>>(
+                                    stream: state.noteTags(),
+                                    builder: (context, snapshot) {
+                                      switch (snapshot.connectionState) {
+                                        case ConnectionState.active:
+                                        case ConnectionState.waiting:
+                                        case ConnectionState.done:
+                                          if (snapshot.hasData &&
+                                              snapshot.data!.isNotEmpty) {
+                                            final List<NoteTag> noteTags =
+                                                snapshot.data!;
+                                            return ListView.separated(
+                                              itemBuilder: (context, index) {
+                                                final tag = noteTags[index];
+                                                return InkWell(
+                                                  onTap: () {},
+                                                  splashColor: context.theme
+                                                      .colorScheme.onBackground
+                                                      .withAlpha(200),
                                                   borderRadius:
-                                                      BorderRadius.circular(32),
-                                                ),
-                                                splashColor: context
-                                                    .theme.colorScheme.primary,
-                                                onTap: () {},
-                                                leading: const Icon(
-                                                    Icons.label_rounded),
-                                                title: Text(
-                                                  tag.name,
-                                                  style: const TextStyle(
-                                                      fontSize: 16),
-                                                ),
-                                              );
-                                            },
-                                            shrinkWrap: true,
-                                            physics:
-                                                const NeverScrollableScrollPhysics(),
-                                            padding: EdgeInsets.zero,
-                                            itemCount: noteTags.length,
-                                          );
-                                        } else {
-                                          return Center(
-                                            child: Padding(
+                                                      BorderRadius.only(
+                                                    topLeft: (index == 0)
+                                                        ? const Radius.circular(
+                                                            24)
+                                                        : const Radius.circular(
+                                                            4),
+                                                    topRight: (index == 0)
+                                                        ? const Radius.circular(
+                                                            24)
+                                                        : const Radius.circular(
+                                                            4),
+                                                    bottomLeft: (index ==
+                                                            (noteTags.length -
+                                                                1))
+                                                        ? const Radius.circular(
+                                                            24)
+                                                        : const Radius.circular(
+                                                            4),
+                                                    bottomRight: (index ==
+                                                            (noteTags.length -
+                                                                1))
+                                                        ? const Radius.circular(
+                                                            24)
+                                                        : const Radius.circular(
+                                                            4),
+                                                  ),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      color: context
+                                                          .theme
+                                                          .colorScheme
+                                                          .background
+                                                          .withAlpha(170),
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                        topLeft: (index == 0)
+                                                            ? const Radius
+                                                                .circular(24)
+                                                            : const Radius
+                                                                .circular(4),
+                                                        topRight: (index == 0)
+                                                            ? const Radius
+                                                                .circular(24)
+                                                            : const Radius
+                                                                .circular(4),
+                                                        bottomLeft: (index ==
+                                                                (noteTags
+                                                                        .length -
+                                                                    1))
+                                                            ? const Radius
+                                                                .circular(24)
+                                                            : const Radius
+                                                                .circular(4),
+                                                        bottomRight: (index ==
+                                                                (noteTags
+                                                                        .length -
+                                                                    1))
+                                                            ? const Radius
+                                                                .circular(24)
+                                                            : const Radius
+                                                                .circular(4),
+                                                      ),
+                                                    ),
+                                                    child: ListTile(
+                                                      dense: true,
+                                                      leading: Icon(
+                                                        Icons.label_rounded,
+                                                        color: context
+                                                            .theme
+                                                            .colorScheme
+                                                            .onBackground
+                                                            .withAlpha(200),
+                                                      ),
+                                                      title: Text(
+                                                        tag.name,
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: context
+                                                              .theme
+                                                              .colorScheme
+                                                              .onBackground,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              shrinkWrap: true,
+                                              physics:
+                                                  const NeverScrollableScrollPhysics(),
+                                              padding: EdgeInsets.zero,
+                                              itemCount: noteTags.length,
+                                              separatorBuilder:
+                                                  (BuildContext context,
+                                                      int index) {
+                                                return const SizedBox(
+                                                  height: 2.0,
+                                                );
+                                              },
+                                            );
+                                          } else {
+                                            return Container(
                                               padding:
                                                   const EdgeInsets.all(8.0),
-                                              child: Column(
-                                                children: [
-                                                  Icon(
-                                                    Icons.label_off_rounded,
-                                                    size: 32,
-                                                    color: context
-                                                        .theme
-                                                        .colorScheme
-                                                        .onBackground
-                                                        .withAlpha(200),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(32),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .background
+                                                    .withAlpha(140),
+                                              ),
+                                              child: Center(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Column(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.label_off_rounded,
+                                                        size: 32,
+                                                        color: context
+                                                            .theme
+                                                            .colorScheme
+                                                            .onBackground
+                                                            .withAlpha(200),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 6.0,
+                                                      ),
+                                                      Text(
+                                                        'Nothing here',
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: context
+                                                              .theme
+                                                              .colorScheme
+                                                              .onBackground
+                                                              .withAlpha(200),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                  const SizedBox(
-                                                    height: 6.0,
-                                                  ),
-                                                  Text(
-                                                    'Nothing here',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w600,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        default:
+                                          return Container(
+                                            padding: const EdgeInsets.all(8.0),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(32),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .background
+                                                  .withAlpha(140),
+                                            ),
+                                            child: Center(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Column(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.label_off_rounded,
+                                                      size: 32,
                                                       color: context
                                                           .theme
                                                           .colorScheme
                                                           .onBackground
                                                           .withAlpha(200),
                                                     ),
-                                                  ),
-                                                ],
+                                                    const SizedBox(
+                                                      height: 6.0,
+                                                    ),
+                                                    Text(
+                                                      'Nothing here',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: context
+                                                            .theme
+                                                            .colorScheme
+                                                            .onBackground
+                                                            .withAlpha(200),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           );
-                                        }
-                                      default:
-                                        return Center(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Column(
-                                              children: [
-                                                Icon(
-                                                  Icons.label_off_rounded,
-                                                  size: 32,
-                                                  color: context.theme
-                                                      .colorScheme.onBackground
-                                                      .withAlpha(200),
-                                                ),
-                                                const SizedBox(
-                                                  height: 6.0,
-                                                ),
-                                                Text(
-                                                  'Nothing here',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                    color: context
-                                                        .theme
-                                                        .colorScheme
-                                                        .onBackground
-                                                        .withAlpha(200),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 8.0,
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const SettingsView(),
-                              ),
-                            );
-                          },
-                          leading: const Icon(Icons.settings_rounded),
-                          title: const Text('Settings'),
-                        ),
-                        const SizedBox(
-                          height: 8.0,
-                        ),
-                        if (state.user != null)
-                          Container(
-                            padding: const EdgeInsets.all(12.0),
-                            decoration: BoxDecoration(
-                              color: context.theme.colorScheme.tertiaryContainer
-                                  .withAlpha(150),
-                              borderRadius: BorderRadius.circular(32.0),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      Icons.person_rounded,
-                                      size: 28.0,
-                                      color: context.theme.colorScheme
-                                          .onTertiaryContainer,
-                                    ),
-                                    const SizedBox(
-                                      width: 8.0,
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        state.user?.email ?? '',
-                                        maxLines: 1,
-                                        style: TextStyle(
-                                          overflow: TextOverflow.ellipsis,
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.w500,
-                                          color: context.theme.colorScheme
-                                              .onTertiaryContainer,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 8.0,
-                                ),
-                                FilledButton.icon(
-                                  onPressed: () async {
-                                    Navigator.pop(context);
-                                    await _onLogout(context);
-                                  },
-                                  icon: const Icon(
-                                    Icons.logout_rounded,
-                                  ),
-                                  label: Text(
-                                    context.loc.logout_button,
-                                    style: const TextStyle(
-                                      fontSize: 15.0,
-                                    ),
-                                  ),
-                                  style: FilledButton.styleFrom(
-                                    backgroundColor: context
-                                        .theme.colorScheme.background
-                                        .withAlpha(150),
-                                    foregroundColor:
-                                        context.theme.colorScheme.onBackground,
-                                    minimumSize: const Size.fromHeight(40.0),
+                                      }
+                                    },
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        if (state.user == null)
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              context
-                                  .read<AuthBloc>()
-                                  .add(const AuthEventLogOut());
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor:
-                                  context.theme.colorScheme.primary,
-                              foregroundColor:
-                                  context.theme.colorScheme.onPrimary,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.login_rounded,
-                                ),
-                                const SizedBox(
-                                  width: 8.0,
-                                ),
-                                Text(
-                                  context.loc.login,
-                                  style: const TextStyle(
-                                    fontSize: 15.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                        ],
+                      ),
+                    )
+                  ],
                 ),
               ),
               body: StreamBuilder(

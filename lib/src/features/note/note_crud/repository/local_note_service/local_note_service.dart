@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/crud_exceptions.dart';
@@ -14,7 +15,6 @@ class LocalNoteService {
   Isar? _isar;
   final _debouncer =
       Debouncer<NoteChange>(delay: const Duration(milliseconds: 250));
-
   List<LocalNote> _notes = [];
   List<NoteTag> _tags = [];
 
@@ -26,28 +26,16 @@ class LocalNoteService {
 
   LocalNoteService._sharedInstance() {
     _ensureCollectionIsOpen();
-
-    // Using broadcast makes the StreamController lose hold of previous values on every listen
-    // This is mitigated by adding _notes to the stream broadcast every time it is subscribed to
-    _notesStreamController = StreamController<List<LocalNote>>.broadcast(
-      onListen: () {
-        _notesStreamController.sink.add(_notes);
-      },
-    );
-    _noteTagsStreamController = StreamController<List<NoteTag>>.broadcast(
-      onListen: () {
-        _noteTagsStreamController.sink.add(_tags);
-      },
-    );
-
-    noteChangeFeedController = StreamController<NoteChange>.broadcast();
+    _notesStreamController = BehaviorSubject<List<LocalNote>>.seeded(_notes);
+    _noteTagsStreamController = BehaviorSubject<List<NoteTag>>.seeded(_tags);
+    noteChangeFeedController = BehaviorSubject<NoteChange>();
   }
 
   factory LocalNoteService() => _shared;
 
-  late final StreamController<List<LocalNote>> _notesStreamController;
-  late final StreamController<List<NoteTag>> _noteTagsStreamController;
-  late final StreamController<NoteChange> noteChangeFeedController;
+  late final BehaviorSubject<List<LocalNote>> _notesStreamController;
+  late final BehaviorSubject<List<NoteTag>> _noteTagsStreamController;
+  late final BehaviorSubject<NoteChange> noteChangeFeedController;
 
   /// Returns a [Stream] of collection of all the [LocalNote] in the local note database.
   Stream<List<LocalNote>> get allNotes => _notesStreamController.stream;
@@ -412,6 +400,7 @@ class LocalNoteService {
     String? cloudDocumentId,
   }) async {
     NoteTag? tag;
+    final isar = _isar!;
     try {
       tag = await getNoteTag(id: id);
     } catch (e) {
@@ -423,7 +412,7 @@ class LocalNoteService {
         cloudDocumentId:
             (cloudDocumentId != null) ? cloudDocumentId : tag.cloudDocumentId,
       )..id = tag.id;
-      await _getNoteTagsCollection.put(newTag);
+      await isar.writeTxn(() async => await _getNoteTagsCollection.put(newTag));
 
       _tags.removeWhere((tag) => tag.id == newTag.id);
       _tags.add(newTag);
@@ -434,18 +423,20 @@ class LocalNoteService {
   }
 
   Future<void> deleteNoteTag({required int id}) async {
+    final isar = _isar!;
     try {
       await getNoteTag(id: id);
     } catch (e) {
       throw CouldNotFindNoteTagException();
     }
     try {
-      await _getNoteTagsCollection.delete(id);
+      await isar.writeTxn(() async => await _getNoteTagsCollection.delete(id));
 
       _tags.removeWhere((tag) => tag.id == id);
       _noteTagsStreamController.add(_tags);
     } catch (e) {
       throw CouldNotDeleteNoteTagException();
+      // rethrow;
     }
   }
 

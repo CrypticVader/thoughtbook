@@ -308,19 +308,30 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // On creating a new note tag
     on<NoteCreateTagEvent>(
       (event, emit) async {
-        await LocalNoteService().createNoteTag(name: event.name);
+        final String tagName = event.name;
+        if (tagName.isEmpty || tagName.replaceAll(' ', '').isEmpty) {
+          emit(
+            NoteInitializedState(
+              isLoading: false,
+              user: user,
+              notes: () => allNotes,
+              noteTags: () => allNoteTags,
+              selectedNotes: const [],
+              layoutPreference: layoutPreference,
+              snackBarText: 'Please enter a name for the tag.',
+            ),
+          );
+        } else {
+          await LocalNoteService().createNoteTag(name: event.name);
+        }
       },
     );
 
     // On cediting an existing note tag
     on<NoteEditTagEvent>(
       (event, emit) async {
-        try {
-          await LocalNoteService().updateNoteTag(
-            id: event.tag.id,
-            name: event.tag.name,
-          );
-        } on CouldNotFindNoteTagException {
+        final String tagName = event.newName;
+        if (tagName.isEmpty || tagName.replaceAll(' ', '').isEmpty) {
           emit(
             NoteInitializedState(
               isLoading: false,
@@ -329,21 +340,40 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
-              snackBarText: 'Could not find the tag to update.',
+              snackBarText: 'Please enter a name for the tag.',
             ),
           );
-        } on CouldNotUpdateNoteTagException {
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: user,
-              notes: () => allNotes,
-              noteTags: () => allNoteTags,
-              selectedNotes: const [],
-              layoutPreference: layoutPreference,
-              snackBarText: 'Oops. Could not update tag',
-            ),
-          );
+        } else {
+          try {
+            await LocalNoteService().updateNoteTag(
+              id: event.tag.id,
+              name: event.tag.name,
+            );
+          } on CouldNotFindNoteTagException {
+            emit(
+              NoteInitializedState(
+                isLoading: false,
+                user: user,
+                notes: () => allNotes,
+                noteTags: () => allNoteTags,
+                selectedNotes: const [],
+                layoutPreference: layoutPreference,
+                snackBarText: 'Could not find the tag to update.',
+              ),
+            );
+          } on CouldNotUpdateNoteTagException {
+            emit(
+              NoteInitializedState(
+                isLoading: false,
+                user: user,
+                notes: () => allNotes,
+                noteTags: () => allNoteTags,
+                selectedNotes: const [],
+                layoutPreference: layoutPreference,
+                snackBarText: 'Oops. Could not update tag',
+              ),
+            );
+          }
         }
       },
     );

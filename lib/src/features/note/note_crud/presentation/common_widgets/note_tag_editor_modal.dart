@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
@@ -28,11 +26,9 @@ showNoteTagEditorModalBottomSheet({
 
       return DraggableScrollableSheet(
         expand: false,
-        snap: true,
-        initialChildSize: 0.9,
-        minChildSize: 0.15,
+        initialChildSize: 0.75,
+        minChildSize: 0.25,
         maxChildSize: 1.0,
-        snapSizes: const [0.5, 0.75],
         snapAnimationDuration: const Duration(microseconds: 150),
         builder: (BuildContext context, ScrollController scrollController) {
           return ClipRRect(
@@ -42,37 +38,32 @@ showNoteTagEditorModalBottomSheet({
             ),
             child: Scaffold(
               appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(85),
-                child: Container(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  decoration: BoxDecoration(
-                    color: context.theme.colorScheme.surfaceVariant,
-                  ),
-                  child: Column(
+                preferredSize: const Size.fromHeight(86),
+                child: AppBar(
+                  leading: null,
+                  automaticallyImplyLeading: false,
+                  toolbarHeight: 80,
+                  centerTitle: true,
+                  title: Column(
                     children: [
                       Padding(
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 12.0),
-                        child: Center(
-                          child: Container(
-                            height: 6.0,
-                            width: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(32),
-                              color: context.theme.colorScheme.onSurfaceVariant
-                                  .withAlpha(100),
-                            ),
+                        padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 16.0),
+                        child: Container(
+                          height: 6.0,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(32),
+                            color: context.theme.colorScheme.onSurfaceVariant
+                                .withAlpha(100),
                           ),
                         ),
                       ),
-                      Center(
-                        child: Text(
-                          'Edit tags',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 22,
-                            color: context.theme.colorScheme.onSurfaceVariant,
-                          ),
+                      Text(
+                        'Edit tags',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 22,
+                          color: context.theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -85,26 +76,70 @@ showNoteTagEditorModalBottomSheet({
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
-                      TextField(
-                        controller: newTagTextFieldController,
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.all(20.0),
-                          hintText: 'Create a new tag',
-                          prefixIcon: Icon(
-                            Icons.new_label_rounded,
-                            color: context.theme.colorScheme.onBackground,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: TextField(
+                              controller: newTagTextFieldController,
+                              maxLines: 1,
+                              // maxLength: 20,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: context
+                                    .theme.colorScheme.secondaryContainer
+                                    .withAlpha(200),
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: context
+                                        .theme.colorScheme.secondaryContainer,
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: context.theme.colorScheme.secondary
+                                        .withAlpha(150),
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                contentPadding: const EdgeInsets.all(16.0),
+                                hintText: 'Create a new tag',
+                                prefixIcon: Icon(
+                                  Icons.new_label_rounded,
+                                  color: context
+                                      .theme.colorScheme.onSecondaryContainer,
+                                ),
+                              ),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: context
+                                      .theme.colorScheme.onSecondaryContainer),
+                            ),
                           ),
-                          suffixIcon: IconButton.filledTonal(
+                          const SizedBox(
+                            width: 8.0,
+                          ),
+                          IconButton.filledTonal(
                             onPressed: () {
                               onCreateTag(newTagTextFieldController.text);
                               newTagTextFieldController.text = '';
                             },
                             icon: const Icon(
                               Icons.done_rounded,
+                              size: 32,
                             ),
+                            style: IconButton.styleFrom(
+                                backgroundColor:
+                                    context.theme.colorScheme.secondary,
+                                foregroundColor:
+                                    context.theme.colorScheme.onSecondary),
                           ),
-                        ),
+                        ],
                       ),
                       Padding(
                         padding:
@@ -140,10 +175,7 @@ showNoteTagEditorModalBottomSheet({
                               if (snapshot.hasData &&
                                   snapshot.data!.isNotEmpty) {
                                 final noteTags = snapshot.data!;
-                                log(
-                                  'noteTags.toString()',
-                                  name: 'TagEditor',
-                                );
+
                                 return ListView.separated(
                                   physics: const NeverScrollableScrollPhysics(),
                                   shrinkWrap: true,
@@ -172,12 +204,30 @@ showNoteTagEditorModalBottomSheet({
                                                   : const Radius.circular(4),
                                         ),
                                       ),
-                                      splashColor: Colors.transparent,
+                                      splashColor: context
+                                          .theme.colorScheme.primaryContainer,
                                       onTap: () {},
-                                      leading: const Icon(Icons.label_rounded),
+                                      leading: Icon(
+                                        Icons.label_rounded,
+                                        color: context.theme.colorScheme
+                                            .onPrimaryContainer,
+                                      ),
                                       title: Text(
                                         tag.name,
-                                        // style: const TextStyle(fontSize: 16),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: context.theme.colorScheme
+                                              .onPrimaryContainer,
+                                        ),
+                                      ),
+                                      trailing: IconButton.outlined(
+                                        onPressed: () => onDeleteTag(tag),
+                                        icon: Icon(
+                                          Icons.delete_rounded,
+                                          color: context.theme.colorScheme
+                                              .onSecondaryContainer,
+                                        ),
                                       ),
                                     );
                                   },

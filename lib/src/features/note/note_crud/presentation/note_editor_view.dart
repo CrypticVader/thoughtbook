@@ -126,8 +126,11 @@ class _NoteEditorViewState extends State<NoteEditorView> {
       listener: (BuildContext context, NoteEditorState state) {
         if (state.snackBarText.isNotEmpty) {
           final snackBar = SnackBar(
-            backgroundColor: context.theme.colorScheme.tertiary,
-            content: Text(state.snackBarText),
+            backgroundColor: noteColors.tertiaryContainer,
+            content: Text(
+              state.snackBarText,
+              style: TextStyle(color: noteColors.onTertiaryContainer),
+            ),
             dismissDirection: DismissDirection.startToEnd,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(8.0),
@@ -176,7 +179,6 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                           _isDarkMode ? Brightness.dark : Brightness.light,
                     );
 
-                    log('Note stream event');
                     return Scaffold(
                       appBar: PreferredSize(
                         preferredSize: const Size.fromHeight(kToolbarHeight),
