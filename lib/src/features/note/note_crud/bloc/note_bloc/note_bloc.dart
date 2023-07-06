@@ -327,7 +327,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       },
     );
 
-    // On cediting an existing note tag
+    // On editing an existing note tag
     on<NoteEditTagEvent>(
       (event, emit) async {
         final String tagName = event.newName;

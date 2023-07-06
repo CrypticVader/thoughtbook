@@ -187,7 +187,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                           duration: const Duration(milliseconds: 500),
                           child: AppBar(
                             iconTheme: IconThemeData(
-                              color: noteColors.onBackground.withAlpha(200),
+                              color: noteColors.onPrimaryContainer,
                             ),
                             backgroundColor: Colors.transparent,
                             leading: IconButton(
@@ -267,33 +267,30 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 6.0,
-                                        horizontal: 8.0,
-                                      ),
+                                      padding: const EdgeInsets.all(8.0),
                                       decoration: BoxDecoration(
-                                        color: _isDarkMode
-                                            ? Colors.black.withAlpha(40)
-                                            : Colors.white.withAlpha(60),
+                                        color: noteColors.background
+                                            .withAlpha(100),
                                         borderRadius:
-                                            BorderRadius.circular(10.0),
+                                            BorderRadius.circular(12.0),
+                                        border: Border.all(
+                                            color: noteColors.onBackground
+                                                .withAlpha(50)),
                                       ),
                                       child: Row(
                                         children: [
                                           Icon(
                                             Icons.date_range_rounded,
-                                            size: 16,
-                                            color: noteColors.onBackground
-                                                .withAlpha(220),
+                                            size: 18,
+                                            color: noteColors.onBackground,
                                           ),
-                                          const SizedBox(width: 6.0),
+                                          const SizedBox(width: 8.0),
                                           Text(
                                             note.modified.customFormat(),
                                             style: TextStyle(
-                                              color: noteColors.onBackground
-                                                  .withAlpha(200),
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 12.0,
+                                              color: noteColors.onBackground,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 13.0,
                                             ),
                                           ),
                                         ],
@@ -301,16 +298,15 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                     ),
                                     const SizedBox(width: 8.0),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 6.0,
-                                        horizontal: 8.0,
-                                      ),
+                                      padding: const EdgeInsets.all(8.0),
                                       decoration: BoxDecoration(
+                                        color: noteColors.background
+                                            .withAlpha(100),
                                         borderRadius:
-                                            BorderRadius.circular(10.0),
-                                        color: _isDarkMode
-                                            ? Colors.black.withAlpha(40)
-                                            : Colors.white.withAlpha(60),
+                                            BorderRadius.circular(12.0),
+                                        border: Border.all(
+                                            color: noteColors.onBackground
+                                                .withAlpha(50)),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -319,20 +315,18 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                             note.isSyncedWithCloud
                                                 ? Icons.sync_rounded
                                                 : Icons.sync_disabled_rounded,
-                                            size: 16,
-                                            color: noteColors.onBackground
-                                                .withAlpha(220),
+                                            size: 18,
+                                            color: noteColors.onBackground,
                                           ),
-                                          const SizedBox(width: 4.0),
+                                          const SizedBox(width: 8.0),
                                           Text(
                                             note.isSyncedWithCloud
                                                 ? 'Synced with the cloud'
                                                 : 'Not synced with the cloud',
                                             style: TextStyle(
-                                              color: noteColors.onBackground
-                                                  .withAlpha(220),
-                                              fontSize: 12.0,
-                                              fontWeight: FontWeight.normal,
+                                              color: noteColors.onBackground,
+                                              fontSize: 13.0,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
                                         ],

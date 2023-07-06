@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:animations/animations.dart';
+import 'package:entry/entry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -91,8 +92,8 @@ class _NotesListViewState extends State<NotesListView> {
         key: ValueKey<int>(_getLayoutColumnCount(context)),
         primary: true,
         itemCount: widget.notes.length,
-        crossAxisSpacing: 10.0,
-        mainAxisSpacing: 10.0,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
         crossAxisCount: _getLayoutColumnCount(context),
         padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 20.0),
         itemBuilder: (BuildContext context, int index) {
@@ -110,6 +111,7 @@ class _NotesListViewState extends State<NotesListView> {
               widget.onDeleteNote(note);
             },
             enableDismissible: widget.selectedNotes.isEmpty,
+            index: index,
           );
         },
       );
@@ -124,6 +126,7 @@ class NoteItem extends StatefulWidget {
   final void Function(LocalNote note, void Function() openContainer) onTap;
   final NoteCallback onLongPress;
   final bool enableDismissible;
+  final int index;
 
   const NoteItem({
     Key? key,
@@ -133,6 +136,7 @@ class NoteItem extends StatefulWidget {
     required this.onTap,
     required this.onLongPress,
     required this.enableDismissible,
+    required this.index,
   }) : super(key: key);
 
   @override
@@ -153,6 +157,7 @@ class _NoteItemState extends State<NoteItem> {
             ? Brightness.dark
             : Brightness.light,
   );
+  bool isVisible = true;
 
   Color getNoteColor(BuildContext context, LocalNote? note) {
     if (note != null) {
@@ -173,179 +178,191 @@ class _NoteItemState extends State<NoteItem> {
       brightness: _isDarkMode ? Brightness.dark : Brightness.light,
     );
 
-    return Dismissible(
-      key: ValueKey<LocalNote>(widget.note),
-      onUpdate: (details) async {
-        if (details.progress > 0.34 && details.progress < 0.36) {
-          await HapticFeedback.lightImpact();
-        }
-        setState(() {
-          _noteOpacity = 1 - details.progress;
-        });
-      },
-      direction: widget.enableDismissible
-          ? DismissDirection.horizontal
-          : DismissDirection.none,
-      dismissThresholds: const {
-        DismissDirection.startToEnd: 0.35,
-        DismissDirection.endToStart: 0.35,
-      },
-      onDismissed: (direction) {
-        widget.onDeleteNote(widget.note);
-        setState(() {
-          _noteOpacity = 1.0;
-        });
-      },
-      child: Opacity(
-        opacity: _noteOpacity,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onLongPress: () => widget.onLongPress(widget.note),
-          onTap: () => widget.onTap(widget.note, _openContainer),
-          splashColor: noteColors.primary.withAlpha(170),
-          child: OpenContainer(
-            tappable: false,
-            transitionDuration: const Duration(milliseconds: 250),
-            transitionType: ContainerTransitionType.fadeThrough,
-            closedElevation: 0,
-            openElevation: 0,
-            closedColor: noteColors.primaryContainer.withAlpha(170),
-            middleColor: noteColors.primaryContainer.withAlpha(170),
-            openColor: noteColors.primaryContainer.withAlpha(170),
-            useRootNavigator: true,
-            closedShape: RoundedRectangleBorder(
-              side: widget.isSelected
-                  ? BorderSide(
-                      width: 3,
-                      color: context.theme.colorScheme.tertiary.withAlpha(220),
-                    )
-                  : BorderSide(
-                      width: 0.8,
-                      color: noteColors.primary.withAlpha(40),
-                      strokeAlign: -1.0,
-                    ),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            closedBuilder: (context, openContainer) {
-              _openContainer = openContainer;
+    return Entry.all(
+      visible: isVisible,
+      delay: Duration(milliseconds: min(250, 25 * widget.index + 10)),
+      duration: const Duration(milliseconds: 150),
+      opacity: 0,
+      scale: 0.75,
+      curve: Curves.easeOutExpo,
+      yOffset: 0,
+      child: Dismissible(
+        key: ValueKey<LocalNote>(widget.note),
+        onUpdate: (details) async {
+          if (details.progress > 0.34 && details.progress < 0.36) {
+            await HapticFeedback.lightImpact();
+          }
+          setState(() {
+            _noteOpacity = 1 - details.progress;
+          });
+        },
+        direction: widget.enableDismissible
+            ? DismissDirection.horizontal
+            : DismissDirection.none,
+        dismissThresholds: const {
+          DismissDirection.startToEnd: 0.35,
+          DismissDirection.endToStart: 0.35,
+        },
+        onDismissed: (direction) {
+          widget.onDeleteNote(widget.note);
+          setState(() {
+            _noteOpacity = 1.0;
+          });
+        },
+        child: Opacity(
+          opacity: _noteOpacity,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onLongPress: () => widget.onLongPress(widget.note),
+            onTap: () => widget.onTap(widget.note, _openContainer),
+            splashColor: noteColors.primary.withAlpha(170),
+            child: OpenContainer(
+              tappable: false,
+              transitionDuration: const Duration(milliseconds: 250),
+              transitionType: ContainerTransitionType.fadeThrough,
+              closedElevation: 0,
+              openElevation: 0,
+              closedColor: noteColors.primaryContainer.withAlpha(170),
+              middleColor: noteColors.primaryContainer.withAlpha(170),
+              openColor: noteColors.primaryContainer.withAlpha(170),
+              useRootNavigator: true,
+              closedShape: RoundedRectangleBorder(
+                side: widget.isSelected
+                    ? BorderSide(
+                        width: 3,
+                        color:
+                            context.theme.colorScheme.tertiary.withAlpha(220),
+                      )
+                    : BorderSide.none,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              closedBuilder: (context, openContainer) {
+                _openContainer = openContainer;
 
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.note.title.isNotEmpty)
-                      Text(
-                        widget.note.title,
-                        maxLines: 2,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: noteColors.onSecondaryContainer,
-                          fontSize: 19.0,
-                          fontWeight: FontWeight.w600,
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.note.title.isNotEmpty)
+                        Text(
+                          widget.note.title,
+                          maxLines: 2,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: noteColors.onSecondaryContainer,
+                            fontSize: 19.0,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    if (widget.note.title.isNotEmpty &&
-                        widget.note.content.isNotEmpty)
+                      if (widget.note.title.isNotEmpty &&
+                          widget.note.content.isNotEmpty)
+                        const SizedBox(
+                          height: 8.0,
+                        ),
+                      if (widget.note.content.isNotEmpty)
+                        LimitedBox(
+                          maxHeight: 200,
+                          child: SingleChildScrollView(
+                            controller: null,
+                            physics: const NeverScrollableScrollPhysics(),
+                            child: MarkdownBody(
+                              data: widget.note.content.substring(
+                                  0, min(250, widget.note.content.length)),
+                              softLineBreak: true,
+                              shrinkWrap: true,
+                              fitContent: true,
+                              extensionSet: md.ExtensionSet.gitHubFlavored,
+                              styleSheet: MarkdownStyleSheet(
+                                p: TextStyle(
+                                  color: noteColors.onSecondaryContainer,
+                                  fontSize: 14.0,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                                h1: TextStyle(
+                                  color: noteColors.onSecondaryContainer,
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                h2: TextStyle(
+                                  color: noteColors.onSecondaryContainer,
+                                  fontSize: 17.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                h3: TextStyle(
+                                  color: noteColors.onSecondaryContainer,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       const SizedBox(
                         height: 8.0,
                       ),
-                    if (widget.note.content.isNotEmpty)
-                      LimitedBox(
-                        maxHeight: 200,
-                        child: SingleChildScrollView(
-                          controller: null,
-                          physics: const NeverScrollableScrollPhysics(),
-                          child: MarkdownBody(
-                            data: widget.note.content.substring(
-                                0, min(250, widget.note.content.length)),
-                            softLineBreak: true,
-                            shrinkWrap: true,
-                            fitContent: true,
-                            extensionSet: md.ExtensionSet.gitHubFlavored,
-                            styleSheet: MarkdownStyleSheet(
-                              p: TextStyle(
-                                color: noteColors.onSecondaryContainer,
-                                fontSize: 14.0,
-                                fontWeight: FontWeight.normal,
-                              ),
-                              h1: TextStyle(
-                                color: noteColors.onSecondaryContainer,
-                                fontSize: 18.0,
+                      Divider(
+                        color: noteColors.onPrimaryContainer.withAlpha(100),
+                        indent: 8.0,
+                        endIndent: 8.0,
+                        thickness: 1.0,
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 6.0,
+                          horizontal: 8.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: noteColors.primaryContainer,
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.tag_rounded,
+                              size: 18,
+                              color:
+                                  noteColors.onPrimaryContainer.withAlpha(220),
+                            ),
+                            const SizedBox(width: 4.0),
+                            Text(
+                              'tags',
+                              style: TextStyle(
+                                color: noteColors.onPrimaryContainer
+                                    .withAlpha(200),
                                 fontWeight: FontWeight.w500,
-                              ),
-                              h2: TextStyle(
-                                color: noteColors.onSecondaryContainer,
-                                fontSize: 17.0,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              h3: TextStyle(
-                                color: noteColors.onSecondaryContainer,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 13.0,
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                    const SizedBox(
-                      height: 8.0,
-                    ),
-                    Divider(
-                      color: noteColors.onPrimaryContainer.withAlpha(100),
-                      indent: 8.0,
-                      endIndent: 8.0,
-                      thickness: 1.0,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 6.0,
-                        horizontal: 8.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: noteColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.tag_rounded,
-                            size: 18,
-                            color: noteColors.onPrimaryContainer.withAlpha(220),
-                          ),
-                          const SizedBox(width: 4.0),
-                          Text(
-                            'tags',
-                            style: TextStyle(
-                              color:
-                                  noteColors.onPrimaryContainer.withAlpha(200),
-                              fontWeight: FontWeight.w500,
-                              fontSize: 13.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-            openBuilder: (context, closeContainer) {
-              return BlocProvider<NoteEditorBloc>(
-                create: (context) => NoteEditorBloc(),
-                child: NoteEditorView(
-                  note: widget.note,
-                  shouldAutoFocusContent: false,
-                  onDeleteNote: (note) async {
-                    widget.onDeleteNote(note);
-                  },
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+              openBuilder: (context, closeContainer) {
+                return BlocProvider<NoteEditorBloc>(
+                  create: (context) => NoteEditorBloc(),
+                  child: NoteEditorView(
+                    note: widget.note,
+                    shouldAutoFocusContent: false,
+                    onDeleteNote: (note) async {
+                      await Future.delayed(const Duration(milliseconds: 200));
+                      setState(() {
+                        isVisible = false;
+                      });
+                      await Future.delayed(const Duration(milliseconds: 150));
+                      widget.onDeleteNote(note);
+                    },
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
