@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 
-// Returns:
-// null if the color is reset,
-// currentColor if another a color is not picked
-// new color if another a color is picked
+/// Returns:
+/// *  [null] if the color is reset.
+/// *  [currentColor] if another color is not picked.
+/// *  [newColor] if another color is picked.
 Future<Color?> showColorPickerModalBottomSheet({
   required BuildContext context,
   required Color? currentColor,

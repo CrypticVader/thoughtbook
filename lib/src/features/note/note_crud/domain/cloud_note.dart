@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_note_service/firestore_notes_constants.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storable_constants.dart';
 
 /// Data model for notes stored in the Firebase Firestore database.
 @immutable

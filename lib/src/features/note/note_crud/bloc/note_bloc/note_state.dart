@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show immutable;
+import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/authentication/domain/auth_user.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
@@ -28,9 +29,9 @@ class NoteUninitializedState extends NoteState {
 }
 
 class NoteInitializedState extends NoteState with EquatableMixin {
-  final Stream<List<LocalNote>> Function() notes;
+  final ValueStream<List<LocalNote>> Function() notes;
 
-  final Stream<List<NoteTag>> Function() noteTags;
+  final ValueStream<List<LocalNoteTag>> Function() noteTags;
 
   final List<LocalNote> selectedNotes;
 

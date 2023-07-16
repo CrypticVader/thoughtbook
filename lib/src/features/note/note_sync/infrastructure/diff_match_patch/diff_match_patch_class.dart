@@ -140,17 +140,17 @@ class DiffMatchPatch {
   ///     If true, then run a faster slightly less optimal diff.
   /// [deadline] is the time when the diff should be complete by.
   /// Returns a List of Diff objects.
-  List<Diff> _diff_compute(
-      String text1, String text2, bool checklines, DateTime deadline) {
+  List<Diff> _diff_compute(String text1, String text2, bool checklines,
+      DateTime deadline) {
     List<Diff> diffs = <Diff>[];
 
-    if (text1.length == 0) {
+    if (text1.isEmpty) {
       // Just add some text (speedup).
       diffs.add(Diff(Operation.insert, text2));
       return diffs;
     }
 
-    if (text2.length == 0) {
+    if (text2.isEmpty) {
       // Just delete some text (speedup).
       diffs.add(Diff(Operation.delete, text1));
       return diffs;
@@ -162,7 +162,7 @@ class DiffMatchPatch {
     if (i != -1) {
       // Shorter text is inside the longer text (speedup).
       Operation op =
-          (text1.length > text2.length) ? Operation.delete : Operation.insert;
+      (text1.length > text2.length) ? Operation.delete : Operation.insert;
       diffs.add(Diff(op, longtext.substring(0, i)));
       diffs.add(Diff(Operation.equal, shorttext));
       diffs.add(Diff(op, longtext.substring(i + shorttext.length)));
@@ -243,7 +243,7 @@ class DiffMatchPatch {
           textDelete.write(diffs[pointer].text);
           break;
         case Operation.equal:
-          // Upon reaching an equality, check for prior redundancies.
+        // Upon reaching an equality, check for prior redundancies.
           if (countDelete >= 1 && countInsert >= 1) {
             // Delete the offending records and add the merged ones.
             diffs.removeRange(pointer - countDelete - countInsert, pointer);
@@ -392,8 +392,8 @@ class DiffMatchPatch {
   /// [y] is the index of split point in text2.
   /// [deadline] is the time at which to bail if not yet complete.
   /// Returns a List of Diff objects.
-  List<Diff> _diff_bisectSplit(
-      String text1, String text2, int x, int y, DateTime deadline) {
+  List<Diff> _diff_bisectSplit(String text1, String text2, int x, int y,
+      DateTime deadline) {
     final text1a = text1.substring(0, x);
     final text2a = text2.substring(0, y);
     final text1b = text1.substring(x);
@@ -646,14 +646,16 @@ class DiffMatchPatch {
   List<String>? _diff_halfMatchI(String longtext, String shorttext, int i) {
     // Start with a 1/4 length substring at position i as a seed.
     final seed =
-        longtext.substring(i, i + (longtext.length / 4).floor().toInt());
+    longtext.substring(i, i + (longtext.length / 4).floor().toInt());
     int j = -1;
     String bestCommon = '';
-    String bestLongtextA = '', bestLongtextB = '';
-    String bestShorttextA = '', bestShorttextB = '';
+    String bestLongtextA = '',
+        bestLongtextB = '';
+    String bestShorttextA = '',
+        bestShorttextB = '';
     while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
       int prefixLength =
-          diff_commonPrefix(longtext.substring(i), shorttext.substring(j));
+      diff_commonPrefix(longtext.substring(i), shorttext.substring(j));
       int suffixLength = diff_commonSuffix(
           longtext.substring(0, i), shorttext.substring(0, j));
       if (bestCommon.length < suffixLength + prefixLength) {
@@ -793,15 +795,14 @@ class DiffMatchPatch {
   /// e.g: The c<ins>at c</ins>ame. -> The <ins>cat </ins>came.
   /// [diffs] is a List of Diff objects.
   void _diff_cleanupSemanticLossless(List<Diff> diffs) {
-    /**
-     * Given two strings, compute a score representing whether the internal
-     * boundary falls on logical boundaries.
-     * Scores range from 6 (best) to 0 (worst).
-     * Closure, but does not reference any external variables.
-     * [one] the first string.
-     * [two] the second string.
-     * Returns the score.
-     */
+
+    /// Given two strings, compute a score representing whether the internal
+    /// boundary falls on logical boundaries.
+    /// Scores range from 6 (best) to 0 (worst).
+    /// Closure, but does not reference any external variables.
+    /// [one] the first string.
+    /// [two] the second string.
+    /// Returns the score.
     int _diff_cleanupSemanticScore(String one, String two) {
       if (one.isEmpty || two.isEmpty) {
         // Edges are the best.
@@ -969,9 +970,9 @@ class DiffMatchPatch {
             ((preIns && preDel && postIns && postDel) ||
                 ((lastEquality.length < diffEditCost / 2) &&
                     ((preIns ? 1 : 0) +
-                            (preDel ? 1 : 0) +
-                            (postIns ? 1 : 0) +
-                            (postDel ? 1 : 0)) ==
+                        (preDel ? 1 : 0) +
+                        (postIns ? 1 : 0) +
+                        (postDel ? 1 : 0)) ==
                         3))) {
           // Duplicate record.
           diffs.insert(equalities.last, Diff(Operation.delete, lastEquality));
@@ -1025,7 +1026,7 @@ class DiffMatchPatch {
           pointer++;
           break;
         case Operation.equal:
-          // Upon reaching an equality, check for prior redundancies.
+        // Upon reaching an equality, check for prior redundancies.
           if (countDelete + countInsert > 1) {
             if (countDelete != 0 && countInsert != 0) {
               // Factor out any common prefixies.
@@ -1242,7 +1243,7 @@ class DiffMatchPatch {
           deletions += aDiff.text.length;
           break;
         case Operation.equal:
-          // A deletion and an insertion is one substitution.
+        // A deletion and an insertion is one substitution.
           levenshtein += max(insertions, deletions);
           insertions = 0;
           deletions = 0;
@@ -1299,7 +1300,7 @@ class DiffMatchPatch {
     int pointer = 0; // Cursor in text1
     final tokens = delta.split('\t');
     for (String token in tokens) {
-      if (token.length == 0) {
+      if (token.isEmpty) {
         // Blank tokens are ok (from a trailing \t).
         continue;
       }
@@ -1308,7 +1309,7 @@ class DiffMatchPatch {
       String param = token.substring(1);
       switch (token[0]) {
         case '+':
-          // decode would change all "+" to " "
+        // decode would change all "+" to " "
           param = param.replaceAll('+', '%2B');
           try {
             param = Uri.decodeFull(param);
@@ -1344,7 +1345,7 @@ class DiffMatchPatch {
           }
           break;
         default:
-          // Anything else is an error.
+        // Anything else is an error.
           throw ArgumentError(
               'Invalid diff operation in diff_fromDelta: ${token[0]}');
       }
@@ -1374,7 +1375,7 @@ class DiffMatchPatch {
     if (text == pattern) {
       // Shortcut (potentially not guaranteed by the algorithm)
       return 0;
-    } else if (text.length == 0) {
+    } else if (text.isEmpty) {
       // Nothing to match.
       return -1;
     } else if (loc + pattern.length <= text.length &&
@@ -1458,8 +1459,8 @@ class DiffMatchPatch {
         } else {
           // Subsequent passes: fuzzy match.
           rd[j] = ((rd[j + 1] << 1) | 1) & charMatch |
-              (((lastRd![j + 1] | lastRd[j]) << 1) | 1) |
-              lastRd[j + 1];
+          (((lastRd![j + 1] | lastRd[j]) << 1) | 1) |
+          lastRd[j + 1];
         }
         if ((rd[j] & matchmask) != 0) {
           double score = _match_bitapScore(d, j - 1, loc, pattern);

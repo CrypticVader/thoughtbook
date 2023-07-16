@@ -12,7 +12,7 @@ import 'dart:async';
 ///   _debouncer.run(() => print(text));
 /// }
 /// ```
-class Debouncer<T> {
+class Debouncer {
   final Duration delay;
   Timer? _timer;
 

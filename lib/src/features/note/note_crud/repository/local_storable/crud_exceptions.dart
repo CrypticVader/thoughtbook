@@ -23,3 +23,5 @@ class CouldNotFindNoteTagException implements Exception {}
 class CouldNotUpdateNoteTagException implements Exception {}
 
 class CouldNotDeleteNoteTagException implements Exception {}
+
+class DuplicateNoteTagException implements Exception {}

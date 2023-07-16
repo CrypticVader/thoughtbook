@@ -31,11 +31,6 @@ class NotesView extends StatefulWidget {
 }
 
 class _NotesViewState extends State<NotesView> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
   Future<void> _onLogout(BuildContext context) async {
     final bloc = context.read<AuthBloc>();
     final shouldLogout = await showLogoutDialog(context);
@@ -245,7 +240,13 @@ class _NotesViewState extends State<NotesView> {
           if (state.snackBarText != null) {
             final snackBar = SnackBar(
               backgroundColor: context.theme.colorScheme.tertiary,
-              content: Text(state.snackBarText!),
+              content: Text(
+                state.snackBarText!,
+                style: TextStyle(
+                  color: context.theme.colorScheme.onTertiary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               dismissDirection: DismissDirection.startToEnd,
               behavior: SnackBarBehavior.floating,
               margin: const EdgeInsets.all(8.0),
@@ -274,6 +275,7 @@ class _NotesViewState extends State<NotesView> {
                     context.loc.note_deleted,
                     style: TextStyle(
                       color: context.theme.colorScheme.onTertiary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const Spacer(
@@ -295,7 +297,6 @@ class _NotesViewState extends State<NotesView> {
                           Icon(
                             Icons.restore_rounded,
                             color: context.theme.colorScheme.onTertiary,
-                            size: 22,
                           ),
                           const SizedBox(
                             width: 4.0,
@@ -627,7 +628,7 @@ class _NotesViewState extends State<NotesView> {
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(
                                       3.0, 0.0, 3.0, 3.0),
-                                  child: StreamBuilder<List<NoteTag>>(
+                                  child: StreamBuilder<List<LocalNoteTag>>(
                                     stream: state.noteTags(),
                                     builder: (context, snapshot) {
                                       switch (snapshot.connectionState) {
@@ -636,7 +637,7 @@ class _NotesViewState extends State<NotesView> {
                                         case ConnectionState.done:
                                           if (snapshot.hasData &&
                                               snapshot.data!.isNotEmpty) {
-                                            final List<NoteTag> noteTags =
+                                            final List<LocalNoteTag> noteTags =
                                                 snapshot.data!;
                                             return ListView.separated(
                                               itemBuilder: (context, index) {

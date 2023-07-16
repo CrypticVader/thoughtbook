@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:animations/animations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -14,6 +15,7 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/no
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/show_color_picker_bottom_sheet.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 typedef NoteCallback = void Function(LocalNote note);
 
@@ -126,10 +128,10 @@ class _NoteEditorViewState extends State<NoteEditorView> {
       listener: (BuildContext context, NoteEditorState state) {
         if (state.snackBarText.isNotEmpty) {
           final snackBar = SnackBar(
-            backgroundColor: noteColors.tertiaryContainer,
+            backgroundColor: noteColors.tertiary,
             content: Text(
               state.snackBarText,
-              style: TextStyle(color: noteColors.onTertiaryContainer),
+              style: TextStyle(color: noteColors.onTertiary),
             ),
             dismissDirection: DismissDirection.startToEnd,
             behavior: SnackBarBehavior.floating,
@@ -355,6 +357,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                           content: note.content,
                                           textColor:
                                               noteColors.onSecondaryContainer,
+                                          noteColors: noteColors,
                                         ),
                                 ),
                               ],
@@ -478,12 +481,14 @@ class NoteReadableView extends StatelessWidget {
   final String title;
   final String content;
   final Color textColor;
+  final ColorScheme noteColors;
 
   const NoteReadableView({
     super.key,
     required this.title,
     required this.content,
     required this.textColor,
+    required this.noteColors,
   });
 
   @override
@@ -511,19 +516,61 @@ class NoteReadableView extends StatelessWidget {
             data: content,
             selectable: true,
             softLineBreak: true,
+            onTapLink: (text, href, title) async {
+              if (href != null) {
+                await launchUrl(
+                  Uri.parse(href),
+                  mode: LaunchMode.externalApplication,
+                );
+              }
+            },
             imageBuilder: (uri, title, alt) {
               // final asset = FadeInImage.assetNetwork(placeholder: placeholder, image: image)
-              return Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.0),
-                    boxShadow: kElevationToShadow[2]),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    uri.toString(),
-                    filterQuality: FilterQuality.high,
+              return OpenContainer(
+                transitionType: ContainerTransitionType.fadeThrough,
+                transitionDuration: const Duration(milliseconds: 250),
+                closedColor: Colors.transparent,
+                closedShape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(16.0),
                   ),
                 ),
+                closedElevation: 4,
+                openColor: noteColors.background,
+                closedBuilder: (context, action) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      uri.toString(),
+                      filterQuality: FilterQuality.low,
+                    ),
+                  );
+                },
+                openBuilder: (context, action) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      InteractiveViewer(
+                        panEnabled: true,
+                        scaleEnabled: true,
+                        maxScale: 12,
+                        minScale: 0.8,
+                        child: Image.network(
+                          uri.toString(),
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ),
+                      Positioned(
+                        top: 48,
+                        left: 12,
+                        child: IconButton.filled(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.arrow_back_rounded),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
             checkboxBuilder: (value) {
@@ -548,6 +595,9 @@ class NoteReadableView extends StatelessWidget {
               );
             },
             styleSheet: MarkdownStyleSheet(
+              a: TextStyle(
+                color: noteColors.primary,
+              ),
               code: TextStyle(
                 color: textColor,
                 backgroundColor: Colors.transparent,

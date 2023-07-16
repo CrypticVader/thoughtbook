@@ -6,53 +6,50 @@ import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storable.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_syncable.dart';
 import 'package:thoughtbook/src/helpers/debouncer/debouncer.dart';
 
-class LocalNoteService {
-  Isar? _isar;
-  final _debouncer =
-      Debouncer<NoteChange>(delay: const Duration(milliseconds: 250));
-  List<LocalNote> _notes = [];
-  List<NoteTag> _tags = [];
+class LocalNoteStorable implements LocalStorable<LocalNote> {
+  static final LocalNoteStorable _shared = LocalNoteStorable._sharedInstance();
 
-  IsarCollection<LocalNote> get _getNotesCollection => _isar!.localNotes;
-
-  IsarCollection<NoteTag> get _getNoteTagsCollection => _isar!.noteTags;
-
-  static final LocalNoteService _shared = LocalNoteService._sharedInstance();
-
-  LocalNoteService._sharedInstance() {
+  LocalNoteStorable._sharedInstance() {
     _ensureCollectionIsOpen();
     _notesStreamController = BehaviorSubject<List<LocalNote>>.seeded(_notes);
-    _noteTagsStreamController = BehaviorSubject<List<NoteTag>>.seeded(_tags);
-    noteChangeFeedController = BehaviorSubject<NoteChange>();
+    _noteChangeFeedController = BehaviorSubject<NoteChange>();
   }
 
-  factory LocalNoteService() => _shared;
+  factory LocalNoteStorable() => _shared;
 
+  Isar? _isar;
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 250));
+  List<LocalNote> _notes = [];
   late final BehaviorSubject<List<LocalNote>> _notesStreamController;
-  late final BehaviorSubject<List<NoteTag>> _noteTagsStreamController;
-  late final BehaviorSubject<NoteChange> noteChangeFeedController;
+  late final BehaviorSubject<NoteChange> _noteChangeFeedController;
 
-  /// Returns a [Stream] of collection of all the [LocalNote] in the local note database.
-  Stream<List<LocalNote>> get allNotes => _notesStreamController.stream;
+  @override
+  IsarCollection<LocalNote> get entityCollection => _isar!.localNotes;
 
-  /// Returns a [Stream] of collection of all the [NoteTag] in the local note tags database.
-  Stream<List<NoteTag>> get allNoteTags => _noteTagsStreamController.stream;
+  /// Returns a [ValueStream] of collection of all the [LocalNote] in the local note database.
+  @override
+  ValueStream<List<LocalNote>> get allItemStream =>
+      _notesStreamController.stream;
 
-  /// Returns a [Stream] of changes occurring in the local note database.
-  Stream<NoteChange> get getNoteChangeFeed => noteChangeFeedController.stream;
+  /// Returns a [ValueStream] of changes occurring in the local note database.
+  @override
+  ValueStream<NoteChange> get changeFeedStream =>
+      _noteChangeFeedController.stream;
 
-  Future<void> updateNote({
-    required int isarId,
-    required String title,
-    required String content,
-    required List<int> tags,
-    required int? color,
-    required bool isSyncedWithCloud,
+  @override
+  Future<void> updateItem({
+    required int id,
+    String? title,
+    String? content,
+    List<int>? tags,
+    int? color = retainNoteColor,
+    bool isSyncedWithCloud = false,
     String? cloudDocumentId,
     bool addToChangeFeed = true,
     bool debounceChangeFeedEvent = false,
@@ -61,16 +58,16 @@ class LocalNoteService {
   }) async {
     await _ensureCollectionIsOpen();
     final isar = _isar!;
-    final notesCollection = _getNotesCollection;
-    final note = await notesCollection.get(isarId);
+    final notesCollection = entityCollection;
+    final note = await notesCollection.get(id);
     if (note == null) {
       throw CouldNotUpdateNoteException();
     } else {
       final newNote = note
-        ..title = title
-        ..content = content
-        ..tags = tags
-        ..color = color
+        ..title = title ?? note.title
+        ..content = content ?? note.content
+        ..tags = tags ?? note.tags
+        ..color = (color == null || color > 0) ? color : note.color
         ..isSyncedWithCloud = isSyncedWithCloud
         ..cloudDocumentId = cloudDocumentId ?? note.cloudDocumentId
         ..created = created ?? note.created
@@ -94,7 +91,7 @@ class LocalNoteService {
       );
 
       // Add event to notes stream
-      final updatedNote = await getNote(isarId: note.isarId);
+      final updatedNote = await getItem(id: note.isarId);
       _notes.removeWhere((note) => note.isarId == updatedNote.isarId);
       _notes.add(updatedNote);
       _notesStreamController.add(_notes);
@@ -103,7 +100,7 @@ class LocalNoteService {
       if (addToChangeFeed) {
         if (debounceChangeFeedEvent) {
           _debouncer.run(
-            () => noteChangeFeedController.add(
+            () => _noteChangeFeedController.add(
               NoteChange.fromLocalNote(
                 note: updatedNote,
                 type: NoteChangeType.update,
@@ -112,7 +109,7 @@ class LocalNoteService {
             ),
           );
         } else {
-          noteChangeFeedController.add(
+          _noteChangeFeedController.add(
             NoteChange.fromLocalNote(
               note: updatedNote,
               type: NoteChangeType.update,
@@ -124,25 +121,21 @@ class LocalNoteService {
     }
   }
 
-  Future<List<LocalNote>> getAllNotes() async {
+  @override
+  Future<List<LocalNote>> get getAllItems async {
     await _ensureCollectionIsOpen();
-    final notesCollection = _getNotesCollection;
+    final notesCollection = entityCollection;
     return await notesCollection.where().sortByModifiedDesc().findAll();
   }
 
-  Future<List<NoteTag>> getAllNoteTags() async {
-    await _ensureCollectionIsOpen();
-    final noteTagsCollection = _getNoteTagsCollection;
-    return await noteTagsCollection.where().anyId().findAll();
-  }
-
-  Future<LocalNote> getNote({
-    int? isarId,
+  @override
+  Future<LocalNote> getItem({
+    required int? id,
     String? cloudDocumentId,
   }) async {
     await _ensureCollectionIsOpen();
-    final notesCollection = _getNotesCollection;
-    if (isarId == null) {
+    final notesCollection = entityCollection;
+    if (id == null) {
       if (cloudDocumentId == null) {
         throw CouldNotFindNoteException();
       }
@@ -157,7 +150,7 @@ class LocalNoteService {
         throw CouldNotFindNoteException();
       }
     } else {
-      final note = await notesCollection.get(isarId);
+      final note = await notesCollection.get(id);
       if (note == null) {
         throw CouldNotFindNoteException();
       } else {
@@ -167,15 +160,16 @@ class LocalNoteService {
   }
 
   /// Returns the latest version of a note from the local database in a [Stream] of [LocalNote]
-  Future<Stream<LocalNote>> getNoteAsStream({required int isarId}) async {
+  @override
+  Future<Stream<LocalNote>> itemStream({required int id}) async {
     await _ensureCollectionIsOpen();
-    final notesCollection = _getNotesCollection;
-    final note = await notesCollection.get(isarId);
+    final notesCollection = entityCollection;
+    final note = await notesCollection.get(id);
     if (note == null) {
       throw CouldNotFindNoteException();
     } else {
       Stream<LocalNote?> noteStreamNullable = notesCollection.watchObject(
-        isarId,
+        id,
         fireImmediately: true,
       );
 
@@ -189,14 +183,14 @@ class LocalNoteService {
   }
 
   /// Creates a [LocalNote] object in the collection & and returns its instance.
-  Future<LocalNote> createNote({
+  @override
+  Future<LocalNote> createItem({
     bool addToChangeFeed = true,
     bool debounceChangeFeedEvent = false,
   }) async {
-    log('Within createNote()');
     await _ensureCollectionIsOpen();
     final isar = _isar!;
-    final notesCollection = _getNotesCollection;
+    final notesCollection = entityCollection;
     final currentTime = DateTime.now().toUtc();
     final note = LocalNote(
       isSyncedWithCloud: false,
@@ -227,7 +221,7 @@ class LocalNoteService {
     if (addToChangeFeed) {
       if (debounceChangeFeedEvent) {
         _debouncer.run(
-          () => noteChangeFeedController.add(
+          () => _noteChangeFeedController.add(
             NoteChange.fromLocalNote(
               type: NoteChangeType.create,
               note: note,
@@ -236,7 +230,7 @@ class LocalNoteService {
           ),
         );
       } else {
-        noteChangeFeedController.add(
+        _noteChangeFeedController.add(
           NoteChange.fromLocalNote(
             type: NoteChangeType.create,
             note: note,
@@ -249,46 +243,11 @@ class LocalNoteService {
     return note;
   }
 
-  // TODO: Get rid of this, as it is useless if we consider cloud to local sync
-  Future<void> markNoteAsSynced({required int isarId}) async {
+  @override
+  Future<void> deleteAllItems({bool addToChangeFeed = false}) async {
     await _ensureCollectionIsOpen();
     final isar = _isar!;
-    final notesCollection = _getNotesCollection;
-    final note = await notesCollection.get(isarId);
-    if (note == null) {
-      throw CouldNotUpdateNoteException();
-    } else {
-      final newNote = note..isSyncedWithCloud = true;
-
-      // Add the updated note to the Isar collection
-      // Check whether the new Id of the updated note is the same as the old Id
-      // If not the same, throw
-      await isar.writeTxn(
-        () async {
-          return await notesCollection.put(newNote);
-        },
-      ).then(
-        (newId) {
-          if (newId == note.isarId) {
-            log('Note with id=$newId updated');
-          } else {
-            throw CouldNotUpdateNoteException();
-          }
-        },
-      );
-
-      // Add event to notes stream
-      final updatedNote = await getNote(isarId: note.isarId);
-      _notes.removeWhere((note) => note.isarId == updatedNote.isarId);
-      _notes.add(updatedNote);
-      _notesStreamController.add(_notes);
-    }
-  }
-
-  Future<void> deleteAllNotes({required bool addToChangeFeed}) async {
-    await _ensureCollectionIsOpen();
-    final isar = _isar!;
-    final notesCollection = _getNotesCollection;
+    final notesCollection = entityCollection;
     await isar.writeTxn(() async {
       await notesCollection.clear();
     });
@@ -297,12 +256,11 @@ class LocalNoteService {
     _notes = [];
     _notesStreamController.add(_notes);
 
-    // TODO: Add event to note change feed but be careful as db is cleared locally on logout but this should not be reflected on the cloud
     // if (addToChangeFeed) {
-    //   noteChangeFeedController.add(
+    //   _noteChangeFeedController.add(
     //     NoteChange(
     //       type: NoteChangeType.deleteAll,
-    //       isarId: null,
+    //       noteIsarId: null,
     //       cloudDocumentId: null,
     //       timestamp: DateTime.now().toUtc(),
     //     ),
@@ -310,17 +268,18 @@ class LocalNoteService {
     // }
   }
 
-  Future<void> deleteNote({
-    required int isarId,
+  @override
+  Future<void> deleteItem({
+    required int id,
     bool addToChangeFeed = true,
     bool debounceChangeFeedEvent = false,
   }) async {
     await _ensureCollectionIsOpen();
     final isar = _isar!;
-    final note = await getNote(isarId: isarId);
+    final note = await getItem(id: id);
     await isar.writeTxn(
       () async {
-        return await _getNotesCollection.delete(isarId);
+        return await entityCollection.delete(id);
       },
     ).then(
       (bool couldDelete) {
@@ -330,17 +289,17 @@ class LocalNoteService {
       },
     );
 
-    log('LocalNote with id=$isarId deleted');
+    log('LocalNote with id=$id deleted');
 
     // Add event to stream
-    _notes.removeWhere((note) => note.isarId == isarId);
+    _notes.removeWhere((note) => note.isarId == id);
     _notesStreamController.add(_notes);
 
     // Add event to note change feed
     if (addToChangeFeed) {
       if (debounceChangeFeedEvent) {
         _debouncer.run(
-          () => noteChangeFeedController.add(
+          () => _noteChangeFeedController.add(
             NoteChange.fromLocalNote(
               type: NoteChangeType.delete,
               note: note,
@@ -349,7 +308,7 @@ class LocalNoteService {
           ),
         );
       } else {
-        noteChangeFeedController.add(
+        _noteChangeFeedController.add(
           NoteChange.fromLocalNote(
             type: NoteChangeType.delete,
             note: note,
@@ -360,86 +319,7 @@ class LocalNoteService {
     }
   }
 
-  Future<NoteTag> createNoteTag({required String name}) async {
-    final isar = _isar!;
-    final NoteTag newTag = NoteTag(
-      name: name,
-      cloudDocumentId: null,
-    );
-    //TODO: Handle duplicate tag name exception
-    await isar.writeTxn(
-      () async {
-        final tagId = await _getNoteTagsCollection.put(newTag);
-        return tagId;
-      },
-    ).then((value) => newTag..id = value);
-    log('New NoteTag with id=${newTag.id} created');
-
-    _tags.add(newTag);
-    _noteTagsStreamController.add(_tags);
-
-    return newTag;
-  }
-
-  Future<NoteTag> getNoteTag({required int id}) async {
-    NoteTag? noteTag;
-    try {
-      noteTag = await _getNoteTagsCollection.get(id);
-      if (noteTag == null) {
-        throw CouldNotFindNoteTagException();
-      }
-      return noteTag;
-    } on StateError {
-      throw CouldNotFindNoteTagException();
-    }
-  }
-
-  Future<void> updateNoteTag({
-    required int id,
-    String? name,
-    String? cloudDocumentId,
-  }) async {
-    NoteTag? tag;
-    final isar = _isar!;
-    try {
-      tag = await getNoteTag(id: id);
-    } catch (e) {
-      throw CouldNotFindNoteTagException();
-    }
-    try {
-      final newTag = NoteTag(
-        name: (name != null) ? name : tag.name,
-        cloudDocumentId:
-            (cloudDocumentId != null) ? cloudDocumentId : tag.cloudDocumentId,
-      )..id = tag.id;
-      await isar.writeTxn(() async => await _getNoteTagsCollection.put(newTag));
-
-      _tags.removeWhere((tag) => tag.id == newTag.id);
-      _tags.add(newTag);
-      _noteTagsStreamController.add(_tags);
-    } catch (e) {
-      throw CouldNotUpdateNoteTagException();
-    }
-  }
-
-  Future<void> deleteNoteTag({required int id}) async {
-    final isar = _isar!;
-    try {
-      await getNoteTag(id: id);
-    } catch (e) {
-      throw CouldNotFindNoteTagException();
-    }
-    try {
-      await isar.writeTxn(() async => await _getNoteTagsCollection.delete(id));
-
-      _tags.removeWhere((tag) => tag.id == id);
-      _noteTagsStreamController.add(_tags);
-    } catch (e) {
-      throw CouldNotDeleteNoteTagException();
-      // rethrow;
-    }
-  }
-
+  @override
   Future<void> close() async {
     final isar = _isar;
     if (isar == null) {
@@ -449,7 +329,8 @@ class LocalNoteService {
     }
   }
 
-  Future<void> _open() async {
+  @override
+  Future<void> open() async {
     if (_isar != null) throw CollectionAlreadyOpenException();
     try {
       final docsPath = await getApplicationDocumentsDirectory();
@@ -464,7 +345,7 @@ class LocalNoteService {
         inspector: true,
       );
       _isar = isar;
-      await _cacheNotesAndTags();
+      await _cacheNotes();
       log(
         'All Isar collections opened',
         name: 'LocalNoteService',
@@ -476,18 +357,17 @@ class LocalNoteService {
 
   Future<void> _ensureCollectionIsOpen() async {
     try {
-      await _open();
+      await open();
     } on CollectionAlreadyOpenException {
       // empty
     }
   }
 
-  Future<void> _cacheNotesAndTags() async {
-    final allNotes = await getAllNotes();
-    final allNoteTags = await getAllNoteTags();
+  Future<void> _cacheNotes() async {
+    final allNotes = await getAllItems;
     _notes = allNotes;
-    _tags = allNoteTags;
     _notesStreamController.add(_notes);
-    _noteTagsStreamController.add(_tags);
   }
 }
+
+const retainNoteColor = -1;

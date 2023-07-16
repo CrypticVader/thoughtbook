@@ -5,7 +5,7 @@ import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widg
 
 Future<void> showNoteTagRenameDialog({
   required BuildContext context,
-  required NoteTag tag,
+  required LocalNoteTag tag,
   required NoteTagEditCallback onEditTag,
 }) async {
   final nameFieldController = TextEditingController();

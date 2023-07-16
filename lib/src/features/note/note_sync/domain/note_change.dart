@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_syncable.dart';
 
 part 'note_change.g.dart';
 

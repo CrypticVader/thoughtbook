@@ -4,8 +4,8 @@ import 'package:bloc/bloc.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_state.dart';
 import 'package:thoughtbook/src/features/authentication/repository/auth_provider.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/local_note_service.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storage.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/synchronizer.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_keys.dart';
 
@@ -179,7 +179,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
             // After logging in, retrieve all the notes belonging to the user from
             // the Firstore collection to the local database
-            final Stream<int> loadProgress = NoteSyncService().initLocalNotes();
+            final Stream<int> loadProgress = Synchronizer.note.initLocalNotes();
             await for (int progress in loadProgress) {
               log('CloudNote retrieval progress: ${progress.toString()}%');
             }
@@ -244,7 +244,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               isLoading: false,
             ),
           );
-          await LocalNoteService().deleteAllNotes(addToChangeFeed: false);
+          await LocalStorage.note.deleteAllItems(addToChangeFeed: false);
         } on Exception catch (e) {
           emit(
             AuthStateLoggedOut(
@@ -252,7 +252,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               isLoading: false,
             ),
           );
-          await LocalNoteService().deleteAllNotes(addToChangeFeed: false);
+          await LocalStorage.note.deleteAllItems(addToChangeFeed: false);
         }
       },
     );

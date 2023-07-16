@@ -103,7 +103,7 @@ class NoteCreateTagEvent extends NoteEvent {
 }
 
 class NoteEditTagEvent extends NoteEvent {
-  final NoteTag tag;
+  final LocalNoteTag tag;
   final String newName;
 
   const NoteEditTagEvent({
@@ -113,7 +113,7 @@ class NoteEditTagEvent extends NoteEvent {
 }
 
 class NoteDeleteTagEvent extends NoteEvent {
-  final NoteTag tag;
+  final LocalNoteTag tag;
 
   const NoteDeleteTagEvent({required this.tag});
 }

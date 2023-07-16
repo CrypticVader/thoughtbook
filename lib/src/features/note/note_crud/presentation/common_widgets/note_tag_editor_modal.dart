@@ -8,14 +8,14 @@ import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widg
 
 typedef NoteTagCreateCallback = void Function(String tagName);
 typedef NoteTagEditCallback = void Function(
-  NoteTag tag,
+  LocalNoteTag tag,
   String newName,
 );
-typedef NoteTagDeleteCallback = void Function(NoteTag tag);
+typedef NoteTagDeleteCallback = void Function(LocalNoteTag tag);
 
 showNoteTagEditorModalBottomSheet({
   required BuildContext context,
-  required Stream<List<NoteTag>> Function() tags,
+  required Stream<List<LocalNoteTag>> Function() tags,
   required NoteTagCreateCallback onCreateTag,
   required NoteTagEditCallback onEditTag,
   required NoteTagDeleteCallback onDeleteTag,
@@ -28,8 +28,8 @@ showNoteTagEditorModalBottomSheet({
     builder: (context) => NoteTagEditorView(
       tags: () => tags(),
       onCreateTag: (String tagName) => onCreateTag(tagName),
-      onEditTag: (NoteTag tag, String newName) => onEditTag(tag, newName),
-      onDeleteTag: (NoteTag tag) => onDeleteTag(tag),
+      onEditTag: (LocalNoteTag tag, String newName) => onEditTag(tag, newName),
+      onDeleteTag: (LocalNoteTag tag) => onDeleteTag(tag),
     ),
   );
 }
@@ -43,7 +43,7 @@ class NoteTagEditorView extends StatefulWidget {
     required this.onDeleteTag,
   });
 
-  final Stream<List<NoteTag>> Function() tags;
+  final Stream<List<LocalNoteTag>> Function() tags;
   final NoteTagCreateCallback onCreateTag;
   final NoteTagEditCallback onEditTag;
   final NoteTagDeleteCallback onDeleteTag;
@@ -209,7 +209,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                         ],
                       ),
                     ),
-                    StreamBuilder<List<NoteTag>>(
+                    StreamBuilder<List<LocalNoteTag>>(
                       stream: widget.tags(),
                       builder: (context, snapshot) {
                         switch (snapshot.connectionState) {

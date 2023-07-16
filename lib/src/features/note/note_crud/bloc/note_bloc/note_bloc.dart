@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/services.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/src/features/authentication/domain/auth_user.dart';
 import 'package:thoughtbook/src/features/authentication/repository/auth_service.dart';
@@ -10,17 +11,18 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_even
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/crud_exceptions.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/local_note_service.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storage.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/synchronizer.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_keys.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
-  Stream<List<LocalNote>> get allNotes => LocalNoteService().allNotes;
+  ValueStream<List<LocalNote>> get allNotes => LocalStorage.note.allItemStream;
 
-  Stream<List<NoteTag>> get allNoteTags => LocalNoteService().allNoteTags;
+  ValueStream<List<LocalNoteTag>> get allNoteTags =>
+      LocalStorage.noteTag.allItemStream;
 
   AuthUser? get user => AuthService.firebase().currentUser;
 
@@ -59,7 +61,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           );
 
           // Start local to cloud sync service
-          unawaited(NoteSyncService().setup());
+          unawaited(Synchronizer.note.startSync());
         }
       },
     );
@@ -68,7 +70,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.notes) {
-          await LocalNoteService().deleteNote(isarId: note.isarId);
+          await LocalStorage.note.deleteItem(id: note.isarId);
         }
         emit(
           NoteInitializedState(
@@ -167,7 +169,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // Select all notes
     on<NoteEventSelectAllNotes>(
       (event, emit) async {
-        final List<LocalNote> notes = await LocalNoteService().getAllNotes();
+        final List<LocalNote> notes = await LocalStorage.note.getAllItems;
         emit(
           NoteInitializedState(
             isLoading: false,
@@ -187,8 +189,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         final currentColor = event.note.color;
         final newColor = event.color;
         if (newColor != currentColor) {
-          await LocalNoteService().updateNote(
-            isarId: event.note.isarId,
+          await LocalStorage.note.updateItem(
+            id: event.note.isarId,
             title: event.note.title,
             content: event.note.content,
             tags: event.note.tags,
@@ -280,9 +282,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteUndoDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.deletedNotes) {
-          final newNote = await LocalNoteService().createNote();
-          await LocalNoteService().updateNote(
-            isarId: newNote.isarId,
+          final newNote = await LocalStorage.note.createItem();
+          await LocalStorage.note.updateItem(
+            id: newNote.isarId,
             title: note.title,
             content: note.content,
             tags: note.tags,
@@ -322,7 +324,38 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             ),
           );
         } else {
-          await LocalNoteService().createNoteTag(name: event.name);
+          final tag = await LocalStorage.noteTag.createItem();
+          try {
+            await LocalStorage.noteTag.updateItem(
+              id: tag.id,
+              name: event.name,
+            );
+          } on DuplicateNoteTagException {
+            await LocalStorage.noteTag.deleteItem(id: tag.id);
+            emit(
+              NoteInitializedState(
+                isLoading: false,
+                user: user,
+                notes: () => allNotes,
+                noteTags: () => allNoteTags,
+                selectedNotes: const [],
+                layoutPreference: layoutPreference,
+                snackBarText: 'A tag with the given name already exists.',
+              ),
+            );
+          } on CouldNotUpdateNoteTagException {
+            emit(
+              NoteInitializedState(
+                isLoading: false,
+                user: user,
+                notes: () => allNotes,
+                noteTags: () => allNoteTags,
+                selectedNotes: const [],
+                layoutPreference: layoutPreference,
+                snackBarText: 'Oops. Could not create the tag.',
+              ),
+            );
+          }
         }
       },
     );
@@ -345,9 +378,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           );
         } else {
           try {
-            await LocalNoteService().updateNoteTag(
+            await LocalStorage.noteTag.updateItem(
               id: event.tag.id,
-              name: event.tag.name,
+              name: event.newName,
             );
           } on CouldNotFindNoteTagException {
             emit(
@@ -373,6 +406,18 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
                 snackBarText: 'Oops. Could not update tag',
               ),
             );
+          } on DuplicateNoteTagException {
+            emit(
+              NoteInitializedState(
+                isLoading: false,
+                user: user,
+                notes: () => allNotes,
+                noteTags: () => allNoteTags,
+                selectedNotes: const [],
+                layoutPreference: layoutPreference,
+                snackBarText: 'A tag with the given name already exists.',
+              ),
+            );
           }
         }
       },
@@ -382,7 +427,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteDeleteTagEvent>(
       (event, emit) async {
         try {
-          await LocalNoteService().deleteNoteTag(id: event.tag.id);
+          await LocalStorage.noteTag.deleteItem(id: event.tag.id);
         } on CouldNotFindNoteTagException {
           emit(
             NoteInitializedState(

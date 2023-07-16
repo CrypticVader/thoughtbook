@@ -2,13 +2,13 @@ import 'dart:developer';
 
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_note_service/firestore_notes_service.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/crud_exceptions.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/local_note_service.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storage.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storage.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_change_helper.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_exceptions.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_helper.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_syncable.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/syncable_exceptions.dart';
 
 class NoteChangeSyncHelper {
   Future<void> syncOrIgnoreLocalChange({
@@ -39,7 +39,7 @@ class NoteChangeSyncHelper {
     required String ownerUserId,
   }) async {
     try {
-      await LocalNoteService().getNote(isarId: change.noteIsarId);
+      await LocalStorage.note.getItem(id: change.noteIsarId);
     } on CouldNotFindNoteException {
       log(
         'Could not find LocalNote with isarId=${change.noteIsarId} to sync local create. Proceeding to delete all changes to the missing note from change feed.',
@@ -51,12 +51,11 @@ class NoteChangeSyncHelper {
     }
 
     // Create a new note in the Firestore collection
-    final CloudNote newCloudNote =
-        await FirestoreNoteService().createNewNote(ownerUserId: ownerUserId);
+    final CloudNote newCloudNote = await CloudStorage.note.createItem();
 
     // Set the correct metadata for the new note in the Firestore collection
-    await FirestoreNoteService().updateNote(
-      documentId: newCloudNote.documentId,
+    await CloudStorage.note.updateItem(
+      cloudDocumentId: newCloudNote.documentId,
       title: change.title,
       content: change.content,
       tags: change.tags,
@@ -69,7 +68,7 @@ class NoteChangeSyncHelper {
     // between async operations
     late final LocalNote localNote;
     try {
-      localNote = await LocalNoteService().getNote(isarId: change.noteIsarId);
+      localNote = await LocalStorage.note.getItem(id: change.noteIsarId);
     } on CouldNotFindNoteException {
       log('Could not find local note with isarId=${change.noteIsarId} to sync local create.');
       return;
@@ -77,8 +76,8 @@ class NoteChangeSyncHelper {
 
     // Update the cloudDocumentId field for the corresponding LocalNote
     // and mark it as synced with the cloud
-    await LocalNoteService().updateNote(
-      isarId: change.noteIsarId,
+    await LocalStorage.note.updateItem(
+      id: change.noteIsarId,
       cloudDocumentId: newCloudNote.documentId,
       isSyncedWithCloud: true,
       title: localNote.title,
@@ -95,7 +94,7 @@ class NoteChangeSyncHelper {
   Future<void> _syncOrIgnoreLocalUpdate(NoteChange change) async {
     LocalNote localNote;
     try {
-      localNote = await LocalNoteService().getNote(isarId: change.noteIsarId);
+      localNote = await LocalStorage.note.getItem(id: change.noteIsarId);
     } on CouldNotFindNoteException {
       // The note could have been deleted locally by the user by the time the
       // update operation got processed for syncing.
@@ -113,15 +112,15 @@ class NoteChangeSyncHelper {
     }
 
     // Check if the local change is outdated
-    final cloudNote = await FirestoreNoteService()
-        .getNote(cloudDocumentId: localNote.cloudDocumentId!);
+    final cloudNote = await CloudStorage.note
+        .getItem(cloudDocumentId: localNote.cloudDocumentId!);
     if (cloudNote.modified.toDate().isAfter(localNote.modified)) {
       log('Local change to note with isarId=${localNote.isarId} is outdated. Ignoring sync.');
 
       // Mark corresponding LocalNote as synced with cloud
       try {
-        await LocalNoteService().updateNote(
-          isarId: localNote.isarId,
+        await LocalStorage.note.updateItem(
+          id: localNote.isarId,
           isSyncedWithCloud: true,
           title: localNote.title,
           content: localNote.content,
@@ -137,8 +136,8 @@ class NoteChangeSyncHelper {
 
     // Update the note in the Firestore collection
     try {
-      await FirestoreNoteService().updateNote(
-        documentId: localNote.cloudDocumentId!,
+      await CloudStorage.note.updateItem(
+        cloudDocumentId: localNote.cloudDocumentId!,
         title: localNote.title,
         content: localNote.content,
         tags: localNote.tags,
@@ -156,7 +155,11 @@ class NoteChangeSyncHelper {
 
     // Mark corresponding LocalNote as synced with cloud
     try {
-      await LocalNoteService().markNoteAsSynced(isarId: localNote.isarId);
+      await LocalStorage.note.updateItem(
+        id: localNote.isarId,
+        isSyncedWithCloud: true,
+        addToChangeFeed: false,
+      );
     } on CouldNotUpdateNoteException {
       log(
         name: 'NoteSync',
@@ -175,8 +178,8 @@ class NoteChangeSyncHelper {
     }
 
     try {
-      await FirestoreNoteService()
-          .deleteNote(documentId: change.cloudDocumentId!);
+      await CloudStorage.note
+          .deleteItem(cloudDocumentId: change.cloudDocumentId!);
     } on CouldNotDeleteNoteException {
       log(
         'Could not find CloudNote with isarid=${change.noteIsarId} & cloudId=${change.cloudDocumentId} to delete.',

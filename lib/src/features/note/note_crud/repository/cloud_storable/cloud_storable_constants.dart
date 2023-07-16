@@ -5,6 +5,7 @@ String getFirestoreNoteTagsCollectionPath(String id) =>
     'thoughtbookData/$id/noteTags';
 
 const ownerUserIdFieldName = 'user_id';
+const nameFieldName = 'name';
 const contentFieldName = 'content';
 const titleFieldName = 'title';
 const tagsFieldName = 'tags';

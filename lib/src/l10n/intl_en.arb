@@ -77,7 +77,7 @@
     "placeholders": {
       "count": {
         "type": "int",
-        "example": "Are you sure you want to delete the selected notes?"
+        "example": "6"
       }
     }
   },
