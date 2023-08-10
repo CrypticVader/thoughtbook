@@ -1,68 +1,56 @@
 import 'dart:developer';
 
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storable.dart';
-import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 
-class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
-  static final LocalNoteTagStorable _shared =
-      LocalNoteTagStorable._sharedInstance();
-
-  LocalNoteTagStorable._sharedInstance() {
-    _ensureCollectionIsOpen();
+class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
+  LocalNoteTagStorable() {
+    _cacheNoteTags();
     _noteTagsStreamController =
         BehaviorSubject<List<LocalNoteTag>>.seeded(_tags);
+    log('Created LocalNoteTagStorable instance');
   }
 
-  factory LocalNoteTagStorable() => _shared;
-
-  Isar? _isar;
   List<LocalNoteTag> _tags = [];
-
-  @override
-  IsarCollection<LocalNoteTag> get entityCollection => _isar!.noteTags;
-
   late final BehaviorSubject<List<LocalNoteTag>> _noteTagsStreamController;
 
-  /// Returns a [ValueStream] of collection of all the [LocalNoteTag] in the local note tags database.
+  @override
+  IsarCollection<int, LocalNoteTag> get storableCollection =>
+      LocalStorable.isar!.localNoteTags;
+
   @override
   ValueStream<List<LocalNoteTag>> get allItemStream =>
       _noteTagsStreamController.stream;
 
   @override
-  // TODO: implement changeFeedStream
-  ValueStream get changeFeedStream => throw UnimplementedError();
-
-  @override
   Future<List<LocalNoteTag>> get getAllItems async {
     await _ensureCollectionIsOpen();
-    final noteTagsCollection = entityCollection;
-    return await noteTagsCollection.where().anyId().findAll();
+    return storableCollection.where().findAll();
   }
 
   @override
   Future<LocalNoteTag> createItem() async {
     final currentTime = DateTime.now().toUtc();
-    final isar = _isar!;
 
     final LocalNoteTag newTag = LocalNoteTag(
+      isarId: storableCollection.autoIncrement(),
       name: '',
       cloudDocumentId: null,
       created: currentTime,
       modified: currentTime,
     );
-    await isar.writeTxn(
-      () async {
-        final tagId = await entityCollection.put(newTag);
+    await LocalStorable.isar!.writeAsync(
+      (isar) {
+        final tagId = isar.localNoteTags.put(newTag);
         return tagId;
       },
-    ).then((value) => newTag..id = value);
-    log('New NoteTag with id=${newTag.id} created');
+    );
+    log('New NoteTag with id=${newTag.isarId} created');
 
     _tags.add(newTag);
     _noteTagsStreamController.add(_tags);
@@ -74,7 +62,7 @@ class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
   Future<LocalNoteTag> getItem({required int id}) async {
     LocalNoteTag? noteTag;
     try {
-      noteTag = await entityCollection.get(id);
+      noteTag = storableCollection.get(id);
       if (noteTag == null) {
         throw CouldNotFindNoteTagException();
       }
@@ -88,13 +76,12 @@ class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
   @override
   Future<Stream<LocalNoteTag>> itemStream({required int id}) async {
     await _ensureCollectionIsOpen();
-    final noteTagsCollection = entityCollection;
-    final note = await noteTagsCollection.get(id);
+    final note = storableCollection.get(id);
     if (note == null) {
       throw CouldNotFindNoteTagException();
     } else {
       Stream<LocalNoteTag?> noteTagStreamNullable =
-          noteTagsCollection.watchObject(
+          storableCollection.watchObject(
         id,
         fireImmediately: true,
       );
@@ -118,7 +105,20 @@ class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
   }) async {
     final currentTime = DateTime.now().toUtc();
     LocalNoteTag? tag;
-    final isar = _isar!;
+    if (name != null) {
+      final tagIds = storableCollection
+          .where()
+          .nameEqualTo(name)
+          .isarIdProperty()
+          .findAll();
+      if (tagIds.isNotEmpty) {
+        if (tagIds.length > 1) {
+          throw Exception('Should not happen... hopefully');
+        } else if (tagIds[0] != id) {
+          throw DuplicateNoteTagException();
+        }
+      }
+    }
     try {
       tag = await getItem(id: id);
     } catch (e) {
@@ -126,22 +126,18 @@ class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
     }
     try {
       final newTag = LocalNoteTag(
+        isarId: id,
         name: name ?? tag.name,
         cloudDocumentId: cloudDocumentId ?? tag.cloudDocumentId,
         modified: modified ?? currentTime,
         created: created ?? tag.created,
-      )..id = id;
-      await isar.writeTxn(() async => await entityCollection.put(newTag));
+      );
+      await LocalStorable.isar!
+          .writeAsync((isar) => isar.localNoteTags.put(newTag));
 
-      _tags.removeWhere((tag) => tag.id == newTag.id);
+      _tags.removeWhere((tag) => tag.isarId == newTag.isarId);
       _tags.add(newTag);
       _noteTagsStreamController.add(_tags);
-    } on IsarError catch (e) {
-      if (e.message == 'Unique index violated.') {
-        throw DuplicateNoteTagException();
-      } else {
-        throw CouldNotUpdateNoteTagException();
-      }
     } catch (_) {
       throw CouldNotUpdateNoteTagException();
     }
@@ -149,16 +145,15 @@ class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
 
   @override
   Future<void> deleteItem({required int id}) async {
-    final isar = _isar!;
     try {
       await getItem(id: id);
     } catch (e) {
       throw CouldNotFindNoteTagException();
     }
     try {
-      await isar.writeTxn(() async => await entityCollection.delete(id));
-
-      _tags.removeWhere((tag) => tag.id == id);
+      await LocalStorable.isar!
+          .writeAsync<bool>((isar) => isar.localNoteTags.delete(id));
+      _tags.removeWhere((tag) => tag.isarId == id);
       _noteTagsStreamController.add(_tags);
     } catch (e) {
       throw CouldNotDeleteNoteTagException();
@@ -166,48 +161,8 @@ class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
     }
   }
 
-  @override
-  Future<void> close() async {
-    final isar = _isar;
-    if (isar == null) {
-      throw DatabaseIsNotOpenException();
-    } else {
-      await isar.close();
-    }
-  }
-
-  @override
-  Future<void> open() async {
-    if (_isar != null) throw CollectionAlreadyOpenException();
-    try {
-      final docsPath = await getApplicationDocumentsDirectory();
-      Isar? isar = Isar.getInstance();
-      isar ??= await Isar.open(
-        [
-          LocalNoteSchema,
-          NoteChangeSchema,
-          NoteTagSchema,
-        ],
-        directory: docsPath.path,
-        inspector: true,
-      );
-      _isar = isar;
-      await _cacheNoteTags();
-      log(
-        'All Isar collections opened',
-        name: 'LocalNoteService',
-      );
-    } on MissingPlatformDirectoryException {
-      throw UnableToGetDocumentsDirectoryException();
-    }
-  }
-
   Future<void> _ensureCollectionIsOpen() async {
-    try {
-      await open();
-    } on CollectionAlreadyOpenException {
-      // empty
-    }
+    await LocalStore.open();
   }
 
   Future<void> _cacheNoteTags() async {
@@ -219,13 +174,11 @@ class LocalNoteTagStorable implements LocalStorable<LocalNoteTag> {
   @override
   Future<void> deleteAllItems() async {
     await _ensureCollectionIsOpen();
-    final isar = _isar!;
-    final noteTagsCollection = entityCollection;
-    await isar.writeTxn(() async {
-      await noteTagsCollection.clear();
+    await LocalStorable.isar!.writeAsync((isar) {
+      isar.localNoteTags.clear();
     });
 
-    // Add event to notes stream
+    // Add event to noteTags stream
     _tags = [];
     _noteTagsStreamController.add(_tags);
   }

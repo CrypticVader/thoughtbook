@@ -6,19 +6,19 @@ import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storage.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 
 class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
-  late final int noteIsarId;
+  int? _noteIsarId;
 
   Future<Stream<LocalNote>> get noteStream async =>
-      await LocalStorage.note.itemStream(id: noteIsarId);
+      await LocalStore.note.itemStream(id: _noteIsarId!);
 
   Future<LocalNote> get note async {
     LocalNote note;
     try {
-      note = await LocalStorage.note.getItem(id: noteIsarId);
+      note = await LocalStore.note.getItem(id: _noteIsarId);
       return note;
     } on CouldNotFindNoteException {
       log(
@@ -37,11 +37,11 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           throw NoteEditorBlocAlreadyInitializedException();
         }
 
-        if (event.note == null) {
-          LocalNote note = await LocalStorage.note.createItem();
-          noteIsarId = note.isarId;
+        if (event.note == null && _noteIsarId == null) {
+          LocalNote note = await LocalStore.note.createItem();
+          _noteIsarId = note.isarId;
         } else {
-          noteIsarId = event.note!.isarId;
+          _noteIsarId = event.note!.isarId;
         }
 
         emit(
@@ -63,8 +63,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
         final note = await this.note;
         if (note.title.isEmpty && note.content.isEmpty) {
-          await LocalStorage.note.deleteItem(id: note.isarId);
+          await LocalStore.note.deleteItem(id: note.isarId);
         }
+        await close();
       },
     );
 
@@ -84,7 +85,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
       (event, emit) async {
         final note = await this.note;
         if (note.content != event.newContent || note.title != event.newTitle) {
-          await LocalStorage.note.updateItem(
+          await LocalStore.note.updateItem(
             id: note.isarId,
             title: event.newTitle,
             content: event.newContent,
@@ -123,7 +124,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     on<NoteEditorUpdateTagsEvent>(
       (event, emit) async {
         final note = await this.note;
-        await LocalStorage.note.updateItem(
+        await LocalStore.note.updateItem(
           id: note.isarId,
           title: note.title,
           content: note.content,
@@ -140,7 +141,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
         final note = await this.note;
         final newColor = event.newColor?.value;
         if (newColor != note.color) {
-          await LocalStorage.note.updateItem(
+          await LocalStore.note.updateItem(
             id: note.isarId,
             title: note.title,
             content: note.content,

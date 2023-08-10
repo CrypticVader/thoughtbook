@@ -3,349 +3,321 @@
 part of 'note_tag.dart';
 
 // **************************************************************************
-// IsarCollectionGenerator
+// _IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
+// ignore_for_file: type=lint
 
-extension GetNoteTagCollection on Isar {
-  IsarCollection<LocalNoteTag> get noteTags => this.collection();
+extension GetLocalNoteTagCollection on Isar {
+  IsarCollection<int, LocalNoteTag> get localNoteTags => this.collection();
 }
 
-const NoteTagSchema = CollectionSchema(
-  name: r'NoteTag',
-  id: -2249254562771179960,
-  properties: {
-    r'cloudDocumentId': PropertySchema(
-      id: 0,
-      name: r'cloudDocumentId',
-      type: IsarType.string,
-    ),
-    r'created': PropertySchema(
-      id: 1,
-      name: r'created',
-      type: IsarType.dateTime,
-    ),
-    r'hashCode': PropertySchema(
-      id: 2,
-      name: r'hashCode',
-      type: IsarType.long,
-    ),
-    r'modified': PropertySchema(
-      id: 3,
-      name: r'modified',
-      type: IsarType.dateTime,
-    ),
-    r'name': PropertySchema(
-      id: 4,
-      name: r'name',
-      type: IsarType.string,
-    )
-  },
-  estimateSize: _noteTagEstimateSize,
-  serialize: _noteTagSerialize,
-  deserialize: _noteTagDeserialize,
-  deserializeProp: _noteTagDeserializeProp,
-  idName: r'id',
-  indexes: {
-    r'name': IndexSchema(
-      id: 879695947855722453,
-      name: r'name',
-      unique: true,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'name',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    )
-  },
-  links: {},
-  embeddedSchemas: {},
-  getId: _noteTagGetId,
-  getLinks: _noteTagGetLinks,
-  attach: _noteTagAttach,
-  version: '3.1.0+1',
+const LocalNoteTagSchema = IsarCollectionSchema(
+  schema:
+      '{"name":"LocalNoteTag","idName":"isarId","properties":[{"name":"cloudDocumentId","type":"String"},{"name":"name","type":"String"},{"name":"modified","type":"DateTime"},{"name":"created","type":"DateTime"}]}',
+  converter: IsarObjectConverter<int, LocalNoteTag>(
+    serialize: serializeLocalNoteTag,
+    deserialize: deserializeLocalNoteTag,
+    deserializeProperty: deserializeLocalNoteTagProp,
+  ),
+  embeddedSchemas: [],
+  //hash: -2388113918666744575,
 );
 
-int _noteTagEstimateSize(
-  LocalNoteTag object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
+@isarProtected
+int serializeLocalNoteTag(IsarWriter writer, LocalNoteTag object) {
   {
     final value = object.cloudDocumentId;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+    if (value == null) {
+      IsarCore.writeNull(writer, 1);
+    } else {
+      IsarCore.writeString(writer, 1, value);
     }
   }
-  bytesCount += 3 + object.name.length * 3;
-  return bytesCount;
+  IsarCore.writeString(writer, 2, object.name);
+  IsarCore.writeLong(writer, 3, object.modified.toUtc().microsecondsSinceEpoch);
+  IsarCore.writeLong(writer, 4, object.created.toUtc().microsecondsSinceEpoch);
+  return object.isarId;
 }
 
-void _noteTagSerialize(
-  LocalNoteTag object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeString(offsets[0], object.cloudDocumentId);
-  writer.writeDateTime(offsets[1], object.created);
-  writer.writeLong(offsets[2], object.hashCode);
-  writer.writeDateTime(offsets[3], object.modified);
-  writer.writeString(offsets[4], object.name);
-}
-
-LocalNoteTag _noteTagDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
+@isarProtected
+LocalNoteTag deserializeLocalNoteTag(IsarReader reader) {
+  final int _isarId;
+  _isarId = IsarCore.readId(reader);
+  final String? _cloudDocumentId;
+  _cloudDocumentId = IsarCore.readString(reader, 1);
+  final String _name;
+  _name = IsarCore.readString(reader, 2) ?? '';
+  final DateTime _modified;
+  {
+    final value = IsarCore.readLong(reader, 3);
+    if (value == -9223372036854775808) {
+      _modified = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+    } else {
+      _modified = DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
+    }
+  }
+  final DateTime _created;
+  {
+    final value = IsarCore.readLong(reader, 4);
+    if (value == -9223372036854775808) {
+      _created = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+    } else {
+      _created = DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
+    }
+  }
   final object = LocalNoteTag(
-    cloudDocumentId: reader.readStringOrNull(offsets[0]),
-    created: reader.readDateTime(offsets[1]),
-    modified: reader.readDateTime(offsets[3]),
-    name: reader.readString(offsets[4]),
+    isarId: _isarId,
+    cloudDocumentId: _cloudDocumentId,
+    name: _name,
+    modified: _modified,
+    created: _created,
   );
-  object.id = id;
   return object;
 }
 
-P _noteTagDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
+@isarProtected
+dynamic deserializeLocalNoteTagProp(IsarReader reader, int property) {
+  switch (property) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return IsarCore.readId(reader);
     case 1:
-      return (reader.readDateTime(offset)) as P;
+      return IsarCore.readString(reader, 1);
     case 2:
-      return (reader.readLong(offset)) as P;
+      return IsarCore.readString(reader, 2) ?? '';
     case 3:
-      return (reader.readDateTime(offset)) as P;
+      {
+        final value = IsarCore.readLong(reader, 3);
+        if (value == -9223372036854775808) {
+          return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+        } else {
+          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
+        }
+      }
     case 4:
-      return (reader.readString(offset)) as P;
+      {
+        final value = IsarCore.readLong(reader, 4);
+        if (value == -9223372036854775808) {
+          return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+        } else {
+          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
+        }
+      }
     default:
-      throw IsarError('Unknown property with id $propertyId');
+      throw ArgumentError('Unknown property: $property');
   }
 }
 
-Id _noteTagGetId(LocalNoteTag object) {
-  return object.id;
+sealed class _LocalNoteTagUpdate {
+  bool call({
+    required int isarId,
+    String? cloudDocumentId,
+    String? name,
+    DateTime? modified,
+    DateTime? created,
+  });
 }
 
-List<IsarLinkBase<dynamic>> _noteTagGetLinks(LocalNoteTag object) {
-  return [];
-}
+class _LocalNoteTagUpdateImpl implements _LocalNoteTagUpdate {
+  const _LocalNoteTagUpdateImpl(this.collection);
 
-void _noteTagAttach(IsarCollection<dynamic> col, Id id, LocalNoteTag object) {
-  object.id = id;
-}
+  final IsarCollection<int, LocalNoteTag> collection;
 
-extension NoteTagByIndex on IsarCollection<LocalNoteTag> {
-  Future<LocalNoteTag?> getByName(String name) {
-    return getByIndex(r'name', [name]);
-  }
-
-  LocalNoteTag? getByNameSync(String name) {
-    return getByIndexSync(r'name', [name]);
-  }
-
-  Future<bool> deleteByName(String name) {
-    return deleteByIndex(r'name', [name]);
-  }
-
-  bool deleteByNameSync(String name) {
-    return deleteByIndexSync(r'name', [name]);
-  }
-
-  Future<List<LocalNoteTag?>> getAllByName(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return getAllByIndex(r'name', values);
-  }
-
-  List<LocalNoteTag?> getAllByNameSync(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'name', values);
-  }
-
-  Future<int> deleteAllByName(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'name', values);
-  }
-
-  int deleteAllByNameSync(List<String> nameValues) {
-    final values = nameValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'name', values);
-  }
-
-  Future<Id> putByName(LocalNoteTag object) {
-    return putByIndex(r'name', object);
-  }
-
-  Id putByNameSync(LocalNoteTag object, {bool saveLinks = true}) {
-    return putByIndexSync(r'name', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByName(List<LocalNoteTag> objects) {
-    return putAllByIndex(r'name', objects);
-  }
-
-  List<Id> putAllByNameSync(List<LocalNoteTag> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'name', objects, saveLinks: saveLinks);
-  }
-}
-
-extension NoteTagQueryWhereSort
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QWhere> {
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhere> anyId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-}
-
-extension NoteTagQueryWhere
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QWhereClause> {
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhereClause> idEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhereClause> idNotEqualTo(
-      Id id) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
-      } else {
-        return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
-      }
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhereClause> idGreaterThan(
-      Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
-      );
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
-      );
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhereClause> idBetween(
-    Id lowerId,
-    Id upperId, {
-    bool includeLower = true,
-    bool includeUpper = true,
+  @override
+  bool call({
+    required int isarId,
+    Object? cloudDocumentId = ignore,
+    Object? name = ignore,
+    Object? modified = ignore,
+    Object? created = ignore,
   }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
-    });
+    return collection.updateProperties([
+          isarId
+        ], {
+          if (cloudDocumentId != ignore) 1: cloudDocumentId as String?,
+          if (name != ignore) 2: name as String?,
+          if (modified != ignore) 3: modified as DateTime?,
+          if (created != ignore) 4: created as DateTime?,
+        }) >
+        0;
   }
+}
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhereClause> nameEqualTo(
-      String name) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'name',
-        value: [name],
-      ));
-    });
-  }
+sealed class _LocalNoteTagUpdateAll {
+  int call({
+    required List<int> isarId,
+    String? cloudDocumentId,
+    String? name,
+    DateTime? modified,
+    DateTime? created,
+  });
+}
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterWhereClause> nameNotEqualTo(
-      String name) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [],
-              upper: [name],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [name],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [name],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'name',
-              lower: [],
-              upper: [name],
-              includeUpper: false,
-            ));
-      }
+class _LocalNoteTagUpdateAllImpl implements _LocalNoteTagUpdateAll {
+  const _LocalNoteTagUpdateAllImpl(this.collection);
+
+  final IsarCollection<int, LocalNoteTag> collection;
+
+  @override
+  int call({
+    required List<int> isarId,
+    Object? cloudDocumentId = ignore,
+    Object? name = ignore,
+    Object? modified = ignore,
+    Object? created = ignore,
+  }) {
+    return collection.updateProperties(isarId, {
+      if (cloudDocumentId != ignore) 1: cloudDocumentId as String?,
+      if (name != ignore) 2: name as String?,
+      if (modified != ignore) 3: modified as DateTime?,
+      if (created != ignore) 4: created as DateTime?,
     });
   }
 }
 
-extension NoteTagQueryFilter
+extension LocalNoteTagUpdate on IsarCollection<int, LocalNoteTag> {
+  _LocalNoteTagUpdate get update => _LocalNoteTagUpdateImpl(this);
+
+  _LocalNoteTagUpdateAll get updateAll => _LocalNoteTagUpdateAllImpl(this);
+}
+
+sealed class _LocalNoteTagQueryUpdate {
+  int call({
+    String? cloudDocumentId,
+    String? name,
+    DateTime? modified,
+    DateTime? created,
+  });
+}
+
+class _LocalNoteTagQueryUpdateImpl implements _LocalNoteTagQueryUpdate {
+  const _LocalNoteTagQueryUpdateImpl(this.query, {this.limit});
+
+  final IsarQuery<LocalNoteTag> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? cloudDocumentId = ignore,
+    Object? name = ignore,
+    Object? modified = ignore,
+    Object? created = ignore,
+  }) {
+    return query.updateProperties(limit: limit, {
+      if (cloudDocumentId != ignore) 1: cloudDocumentId as String?,
+      if (name != ignore) 2: name as String?,
+      if (modified != ignore) 3: modified as DateTime?,
+      if (created != ignore) 4: created as DateTime?,
+    });
+  }
+}
+
+extension LocalNoteTagQueryUpdate on IsarQuery<LocalNoteTag> {
+  _LocalNoteTagQueryUpdate get updateFirst =>
+      _LocalNoteTagQueryUpdateImpl(this, limit: 1);
+
+  _LocalNoteTagQueryUpdate get updateAll => _LocalNoteTagQueryUpdateImpl(this);
+}
+
+extension LocalNoteTagQueryFilter
     on QueryBuilder<LocalNoteTag, LocalNoteTag, QFilterCondition> {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isarIdEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      isarIdGreaterThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      isarIdGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      isarIdLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      isarIdLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isarIdBetween(
+    int lower,
+    int upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 0,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'cloudDocumentId',
-      ));
+      return query.addFilterCondition(const IsNullCondition(property: 1));
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'cloudDocumentId',
-      ));
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 1));
     });
   }
 
@@ -355,43 +327,77 @@ extension NoteTagQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'cloudDocumentId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdGreaterThan(
     String? value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'cloudDocumentId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      cloudDocumentIdGreaterThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdLessThan(
     String? value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'cloudDocumentId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      cloudDocumentIdLessThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -399,19 +405,17 @@ extension NoteTagQueryFilter
       cloudDocumentIdBetween(
     String? lower,
     String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'cloudDocumentId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 1,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -421,11 +425,13 @@ extension NoteTagQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'cloudDocumentId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -435,274 +441,63 @@ extension NoteTagQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'cloudDocumentId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'cloudDocumentId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'cloudDocumentId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 1,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'cloudDocumentId',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 1,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       cloudDocumentIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'cloudDocumentId',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdEqualTo(DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'created',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'created',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'created',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'created',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      hashCodeEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      hashCodeGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      hashCodeLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'hashCode',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      hashCodeBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'hashCode',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> idEqualTo(
-      Id value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedEqualTo(DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'modified',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'modified',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'modified',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'modified',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 1,
+          value: '',
+        ),
+      );
     });
   }
 
@@ -711,61 +506,93 @@ extension NoteTagQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       nameGreaterThan(
     String value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      nameGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameLessThan(
     String value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      nameLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'name',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 2,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -775,11 +602,13 @@ extension NoteTagQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -788,11 +617,13 @@ extension NoteTagQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -800,11 +631,13 @@ extension NoteTagQueryFilter
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -812,255 +645,494 @@ extension NoteTagQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'name',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 2,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 2,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
       nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 2,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      modifiedEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      modifiedGreaterThan(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      modifiedGreaterThanOrEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      modifiedLessThan(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      modifiedLessThanOrEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      modifiedBetween(
+    DateTime lower,
+    DateTime upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 3,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      createdEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      createdGreaterThan(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      createdGreaterThanOrEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      createdLessThan(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      createdLessThanOrEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      createdBetween(
+    DateTime lower,
+    DateTime upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 4,
+          lower: lower,
+          upper: upper,
+        ),
+      );
     });
   }
 }
 
-extension NoteTagQueryObject
+extension LocalNoteTagQueryObject
     on QueryBuilder<LocalNoteTag, LocalNoteTag, QFilterCondition> {}
 
-extension NoteTagQueryLinks
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QFilterCondition> {}
-
-extension NoteTagQuerySortBy
+extension LocalNoteTagQuerySortBy
     on QueryBuilder<LocalNoteTag, LocalNoteTag, QSortBy> {
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      sortByCloudDocumentId() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByIsarId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cloudDocumentId', Sort.asc);
+      return query.addSortBy(0);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByCloudDocumentId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        1,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      sortByCloudDocumentIdDesc() {
+      sortByCloudDocumentIdDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cloudDocumentId', Sort.desc);
+      return query.addSortBy(
+        1,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByCreated() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByName(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'created', Sort.asc);
+      return query.addSortBy(
+        2,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByCreatedDesc() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByNameDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'created', Sort.desc);
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByHashCode() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByHashCodeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.desc);
+      return query.addSortBy(
+        2,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByModified() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'modified', Sort.asc);
+      return query.addSortBy(3);
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByModifiedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'modified', Sort.desc);
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByName() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByCreated() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'name', Sort.asc);
+      return query.addSortBy(4);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByNameDesc() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByCreatedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'name', Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc);
     });
   }
 }
 
-extension NoteTagQuerySortThenBy
+extension LocalNoteTagQuerySortThenBy
     on QueryBuilder<LocalNoteTag, LocalNoteTag, QSortThenBy> {
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      thenByCloudDocumentId() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cloudDocumentId', Sort.asc);
+      return query.addSortBy(0);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByCloudDocumentId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      thenByCloudDocumentIdDesc() {
+      thenByCloudDocumentIdDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'cloudDocumentId', Sort.desc);
+      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByCreated() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByName(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'created', Sort.asc);
+      return query.addSortBy(2, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByCreatedDesc() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByNameDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'created', Sort.desc);
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByHashCode() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByHashCodeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hashCode', Sort.desc);
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenById() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.desc);
+      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByModified() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'modified', Sort.asc);
+      return query.addSortBy(3);
     });
   }
 
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByModifiedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'modified', Sort.desc);
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByName() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByCreated() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'name', Sort.asc);
+      return query.addSortBy(4);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByNameDesc() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByCreatedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'name', Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc);
     });
   }
 }
 
-extension NoteTagQueryWhereDistinct
+extension LocalNoteTagQueryWhereDistinct
     on QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> {
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> distinctByCloudDocumentId(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct>
+      distinctByCloudDocumentId({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(1, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'cloudDocumentId',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(2, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> distinctByCreated() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct>
+      distinctByModified() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'created');
+      return query.addDistinctBy(3);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> distinctByHashCode() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct> distinctByCreated() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'hashCode');
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> distinctByModified() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'modified');
-    });
-  }
-
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> distinctByName(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+      return query.addDistinctBy(4);
     });
   }
 }
 
-extension NoteTagQueryProperty
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QQueryProperty> {
-  QueryBuilder<LocalNoteTag, int, QQueryOperations> idProperty() {
+extension LocalNoteTagQueryProperty1
+    on QueryBuilder<LocalNoteTag, LocalNoteTag, QProperty> {
+  QueryBuilder<LocalNoteTag, int, QAfterProperty> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
+      return query.addProperty(0);
     });
   }
 
-  QueryBuilder<LocalNoteTag, String?, QQueryOperations>
+  QueryBuilder<LocalNoteTag, String?, QAfterProperty>
       cloudDocumentIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'cloudDocumentId');
+      return query.addProperty(1);
     });
   }
 
-  QueryBuilder<LocalNoteTag, DateTime, QQueryOperations> createdProperty() {
+  QueryBuilder<LocalNoteTag, String, QAfterProperty> nameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'created');
+      return query.addProperty(2);
     });
   }
 
-  QueryBuilder<LocalNoteTag, int, QQueryOperations> hashCodeProperty() {
+  QueryBuilder<LocalNoteTag, DateTime, QAfterProperty> modifiedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'hashCode');
+      return query.addProperty(3);
     });
   }
 
-  QueryBuilder<LocalNoteTag, DateTime, QQueryOperations> modifiedProperty() {
+  QueryBuilder<LocalNoteTag, DateTime, QAfterProperty> createdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'modified');
+      return query.addProperty(4);
+    });
+  }
+}
+
+extension LocalNoteTagQueryProperty2<R>
+    on QueryBuilder<LocalNoteTag, R, QAfterProperty> {
+  QueryBuilder<LocalNoteTag, (R, int), QAfterProperty> isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
     });
   }
 
-  QueryBuilder<LocalNoteTag, String, QQueryOperations> nameProperty() {
+  QueryBuilder<LocalNoteTag, (R, String?), QAfterProperty>
+      cloudDocumentIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'name');
+      return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R, String), QAfterProperty> nameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R, DateTime), QAfterProperty> modifiedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R, DateTime), QAfterProperty> createdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
+    });
+  }
+}
+
+extension LocalNoteTagQueryProperty3<R1, R2>
+    on QueryBuilder<LocalNoteTag, (R1, R2), QAfterProperty> {
+  QueryBuilder<LocalNoteTag, (R1, R2, int), QOperations> isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R1, R2, String?), QOperations>
+      cloudDocumentIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R1, R2, String), QOperations> nameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R1, R2, DateTime), QOperations>
+      modifiedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R1, R2, DateTime), QOperations>
+      createdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
     });
   }
 }

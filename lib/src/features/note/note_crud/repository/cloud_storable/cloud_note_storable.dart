@@ -3,28 +3,22 @@ import 'package:thoughtbook/src/features/authentication/repository/auth_service.
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storable.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storable_constants.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 
 //TODO: Handle exceptions due to network errors/timeouts
 class CloudNoteStorable implements CloudStorable<CloudNote> {
-  static final _shared = CloudNoteStorable._sharedInstance();
-
-  CloudNoteStorable._sharedInstance();
-
-  factory CloudNoteStorable() => _shared;
-
   final FirebaseFirestore _firestoreInstance = FirebaseFirestore.instance;
 
   String get _userId => AuthService.firebase().currentUser!.id;
 
   @override
-  CollectionReference<Map<String, dynamic>> get entityCollection =>
+  CollectionReference<Map<String, dynamic>> get storableCollection =>
       _firestoreInstance.collection(getFirestoreNotesCollectionPath(_userId));
 
   @override
   Future<void> deleteItem({required String cloudDocumentId}) async {
     try {
-      await entityCollection.doc(cloudDocumentId).delete();
+      await storableCollection.doc(cloudDocumentId).delete();
     } catch (e) {
       throw CouldNotDeleteNoteException();
     }
@@ -42,7 +36,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
   }) async {
     try {
       final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
-      await entityCollection.doc(cloudDocumentId).update(
+      await storableCollection.doc(cloudDocumentId).update(
         {
           if (title != null) titleFieldName: title,
           if (content != null) contentFieldName: content,
@@ -62,7 +56,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
   /// collection belonging to the logged in user
   @override
   Stream<Iterable<CloudNote>> get allItems {
-    final allNotes = entityCollection
+    final allNotes = storableCollection
         .where(
           ownerUserIdFieldName,
           isEqualTo: _userId,
@@ -79,7 +73,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
 
   @override
   Future<CloudNote> getItem({required String cloudDocumentId}) async {
-    final note = await entityCollection.doc(cloudDocumentId).get();
+    final note = await storableCollection.doc(cloudDocumentId).get();
     return CloudNote(
       documentId: note.id,
       ownerUserId: note.data()?[ownerUserIdFieldName] as String,
@@ -95,7 +89,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
   @override
   Future<CloudNote> createItem() async {
     final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
-    final document = await entityCollection.add(
+    final document = await storableCollection.add(
       {
         ownerUserIdFieldName: _userId,
         titleFieldName: '',

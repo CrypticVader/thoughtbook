@@ -11,18 +11,19 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_even
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storage.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/synchronizer.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_keys.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
-  ValueStream<List<LocalNote>> get allNotes => LocalStorage.note.allItemStream;
+  ValueStream<List<LocalNote>> get allNotes => LocalStore.note.allItemStream;
 
   ValueStream<List<LocalNoteTag>> get allNoteTags =>
-      LocalStorage.noteTag.allItemStream;
+      LocalStore.noteTag.allItemStream;
 
   AuthUser? get user => AuthService.firebase().currentUser;
 
@@ -36,8 +37,13 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         )) {
     // Initialize
     on<NoteInitializeEvent>(
-      (event, emit) {
+      (event, emit) async {
         if (user == null) {
+          await LocalStore.open(
+            // noteChange: false,
+            // noteTagChange: false,
+          );
+          log('Isar opened in NoteBloc, no user');
           emit(
             NoteInitializedState(
               isLoading: false,
@@ -49,6 +55,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             ),
           );
         } else {
+          CloudStore.open();
+          await LocalStore.open();
+          log('Isar opened in NoteBloc, user logged in');
           emit(
             NoteInitializedState(
               isLoading: false,
@@ -63,6 +72,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           // Start local to cloud sync service
           unawaited(Synchronizer.note.startSync());
         }
+        log('NoteBloc initialized');
       },
     );
 
@@ -70,7 +80,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.notes) {
-          await LocalStorage.note.deleteItem(id: note.isarId);
+          await LocalStore.note.deleteItem(id: note.isarId);
         }
         emit(
           NoteInitializedState(
@@ -169,7 +179,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // Select all notes
     on<NoteEventSelectAllNotes>(
       (event, emit) async {
-        final List<LocalNote> notes = await LocalStorage.note.getAllItems;
+        final List<LocalNote> notes = await LocalStore.note.getAllItems;
         emit(
           NoteInitializedState(
             isLoading: false,
@@ -189,7 +199,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         final currentColor = event.note.color;
         final newColor = event.color;
         if (newColor != currentColor) {
-          await LocalStorage.note.updateItem(
+          await LocalStore.note.updateItem(
             id: event.note.isarId,
             title: event.note.title,
             content: event.note.content,
@@ -282,8 +292,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteUndoDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.deletedNotes) {
-          final newNote = await LocalStorage.note.createItem();
-          await LocalStorage.note.updateItem(
+          final newNote = await LocalStore.note.createItem();
+          await LocalStore.note.updateItem(
             id: newNote.isarId,
             title: note.title,
             content: note.content,
@@ -324,14 +334,14 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             ),
           );
         } else {
-          final tag = await LocalStorage.noteTag.createItem();
+          final tag = await LocalStore.noteTag.createItem();
           try {
-            await LocalStorage.noteTag.updateItem(
-              id: tag.id,
+            await LocalStore.noteTag.updateItem(
+              id: tag.isarId,
               name: event.name,
             );
           } on DuplicateNoteTagException {
-            await LocalStorage.noteTag.deleteItem(id: tag.id);
+            await LocalStore.noteTag.deleteItem(id: tag.isarId);
             emit(
               NoteInitializedState(
                 isLoading: false,
@@ -378,8 +388,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           );
         } else {
           try {
-            await LocalStorage.noteTag.updateItem(
-              id: event.tag.id,
+            await LocalStore.noteTag.updateItem(
+              id: event.tag.isarId,
               name: event.newName,
             );
           } on CouldNotFindNoteTagException {
@@ -427,7 +437,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteDeleteTagEvent>(
       (event, emit) async {
         try {
-          await LocalStorage.noteTag.deleteItem(id: event.tag.id);
+          await LocalStore.noteTag.deleteItem(id: event.tag.isarId);
         } on CouldNotFindNoteTagException {
           emit(
             NoteInitializedState(

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:animations/animations.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -98,13 +96,12 @@ class _NoteEditorViewState extends State<NoteEditorView> {
 
   Future<void> _updateNoteColor(LocalNote note) async {
     final currentColor = (note.color != null) ? Color(note.color!) : null;
+    final editorBloc = context.read<NoteEditorBloc>();
     final newColor = await showColorPickerModalBottomSheet(
       context: context,
       currentColor: currentColor,
     );
-    context
-        .read<NoteEditorBloc>()
-        .add(NoteEditorUpdateColorEvent(newColor: newColor));
+    editorBloc.add(NoteEditorUpdateColorEvent(newColor: newColor));
   }
 
   @override
@@ -163,8 +160,6 @@ class _NoteEditorViewState extends State<NoteEditorView> {
             child: CircularProgressIndicator(),
           );
         } else if (state is NoteEditorInitializedState) {
-          log('Editor bloc initialized');
-
           return StreamBuilder<LocalNote>(
             stream: state.noteStream,
             builder: (context, snapshot) {

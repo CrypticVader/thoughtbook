@@ -7,68 +7,92 @@ part 'note_change.g.dart';
 @Collection()
 class NoteChange {
   /// Required by Isar, unused field
-  Id id;
+  @id
+  final int isarId;
 
   /// Represents the type of change that was made to the note
-  @enumerated
-  final NoteChangeType type;
+  final SyncableChangeType type;
 
-  /// Represents the time when the change was made locally
+  /// The [ChangedNote] that was changed
+  final ChangedNote changedNote;
+
+  /// Represents the time when this change was made locally
   @Index()
+  @utc
   final DateTime timestamp;
 
-  /// Field will be null if change was a delete operation
-  @Index()
-  final int noteIsarId;
+  NoteChange({
+    required this.isarId,
+    required this.type,
+    required this.timestamp,
+    required this.changedNote,
+  });
+}
 
-  /// In the case whether the note was deleted locally, this field will be accessed to delete from the cloud
-  /// Field will be null if change was a create operation
+@embedded
+class ChangedNote {
+  /// The ID of the note in the local database.
+  @id
+  final int isarId;
+
+  /// The ID of the corresponding document in the cloud database.
   final String? cloudDocumentId;
 
   /// The title of the note.
-  String title;
+  final String title;
 
   /// The content of the note.
-  String content;
+  final String content;
 
-  /// The list of id of tags associated with this note
-  List<int> tags;
+  /// The list of id of tags  added to this note.
+  final List<int> tags;
 
   /// The color of the note.
-  int? color;
+  final int? color;
 
-  /// The date and time when the note was created.
-  @Index()
-  DateTime created;
+  /// Whether the note is synced with the cloud database.
+  final bool isSyncedWithCloud;
 
-  /// The date and time when the note was last modified.
-  @Index()
-  DateTime modified;
+  /// The date and time when the note was created, in UTC.
+  @utc
+  final DateTime created;
 
-  NoteChange.fromLocalNote({
-    required LocalNote note,
-    required this.type,
-    required this.timestamp,
-  })  : id = Isar.autoIncrement,
-        noteIsarId = note.isarId,
-        title = note.title,
-        content = note.content,
-        tags = note.tags,
-        color = note.color,
-        created = note.created,
-        modified = note.modified,
-        cloudDocumentId = note.cloudDocumentId;
+  /// The date and time when the note was last modified, in UTC.
+  @utc
+  final DateTime modified;
 
-  NoteChange({
-    required this.type,
-    required this.noteIsarId,
+  ChangedNote({
+    required this.isarId,
     required this.cloudDocumentId,
-    required this.timestamp,
     required this.title,
     required this.content,
     required this.tags,
     required this.color,
-    required this.modified,
     required this.created,
-  }) : id = Isar.autoIncrement;
+    required this.modified,
+    required this.isSyncedWithCloud,
+  });
+
+  ChangedNote.fromLocalNote(LocalNote note)
+      :
+        isarId = note.isarId,
+        content = note.content,
+        title = note.title,
+        color = note.color,
+        tags = note.tags,
+        created = note.created,
+        modified = note.modified,
+        isSyncedWithCloud = note.isSyncedWithCloud,
+        cloudDocumentId = note.cloudDocumentId;
+
+  @override
+  bool operator ==(covariant ChangedNote other) => isarId == other.isarId;
+
+  @override
+  int get hashCode => isarId.hashCode;
+
+  @override
+  String toString() {
+    return 'ChangedNote{localId: $isarId, cloudDocumentId: $cloudDocumentId, title: $title, color: $color, content: $content, isSyncedWithCloud: $isSyncedWithCloud, created: $created, modified: $modified}';
+  }
 }

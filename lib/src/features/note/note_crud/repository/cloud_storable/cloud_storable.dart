@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 abstract class CloudStorable<T> {
-  CollectionReference<Map<String, dynamic>> get entityCollection;
+  CollectionReference<Map<String, dynamic>> get storableCollection;
 
   Stream<Iterable<T>> get allItems;
 

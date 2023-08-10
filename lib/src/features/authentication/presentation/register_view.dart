@@ -120,250 +120,265 @@ class _RegisterViewState extends State<RegisterView>
               padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
               child: KeyboardVisibilityBuilder(
                 builder: (BuildContext context, bool isKeyboardVisible) {
-                  return Column(
-                    children: [
-                      AnimatedContainer(
-                        curve: Curves.ease,
-                        duration: const Duration(milliseconds: 250),
-                        height: isKeyboardVisible
-                            ? MediaQuery.of(context).size.height * 0.05
-                            : MediaQuery.of(context).size.height * 0.1,
-                      ),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.ease,
-                        child: Column(
-                          children: isKeyboardVisible
-                              ? [
-                                  const SizedBox(
-                                    height: 0,
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      child: Column(
+                        children: [
+                          AnimatedContainer(
+                            curve: Curves.ease,
+                            duration: const Duration(milliseconds: 250),
+                            height: isKeyboardVisible
+                                ? MediaQuery.of(context).size.height * 0.05
+                                : MediaQuery.of(context).size.height * 0.1,
+                          ),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.ease,
+                            child: Column(
+                              children: isKeyboardVisible
+                                  ? [
+                                      const SizedBox(
+                                        height: 0,
+                                      ),
+                                    ]
+                                  : [
+                                      Text(
+                                        context.loc.welcome_to,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 28,
+                                          color: context
+                                              .theme.colorScheme.onBackground,
+                                        ),
+                                      ),
+                                      Text(
+                                        context.loc.app_title,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 32,
+                                          color:
+                                              context.theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.1,
+                                      ),
+                                    ],
+                            ),
+                          ),
+                          Text(
+                            context.loc.register_view_prompt,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _email,
+                                  textInputAction: TextInputAction.next,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  keyboardType: TextInputType.emailAddress,
+                                  autofocus: true,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.all(20),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(32),
+                                      borderSide: BorderSide(
+                                        width: 2,
+                                        color:
+                                            context.theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(32),
+                                        topRight: Radius.circular(32),
+                                        bottomLeft: Radius.circular(4),
+                                        bottomRight: Radius.circular(4),
+                                      ),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    fillColor: context
+                                        .theme.colorScheme.primaryContainer
+                                        .withAlpha(200),
+                                    filled: true,
+                                    prefixIconColor:
+                                        context.theme.colorScheme.primary,
+                                    prefixIcon: const Icon(
+                                      Icons.email_rounded,
+                                    ),
+                                    hintText: context
+                                        .loc.email_text_field_placeholder,
                                   ),
-                                ]
-                              : [
-                                  Text(
-                                    context.loc.welcome_to,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 28,
-                                      color: context
-                                          .theme.colorScheme.onBackground,
+                                ),
+                                const SizedBox(
+                                  height: 4,
+                                ),
+                                TextField(
+                                  controller: _password,
+                                  textInputAction: TextInputAction.next,
+                                  obscureText: true,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.all(20),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(32),
+                                      borderSide: BorderSide(
+                                        width: 2,
+                                        color:
+                                            context.theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(4),
+                                        topRight: Radius.circular(4),
+                                        bottomLeft: Radius.circular(4),
+                                        bottomRight: Radius.circular(4),
+                                      ),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    fillColor: context
+                                        .theme.colorScheme.primaryContainer
+                                        .withAlpha(200),
+                                    filled: true,
+                                    hintText: context
+                                        .loc.password_text_field_placeholder,
+                                    prefixIconColor:
+                                        context.theme.colorScheme.primary,
+                                    prefixIcon: const Icon(
+                                      Icons.password_rounded,
                                     ),
                                   ),
-                                  Text(
-                                    context.loc.app_title,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 32,
-                                      color: context.theme.colorScheme.primary,
+                                ),
+                                const SizedBox(
+                                  height: 4,
+                                ),
+                                TextField(
+                                  controller: _passwordReEntered,
+                                  obscureText: true,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  textInputAction: TextInputAction.go,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: _passwordMatches
+                                        ? context
+                                            .theme.colorScheme.primaryContainer
+                                            .withAlpha(200)
+                                        : context
+                                            .theme.colorScheme.errorContainer,
+                                    errorText: _passwordMatches
+                                        ? null
+                                        : context.loc
+                                            .register_error_passwords_do_not_match,
+                                    contentPadding: const EdgeInsets.all(20),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(32),
+                                      borderSide: BorderSide(
+                                        width: 2,
+                                        color:
+                                            context.theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(4),
+                                        topRight: Radius.circular(4),
+                                        bottomLeft: Radius.circular(32),
+                                        bottomRight: Radius.circular(32),
+                                      ),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(32),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        width: 2,
+                                        color: context.theme.colorScheme.error,
+                                      ),
+                                    ),
+                                    hintText: context.loc
+                                        .reenter_password_text_field_placeholder,
+                                    prefixIconColor: _passwordMatches
+                                        ? context.theme.colorScheme.primary
+                                        : context.theme.colorScheme.error,
+                                    prefixIcon: const Icon(
+                                      Icons.password_rounded,
                                     ),
                                   ),
-                                  SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.1,
-                                  ),
-                                ],
-                        ),
-                      ),
-                      Text(
-                        context.loc.register_view_prompt,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(
-                        height: 12,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: _email,
-                              textInputAction: TextInputAction.next,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              keyboardType: TextInputType.emailAddress,
-                              autofocus: true,
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.all(20),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                  borderSide: BorderSide(
-                                    width: 2,
-                                    color: context.theme.colorScheme.primary,
-                                  ),
                                 ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(32),
-                                    topRight: Radius.circular(32),
-                                    bottomLeft: Radius.circular(4),
-                                    bottomRight: Radius.circular(4),
-                                  ),
-                                  borderSide: BorderSide.none,
-                                ),
-                                fillColor: context
-                                    .theme.colorScheme.primaryContainer
-                                    .withAlpha(200),
-                                filled: true,
-                                prefixIconColor:
-                                    context.theme.colorScheme.primary,
-                                prefixIcon: const Icon(
-                                  Icons.email_rounded,
-                                ),
-                                hintText:
-                                    context.loc.email_text_field_placeholder,
-                              ),
+                              ],
                             ),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            TextField(
-                              controller: _password,
-                              textInputAction: TextInputAction.next,
-                              obscureText: true,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.all(20),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                  borderSide: BorderSide(
-                                    width: 2,
-                                    color: context.theme.colorScheme.primary,
-                                  ),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(4),
-                                    topRight: Radius.circular(4),
-                                    bottomLeft: Radius.circular(4),
-                                    bottomRight: Radius.circular(4),
-                                  ),
-                                  borderSide: BorderSide.none,
-                                ),
-                                fillColor: context
-                                    .theme.colorScheme.primaryContainer
-                                    .withAlpha(200),
-                                filled: true,
-                                hintText:
-                                    context.loc.password_text_field_placeholder,
-                                prefixIconColor:
-                                    context.theme.colorScheme.primary,
-                                prefixIcon: const Icon(
-                                  Icons.password_rounded,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            TextField(
-                              controller: _passwordReEntered,
-                              obscureText: true,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              textInputAction: TextInputAction.go,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: _passwordMatches
-                                    ? context.theme.colorScheme.primaryContainer
-                                        .withAlpha(200)
-                                    : context.theme.colorScheme.errorContainer,
-                                errorText: _passwordMatches
-                                    ? null
-                                    : context.loc
-                                        .register_error_passwords_do_not_match,
-                                contentPadding: const EdgeInsets.all(20),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                  borderSide: BorderSide(
-                                    width: 2,
-                                    color: context.theme.colorScheme.primary,
-                                  ),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(4),
-                                    topRight: Radius.circular(4),
-                                    bottomLeft: Radius.circular(32),
-                                    bottomRight: Radius.circular(32),
-                                  ),
-                                  borderSide: BorderSide.none,
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(
-                                    width: 2,
-                                    color: context.theme.colorScheme.error,
-                                  ),
-                                ),
-                                hintText: context.loc
-                                    .reenter_password_text_field_placeholder,
-                                prefixIconColor: _passwordMatches
-                                    ? context.theme.colorScheme.primary
-                                    : context.theme.colorScheme.error,
-                                prefixIcon: const Icon(
-                                  Icons.password_rounded,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 24,
-                      ),
-                      FilledButton.icon(
-                        onPressed: () async {
-                          final email = _email.text;
-                          final password = _password.text;
-                          if (_isPasswordMatching()) {
-                            context.read<AuthBloc>().add(
-                                  AuthEventRegister(
-                                    email,
-                                    password,
-                                  ),
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ),
+                          FilledButton.icon(
+                            onPressed: () async {
+                              final email = _email.text;
+                              final password = _password.text;
+                              if (_isPasswordMatching()) {
+                                context.read<AuthBloc>().add(
+                                      AuthEventRegister(
+                                        email,
+                                        password,
+                                      ),
+                                    );
+                              } else {
+                                await showErrorDialog(
+                                  context,
+                                  context.loc
+                                      .register_error_passwords_do_not_match,
                                 );
-                          } else {
-                            await showErrorDialog(
-                              context,
-                              context.loc.register_error_passwords_do_not_match,
-                            );
-                          }
-                        },
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(40),
-                        ),
-                        label: Text(
-                          context.loc.register,
-                          style: const TextStyle(fontSize: 15),
-                        ),
-                        icon: const Icon(Icons.app_registration_rounded),
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(40),
+                            ),
+                            label: Text(
+                              context.loc.register,
+                              style: const TextStyle(fontSize: 15),
+                            ),
+                            icon: const Icon(Icons.app_registration_rounded),
+                          ),
+                          AnimatedContainer(
+                            curve: Curves.ease,
+                            duration: const Duration(milliseconds: 250),
+                            height: isKeyboardVisible
+                                ? MediaQuery.of(context).size.height * 0.01
+                                : MediaQuery.of(context).size.height * 0.25,
+                          ),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: context.theme.colorScheme.surface
+                                  .withOpacity(0.5),
+                            ),
+                            onPressed: () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const AuthEventLogOut());
+                            },
+                            label: Text(
+                              context.loc.register_view_already_registered,
+                            ),
+                            icon: const Icon(Icons.switch_account_rounded),
+                          ),
+                        ],
                       ),
-                      AnimatedContainer(
-                        curve: Curves.ease,
-                        duration: const Duration(milliseconds: 250),
-                        height: isKeyboardVisible
-                            ? MediaQuery.of(context).size.height * 0.01
-                            : MediaQuery.of(context).size.height * 0.25,
-                      ),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: context.theme.colorScheme.surface
-                              .withOpacity(0.5),
-                        ),
-                        onPressed: () {
-                          context.read<AuthBloc>().add(const AuthEventLogOut());
-                        },
-                        label: Text(
-                          context.loc.register_view_already_registered,
-                        ),
-                        icon: const Icon(Icons.switch_account_rounded),
-                      ),
-                    ],
+                    ),
                   );
                 },
               ),

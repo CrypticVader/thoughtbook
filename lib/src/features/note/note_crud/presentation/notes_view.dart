@@ -32,10 +32,9 @@ class NotesView extends StatefulWidget {
 
 class _NotesViewState extends State<NotesView> {
   Future<void> _onLogout(BuildContext context) async {
-    final bloc = context.read<AuthBloc>();
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout) {
-      bloc.add(const AuthEventLogOut());
+      context.read<AuthBloc>().add(const AuthEventLogOut());
     }
   }
 
@@ -59,8 +58,8 @@ class _NotesViewState extends State<NotesView> {
       title: Text(
         context.loc.app_title,
         style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
+          fontSize: 22,
+          fontWeight: FontWeight.w500,
           color: Theme.of(context).colorScheme.onBackground,
         ),
       ),
@@ -121,11 +120,12 @@ class _NotesViewState extends State<NotesView> {
                 final note = state.selectedNotes.first;
                 final currentColor =
                     (note.color != null) ? Color(note.color!) : null;
+                final noteBloc = context.read<NoteBloc>();
                 final color = await showColorPickerModalBottomSheet(
                   context: context,
                   currentColor: currentColor,
                 );
-                context.read<NoteBloc>().add(
+                noteBloc.add(
                       NoteUpdateColorEvent(
                         note: note,
                         color: (color != null) ? color.value : null,
@@ -322,12 +322,13 @@ class _NotesViewState extends State<NotesView> {
               ),
               margin: const EdgeInsets.all(8.0),
             );
+            final noteBloc = context.read<NoteBloc>();
             await ScaffoldMessenger.of(context)
                 .showSnackBar(snackBar)
                 .closed
                 .then((value) => confirmDelete);
             if (!confirmDelete) {
-              context.read<NoteBloc>().add(
+              noteBloc.add(
                   NoteUndoDeleteEvent(deletedNotes: state.deletedNotes ?? []));
             }
           }
@@ -366,9 +367,10 @@ class _NotesViewState extends State<NotesView> {
                       tappable: false,
                       transitionDuration: const Duration(milliseconds: 320),
                       transitionType: ContainerTransitionType.fadeThrough,
-                      // Using this context resultes in scope error when accessing NoteBloc
+                      // Using the openBuilder's context results in scope error
+                      // when accessing the NoteBloc
                       openBuilder: (_, __) => BlocProvider<NoteEditorBloc>(
-                        create: (BuildContext context) => NoteEditorBloc(),
+                        create: (context) => NoteEditorBloc(),
                         child: NoteEditorView(
                           note: null,
                           shouldAutoFocusContent: true,
@@ -377,7 +379,7 @@ class _NotesViewState extends State<NotesView> {
                               .add(NoteDeleteEvent(notes: [note])),
                         ),
                       ),
-                      closedElevation: 6.0,
+                      closedElevation: 8.0,
                       closedShape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(16.0),
@@ -418,9 +420,9 @@ class _NotesViewState extends State<NotesView> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(32),
                             ),
-                            onTap: () {
+                            onTap: () async {
                               Navigator.of(context).pop();
-                              Navigator.of(context).push(
+                              await Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (context) => const SettingsView(),
                                 ),
@@ -560,7 +562,7 @@ class _NotesViewState extends State<NotesView> {
                           Container(
                             padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(32),
+                              borderRadius: BorderRadius.circular(30),
                               color: Theme.of(context)
                                   .colorScheme
                                   .primaryContainer
@@ -618,7 +620,7 @@ class _NotesViewState extends State<NotesView> {
                                     style: IconButton.styleFrom(
                                       backgroundColor: Theme.of(context)
                                           .colorScheme
-                                          .primaryContainer,
+                                          .inversePrimary.withAlpha(200),
                                     ),
                                   ),
                                   horizontalTitleGap: 8.0,
@@ -754,7 +756,7 @@ class _NotesViewState extends State<NotesView> {
                                                   const EdgeInsets.all(8.0),
                                               decoration: BoxDecoration(
                                                 borderRadius:
-                                                    BorderRadius.circular(32),
+                                                    BorderRadius.circular(24),
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .background

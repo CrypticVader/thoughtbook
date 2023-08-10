@@ -78,122 +78,129 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
         ),
         body: Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
-          child: Column(
-            children: [
-              Card(
-                elevation: 0,
-                color: context.theme.colorScheme.tertiaryContainer,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(32),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Row(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                children: [
+                  Card(
+                    elevation: 0,
+                    color: context.theme.colorScheme.tertiaryContainer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
                         children: [
-                          Icon(
-                            Icons.info_rounded,
-                            size: 26,
-                            color:
-                                context.theme.colorScheme.onTertiaryContainer,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_rounded,
+                                size: 26,
+                                color: context
+                                    .theme.colorScheme.onTertiaryContainer,
+                              ),
+                              const SizedBox(
+                                width: 6,
+                              ),
+                              Text(
+                                'Info',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: context
+                                      .theme.colorScheme.onTertiaryContainer,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(
-                            width: 6,
+                            width: 20,
                           ),
                           Text(
-                            'Info',
+                            context.loc.forgot_password_view_prompt,
                             style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
                               color:
                                   context.theme.colorScheme.onTertiaryContainer,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      Text(
-                        context.loc.forgot_password_view_prompt,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: context.theme.colorScheme.onTertiaryContainer,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Column(
-                children: [
-                  TextField(
-                    keyboardType: TextInputType.emailAddress,
-                    autocorrect: false,
-                    autofocus: true,
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.all(20),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(32),
-                        borderSide: BorderSide(
-                          width: 1.5,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(32),
-                        borderSide: BorderSide.none,
-                      ),
-                      fillColor: Theme.of(context)
-                          .colorScheme
-                          .primaryContainer
-                          .withAlpha(200),
-                      filled: true,
-                      prefixIconColor: Theme.of(context).colorScheme.primary,
-                      prefixIcon: const Icon(
-                        Icons.email_rounded,
-                      ),
-                      hintText: context.loc.email_text_field_placeholder,
                     ),
                   ),
                   const SizedBox(
-                    height: 16,
+                    height: 20,
                   ),
-                  FilledButton.icon(
+                  Column(
+                    children: [
+                      TextField(
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
+                        autofocus: true,
+                        controller: _controller,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.all(20),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(32),
+                            borderSide: BorderSide(
+                              width: 1.5,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(32),
+                            borderSide: BorderSide.none,
+                          ),
+                          fillColor: Theme.of(context)
+                              .colorScheme
+                              .primaryContainer
+                              .withAlpha(200),
+                          filled: true,
+                          prefixIconColor:
+                              Theme.of(context).colorScheme.primary,
+                          prefixIcon: const Icon(
+                            Icons.email_rounded,
+                          ),
+                          hintText: context.loc.email_text_field_placeholder,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      FilledButton.icon(
+                        onPressed: () {
+                          final email = _controller.text;
+                          context
+                              .read<AuthBloc>()
+                              .add(AuthEventForgotPassword(email: email));
+                        },
+                        label: Text(
+                          context.loc.forgot_password_view_send_me_link,
+                        ),
+                        icon: const Icon(Icons.link_rounded),
+                      ),
+                    ],
+                  ),
+                  const Spacer(
+                    flex: 1,
+                  ),
+                  FilledButton.tonalIcon(
                     onPressed: () {
-                      final email = _controller.text;
-                      context
-                          .read<AuthBloc>()
-                          .add(AuthEventForgotPassword(email: email));
+                      context.read<AuthBloc>().add(const AuthEventLogOut());
                     },
                     label: Text(
-                      context.loc.forgot_password_view_send_me_link,
+                      context.loc.forgot_password_view_back_to_login,
                     ),
-                    icon: const Icon(Icons.link_rounded),
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(40),
+                    ),
                   ),
                 ],
               ),
-              const Spacer(
-                flex: 1,
-              ),
-              FilledButton.tonalIcon(
-                onPressed: () {
-                  context.read<AuthBloc>().add(const AuthEventLogOut());
-                },
-                label: Text(
-                  context.loc.forgot_password_view_back_to_login,
-                ),
-                icon: const Icon(Icons.arrow_back_rounded),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(40),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -47,12 +47,12 @@ class ThoughtbookApp extends StatefulWidget {
 
 class _ThoughtbookAppState extends State<ThoughtbookApp> {
   static final _defaultLightColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.deepOrangeAccent,
+    seedColor: Colors.pinkAccent,
     brightness: Brightness.light,
   );
 
   static final _defaultDarkColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.deepOrangeAccent,
+    seedColor: Colors.pinkAccent,
     brightness: Brightness.dark,
   );
 
@@ -72,8 +72,7 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
                     : 'Montserrat',
             fontFamilyFallback: const ['Roboto'],
             colorScheme: lightColorScheme ?? _defaultLightColorScheme,
-            splashFactory:
-                (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
+            splashFactory: InkSparkle.splashFactory,
             useMaterial3: true,
           ),
           darkTheme: ThemeData(
@@ -83,8 +82,7 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
                     : 'Montserrat',
             fontFamilyFallback: const ['Roboto'],
             colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
-            splashFactory:
-                (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
+            splashFactory: InkSparkle.splashFactory,
             useMaterial3: true,
           ),
           themeMode: ThemeMode.system,

@@ -90,231 +90,242 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
               padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
               child: KeyboardVisibilityBuilder(
                 builder: (BuildContext context, bool isKeyboardVisible) {
-                  return Column(
-                    children: [
-                      AnimatedContainer(
-                        curve: Curves.ease,
-                        duration: const Duration(milliseconds: 250),
-                        height: isKeyboardVisible
-                            ? MediaQuery.of(context).size.height * 0.05
-                            : MediaQuery.of(context).size.height * 0.1,
-                      ),
-                      AnimatedSize(
-                        curve: Curves.ease,
-                        duration: const Duration(milliseconds: 250),
-                        child: Column(
-                          children: isKeyboardVisible
-                              ? [
-                                  const SizedBox(
-                                    height: 0,
-                                  ),
-                                ]
-                              : [
-                                  Text(
-                                    context.loc.welcome_to,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 28,
-                                      color: context
-                                          .theme.colorScheme.onBackground,
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      child: Column(
+                        children: [
+                          AnimatedContainer(
+                            curve: Curves.ease,
+                            duration: const Duration(milliseconds: 250),
+                            height: isKeyboardVisible
+                                ? MediaQuery.of(context).size.height * 0.05
+                                : MediaQuery.of(context).size.height * 0.1,
+                          ),
+                          AnimatedSize(
+                            curve: Curves.ease,
+                            duration: const Duration(milliseconds: 250),
+                            child: Column(
+                              children: isKeyboardVisible
+                                  ? [
+                                      const SizedBox(
+                                        height: 0,
+                                      ),
+                                    ]
+                                  : [
+                                      Text(
+                                        context.loc.welcome_to,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 28,
+                                          color: context
+                                              .theme.colorScheme.onBackground,
+                                        ),
+                                      ),
+                                      Text(
+                                        context.loc.app_title,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 32,
+                                          color:
+                                              context.theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.15,
+                                      ),
+                                    ],
+                            ),
+                          ),
+                          Text(
+                            context.loc.login_view_prompt,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(
+                            height: 12,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _email,
+                                  textInputAction: TextInputAction.next,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.all(20),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(32.0),
+                                      borderSide: BorderSide(
+                                        width: 1.5,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    context.loc.app_title,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 32,
-                                      color: context.theme.colorScheme.primary,
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(32),
+                                        topRight: Radius.circular(32),
+                                        bottomLeft: Radius.circular(4),
+                                        bottomRight: Radius.circular(4),
+                                      ),
+                                      borderSide: BorderSide.none,
                                     ),
-                                  ),
-                                  SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.15,
-                                  ),
-                                ],
-                        ),
-                      ),
-                      Text(
-                        context.loc.login_view_prompt,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(
-                        height: 12,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: _email,
-                              textInputAction: TextInputAction.next,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.all(20),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(32.0),
-                                  borderSide: BorderSide(
-                                    width: 1.5,
-                                    color:
+                                    fillColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                        .withAlpha(200),
+                                    filled: true,
+                                    prefixIconColor:
                                         Theme.of(context).colorScheme.primary,
+                                    prefixIcon: const Icon(
+                                      Icons.email_rounded,
+                                    ),
+                                    hintText: context
+                                        .loc.email_text_field_placeholder,
                                   ),
                                 ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(32),
-                                    topRight: Radius.circular(32),
-                                    bottomLeft: Radius.circular(4),
-                                    bottomRight: Radius.circular(4),
+                                const SizedBox(
+                                  height: 4,
+                                ),
+                                TextField(
+                                  controller: _password,
+                                  textInputAction: TextInputAction.go,
+                                  obscureText: true,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.all(20),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(32),
+                                      borderSide: BorderSide(
+                                        width: 1.5,
+                                        color:
+                                            context.theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(4),
+                                        topRight: Radius.circular(4),
+                                        bottomLeft: Radius.circular(32),
+                                        bottomRight: Radius.circular(32),
+                                      ),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    fillColor: context
+                                        .theme.colorScheme.primaryContainer
+                                        .withAlpha(200),
+                                    filled: true,
+                                    prefixIconColor:
+                                        context.theme.colorScheme.primary,
+                                    prefixIcon: const Icon(
+                                      Icons.password_rounded,
+                                    ),
+                                    hintText: context
+                                        .loc.password_text_field_placeholder,
                                   ),
-                                  borderSide: BorderSide.none,
                                 ),
-                                fillColor: Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer
-                                    .withAlpha(200),
-                                filled: true,
-                                prefixIconColor:
-                                    Theme.of(context).colorScheme.primary,
-                                prefixIcon: const Icon(
-                                  Icons.email_rounded,
-                                ),
-                                hintText:
-                                    context.loc.email_text_field_placeholder,
-                              ),
+                              ],
                             ),
-                            const SizedBox(
-                              height: 4,
+                          ),
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              backgroundColor: context.theme.colorScheme.surface
+                                  .withOpacity(0.5),
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                             ),
-                            TextField(
-                              controller: _password,
-                              textInputAction: TextInputAction.go,
-                              obscureText: true,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.all(20),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(32),
-                                  borderSide: BorderSide(
-                                    width: 1.5,
-                                    color: context.theme.colorScheme.primary,
-                                  ),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(4),
-                                    topRight: Radius.circular(4),
-                                    bottomLeft: Radius.circular(32),
-                                    bottomRight: Radius.circular(32),
-                                  ),
-                                  borderSide: BorderSide.none,
-                                ),
-                                fillColor: context
-                                    .theme.colorScheme.primaryContainer
-                                    .withAlpha(200),
-                                filled: true,
-                                prefixIconColor:
-                                    context.theme.colorScheme.primary,
-                                prefixIcon: const Icon(
-                                  Icons.password_rounded,
-                                ),
-                                hintText:
-                                    context.loc.password_text_field_placeholder,
-                              ),
+                            onPressed: () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const AuthEventForgotPassword());
+                            },
+                            icon: const Icon(Icons.lightbulb_outline_rounded),
+                            label: Text(context.loc.login_view_forgot_password),
+                          ),
+                          const SizedBox(
+                            height: 16.0,
+                          ),
+                          FilledButton.icon(
+                            onPressed: () async {
+                              final email = _email.text;
+                              final password = _password.text;
+                              context.read<AuthBloc>().add(
+                                    AuthEventLogIn(
+                                      email,
+                                      password,
+                                    ),
+                                  );
+                            },
+                            style: FilledButton.styleFrom(
+                              minimumSize: const Size.fromHeight(42),
                             ),
-                          ],
-                        ),
+                            label: Text(
+                              context.loc.login,
+                              style: const TextStyle(fontSize: 15),
+                            ),
+                            icon: const Icon(Icons.login_rounded),
+                          ),
+                          AnimatedContainer(
+                            curve: Curves.ease,
+                            duration: const Duration(milliseconds: 250),
+                            height: isKeyboardVisible
+                                ? 32
+                                : MediaQuery.of(context).size.height * 0.15,
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const AuthEventShouldRegister());
+                            },
+                            label:
+                                Text(context.loc.login_view_not_registered_yet),
+                            icon: const Icon(Icons.app_registration_rounded),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: context.theme.colorScheme.surface
+                                  .withOpacity(0.5),
+                            ),
+                          ),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.ease,
+                            child: Column(
+                              children: isKeyboardVisible
+                                  ? [
+                                      const SizedBox(
+                                        height: 0,
+                                      )
+                                    ]
+                                  : [
+                                      Divider(
+                                        height: 32,
+                                        thickness: 1.5,
+                                        color: context
+                                            .theme.colorScheme.secondary
+                                            .withAlpha(150),
+                                      ),
+                                      FilledButton.tonalIcon(
+                                        onPressed: () {
+                                          context.read<AuthBloc>().add(
+                                              const AuthEventLoginAsGuest());
+                                        },
+                                        label: const Text(
+                                            'Continue without an account'),
+                                        icon: const Icon(
+                                            Icons.no_accounts_rounded),
+                                      ),
+                                    ],
+                            ),
+                          ),
+                        ],
                       ),
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          backgroundColor: context.theme.colorScheme.surface
-                              .withOpacity(0.5),
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                        ),
-                        onPressed: () {
-                          context
-                              .read<AuthBloc>()
-                              .add(const AuthEventForgotPassword());
-                        },
-                        icon: const Icon(Icons.lightbulb_outline_rounded),
-                        label: Text(context.loc.login_view_forgot_password),
-                      ),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      FilledButton.icon(
-                        onPressed: () async {
-                          final email = _email.text;
-                          final password = _password.text;
-                          context.read<AuthBloc>().add(
-                                AuthEventLogIn(
-                                  email,
-                                  password,
-                                ),
-                              );
-                        },
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(42),
-                        ),
-                        label: Text(
-                          context.loc.login,
-                          style: const TextStyle(fontSize: 15),
-                        ),
-                        icon: const Icon(Icons.login_rounded),
-                      ),
-                      AnimatedContainer(
-                        curve: Curves.ease,
-                        duration: const Duration(milliseconds: 250),
-                        height: isKeyboardVisible
-                            ? 32
-                            : MediaQuery.of(context).size.height * 0.15,
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          context
-                              .read<AuthBloc>()
-                              .add(const AuthEventShouldRegister());
-                        },
-                        label: Text(context.loc.login_view_not_registered_yet),
-                        icon: const Icon(Icons.app_registration_rounded),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: context.theme.colorScheme.surface
-                              .withOpacity(0.5),
-                        ),
-                      ),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.ease,
-                        child: Column(
-                          children: isKeyboardVisible
-                              ? [
-                                  const SizedBox(
-                                    height: 0,
-                                  )
-                                ]
-                              : [
-                                  Divider(
-                                    height: 32,
-                                    thickness: 1.5,
-                                    color: context.theme.colorScheme.secondary
-                                        .withAlpha(150),
-                                  ),
-                                  FilledButton.tonalIcon(
-                                    onPressed: () {
-                                      context
-                                          .read<AuthBloc>()
-                                          .add(const AuthEventLoginAsGuest());
-                                    },
-                                    label: const Text(
-                                        'Continue without an account'),
-                                    icon: const Icon(Icons.no_accounts_rounded),
-                                  ),
-                                ],
-                        ),
-                      ),
-                    ],
+                    ),
                   );
                 },
               ),

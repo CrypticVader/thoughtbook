@@ -60,9 +60,12 @@ class NoteInitializedState extends NoteState with EquatableMixin {
   @override
   List<Object?> get props => [
         notes,
+        noteTags,
         selectedNotes,
         deletedNotes,
         snackBarText,
         layoutPreference,
+        isLoading,
+        user,
       ];
 }

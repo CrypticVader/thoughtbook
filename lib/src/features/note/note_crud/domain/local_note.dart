@@ -6,35 +6,37 @@ part 'local_note.g.dart';
 @collection
 class LocalNote {
   /// The ID of the note in the local database.
-  Id isarId;
+  @id
+  final int isarId;
 
   /// The ID of the corresponding document in the cloud database.
-  String? cloudDocumentId;
+  final String? cloudDocumentId;
 
   /// The title of the note.
-  String title;
+  final String title;
 
   /// The content of the note.
-  String content;
+  final String content;
 
   /// The list of id of tags  added to this note.
-  List<int> tags;
+  final List<int> tags;
 
   /// The color of the note.
-  int? color;
+  final int? color;
 
   /// Whether the note is synced with the cloud database.
-  bool isSyncedWithCloud;
+  final bool isSyncedWithCloud;
 
   /// The date and time when the note was created, in UTC.
-  @Index()
-  DateTime created;
+  @utc
+  final DateTime created;
 
   /// The date and time when the note was last modified, in UTC.
-  @Index()
-  DateTime modified;
+  @utc
+  final DateTime modified;
 
   LocalNote({
+    required this.isarId,
     required this.cloudDocumentId,
     required this.title,
     required this.content,
@@ -43,10 +45,10 @@ class LocalNote {
     required this.created,
     required this.modified,
     required this.isSyncedWithCloud,
-  }) : isarId = Isar.autoIncrement;
+  });
 
-  LocalNote.fromCloudNote(CloudNote note)
-      : isarId = Isar.autoIncrement,
+  LocalNote.fromCloudNote(CloudNote note, int id)
+      : isarId = id,
         cloudDocumentId = note.documentId,
         title = note.title,
         content = note.content,

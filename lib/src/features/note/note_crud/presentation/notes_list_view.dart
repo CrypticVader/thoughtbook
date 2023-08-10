@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:markdown/markdown.dart' as md;
 import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_bloc.dart';
@@ -212,7 +211,7 @@ class _NoteItemState extends State<NoteItem> {
         child: Opacity(
           opacity: _noteOpacity,
           child: InkWell(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             onLongPress: () => widget.onLongPress(widget.note),
             onTap: () => widget.onTap(widget.note, _openContainer),
             splashColor: noteColors.primary.withAlpha(170),
@@ -234,7 +233,7 @@ class _NoteItemState extends State<NoteItem> {
                             context.theme.colorScheme.tertiary.withAlpha(220),
                       )
                     : BorderSide.none,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
               ),
               closedBuilder: (context, openContainer) {
                 _openContainer = openContainer;
@@ -275,7 +274,6 @@ class _NoteItemState extends State<NoteItem> {
                               softLineBreak: true,
                               shrinkWrap: true,
                               fitContent: true,
-                              extensionSet: md.ExtensionSet.gitHubFlavored,
                               styleSheet: MarkdownStyleSheet(
                                 p: TextStyle(
                                   color: noteColors.onSecondaryContainer,
@@ -317,7 +315,7 @@ class _NoteItemState extends State<NoteItem> {
                         ),
                         decoration: BoxDecoration(
                           color: noteColors.primaryContainer,
-                          borderRadius: BorderRadius.circular(16.0),
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -326,7 +324,7 @@ class _NoteItemState extends State<NoteItem> {
                               Icons.tag_rounded,
                               size: 18,
                               color:
-                                  noteColors.onPrimaryContainer.withAlpha(220),
+                                  noteColors.onPrimaryContainer.withAlpha(200),
                             ),
                             const SizedBox(width: 4.0),
                             Text(

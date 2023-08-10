@@ -5,39 +5,43 @@ part 'note_tag.g.dart';
 
 @Collection()
 class LocalNoteTag {
-  Id id;
+  @id
+  final int isarId;
 
-  String? cloudDocumentId;
+  final String? cloudDocumentId;
 
   @Index(unique: true)
-  String name;
+  final String name;
 
-  DateTime modified;
+  @utc
+  final DateTime modified;
 
-  DateTime created;
+  @utc
+  final DateTime created;
 
   LocalNoteTag({
+    required this.isarId,
     required this.name,
     required this.cloudDocumentId,
     required this.created,
     required this.modified,
-  }) : id = Isar.autoIncrement;
+  });
 
-  LocalNoteTag.fromCloudNoteTag(CloudNoteTag noteTag)
-      : id = Isar.autoIncrement,
+  LocalNoteTag.fromCloudNoteTag(CloudNoteTag noteTag, int id)
+      : isarId = id,
         cloudDocumentId = noteTag.documentId,
         name = noteTag.name,
         created = noteTag.created.toDate(),
         modified = noteTag.modified.toDate();
 
   @override
-  bool operator ==(covariant LocalNoteTag other) => id == other.id;
+  bool operator ==(covariant LocalNoteTag other) => isarId == other.isarId;
 
   @override
-  int get hashCode => id.hashCode;
+  int get hashCode => isarId.hashCode;
 
   @override
   String toString() {
-    return 'NoteTag{id: $id, cloudDocumentId: $cloudDocumentId, name: $name, created: $created, modified: $modified,}';
+    return 'LocalNoteTag{id: $isarId, cloudDocumentId: $cloudDocumentId, name: $name, created: $created, modified: $modified,}';
   }
 }

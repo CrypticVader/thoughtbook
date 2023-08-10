@@ -3,14 +3,15 @@ import 'dart:developer';
 
 import 'package:async/async.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_note_storable.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storage.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_note_storable.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storage.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_helper.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_sync_helper.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_storable.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_sync_helper.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/sync_utils.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable_exceptions.dart';
@@ -27,7 +28,7 @@ class NoteSyncable
   NoteSyncable._sharedInstance() {
     // Sets up the local change-feed stream as a StreamQueue
     _localChangeFeed =
-        StreamQueue<NoteChange>(LocalStorage.note.changeFeedStream);
+        StreamQueue<NoteChange>(NoteChangeStorable().changeFeedStream);
   }
 
   /// A [StreamQueue] to handle the local change feed stream
@@ -40,19 +41,16 @@ class NoteSyncable
     ensureUserIsSignedInOrThrow();
 
     // Take first event from the stream, and map each element from CloudNote to LocalNote
-    Iterable<LocalNote> notes = await CloudStorage.note.allItems.first.then(
-      (notesIterable) => notesIterable.map(
-        (note) => LocalNote.fromCloudNote(note),
-      ),
-    );
+    Iterable<CloudNote> notes = await CloudStore.note.allItems.first;
 
     final int cloudNotesCount = notes.length;
     int loadedCount = 0;
     // Load all notes from Firestore belonging to the user to Isar database locally
-    for (LocalNote note in notes) {
+    for (CloudNote cloudNote in notes) {
       LocalNote newNote =
-          await LocalStorage.note.createItem(addToChangeFeed: false);
-      await LocalStorage.note.updateItem(
+          await LocalStore.note.createItem(addToChangeFeed: false);
+      final note = LocalNote.fromCloudNote(cloudNote, newNote.isarId);
+      await LocalStore.note.updateItem(
         id: newNote.isarId,
         cloudDocumentId: note.cloudDocumentId,
         title: note.title,
@@ -94,15 +92,15 @@ class NoteSyncable
   Future<void> syncLocalChangeFeed() async {
     ensureUserIsSignedInOrThrow();
 
-    Stream<void> changeCollectionEvent = await NoteChangeHelper().eventNotifier
+    Stream<void> changeCollectionEvent = await NoteChangeStorable().eventNotifier
       ..asBroadcastStream();
     while (true) {
-      bool changesPending = !(await NoteChangeHelper().hasNoPendingChanges);
+      bool changesPending = !(await NoteChangeStorable().hasNoPendingChanges);
       if (changesPending) {
         if (await InternetConnectionChecker().hasConnection) {
           try {
             NoteChange change =
-                await NoteChangeHelper().getOldestChangeAndDelete();
+                await NoteChangeStorable().getOldestChangeAndDelete();
             await NoteChangeSyncHelper().syncOrIgnoreLocalChange(
               change: change,
               ownerUserId: currentUser.id,
@@ -149,12 +147,12 @@ class NoteSyncable
       try {
         NoteChange change = await _localChangeFeed.next;
         log('local change: ${change.type}');
-        if (change.type == NoteChangeType.create) {
-          await NoteChangeHelper().handleCreateChange(change: change);
-        } else if (change.type == NoteChangeType.update) {
-          await NoteChangeHelper().handleUpdateChange(change: change);
-        } else if (change.type == NoteChangeType.delete) {
-          await NoteChangeHelper().handleDeleteChange(change: change);
+        if (change.type == SyncableChangeType.create) {
+          await NoteChangeStorable().handleCreateChange(change: change);
+        } else if (change.type == SyncableChangeType.update) {
+          await NoteChangeStorable().handleUpdateChange(change: change);
+        } else if (change.type == SyncableChangeType.delete) {
+          await NoteChangeStorable().handleDeleteChange(change: change);
         } else {
           log('Invalid NoteChangeType of value ${change.type.toString()}');
         }
@@ -165,7 +163,7 @@ class NoteSyncable
   }
 }
 
-enum NoteChangeType {
+enum SyncableChangeType {
   create,
   update,
   delete,

@@ -3,21 +3,15 @@ import 'package:thoughtbook/src/features/authentication/repository/auth_service.
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storable.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storable_constants.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/crud_exceptions.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 
 class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
-  static final _shared = CloudNoteTagStorable._sharedInstance();
-
-  CloudNoteTagStorable._sharedInstance();
-
-  factory CloudNoteTagStorable() => _shared;
-
   final FirebaseFirestore _firestoreInstance = FirebaseFirestore.instance;
 
   String get _userId => AuthService.firebase().currentUser!.id;
 
   @override
-  CollectionReference<Map<String, dynamic>> get entityCollection =>
+  CollectionReference<Map<String, dynamic>> get storableCollection =>
       _firestoreInstance
           .collection(getFirestoreNoteTagsCollectionPath(_userId));
 
@@ -25,7 +19,7 @@ class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
   /// collection belonging to the logged in user
   @override
   Stream<Iterable<CloudNoteTag>> get allItems {
-    final allNotes = entityCollection
+    final allNotes = storableCollection
         .where(
           ownerUserIdFieldName,
           isEqualTo: _userId,
@@ -43,7 +37,7 @@ class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
   @override
   Future<CloudNoteTag> createItem() async {
     final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
-    final document = await entityCollection.add(
+    final document = await storableCollection.add(
       {
         ownerUserIdFieldName: _userId,
         nameFieldName: '',
@@ -65,7 +59,7 @@ class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
   @override
   Future<void> deleteItem({required String cloudDocumentId}) async {
     try {
-      await entityCollection.doc(cloudDocumentId).delete();
+      await storableCollection.doc(cloudDocumentId).delete();
     } catch (e) {
       throw CouldNotDeleteNoteTagException();
     }
@@ -73,7 +67,7 @@ class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
 
   @override
   Future<CloudNoteTag> getItem({required String cloudDocumentId}) async {
-    final noteTag = await entityCollection.doc(cloudDocumentId).get();
+    final noteTag = await storableCollection.doc(cloudDocumentId).get();
     return CloudNoteTag(
       documentId: noteTag.id,
       ownerUserId: noteTag.data()?[ownerUserIdFieldName] as String,
@@ -92,7 +86,7 @@ class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
   }) async {
     try {
       final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
-      await entityCollection.doc(cloudDocumentId).update(
+      await storableCollection.doc(cloudDocumentId).update(
         {
           if (name != null) titleFieldName: name,
           if (created != null) createdFieldName: created,
