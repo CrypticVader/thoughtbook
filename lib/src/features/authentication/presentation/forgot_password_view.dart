@@ -43,23 +43,26 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           if (state.exception != null) {
             if (state.exception is EmptyCredentialsAuthException) {
               await showErrorDialog(
-                context,
-                context.loc.error_empty_email,
+                context: context,
+                text: context.loc.error_empty_email,
+                showTitle: false,
               );
             } else if (state.exception is UserNotFoundAuthException) {
               await showErrorDialog(
-                context,
-                context.loc.login_error_cannot_find_user,
+                context: context,
+                text: context.loc.login_error_cannot_find_user,
+                showTitle: false,
               );
             } else if (state.exception is InvalidEmailAuthException) {
               await showErrorDialog(
-                context,
-                context.loc.register_error_invalid_email,
+                context: context,
+                text: context.loc.register_error_invalid_email,
+                showTitle: false,
               );
             } else {
               await showErrorDialog(
-                context,
-                context.loc.forgot_password_view_generic_error,
+                context: context,
+                text: context.loc.forgot_password_view_generic_error,
               );
             }
           }
@@ -137,29 +140,44 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                     children: [
                       TextField(
                         keyboardType: TextInputType.emailAddress,
+                        onSubmitted: (_) {
+                          final email = _controller.text;
+                          context
+                              .read<AuthBloc>()
+                              .add(AuthEventForgotPassword(email: email));
+                        },
+                        textInputAction: TextInputAction.go,
                         autocorrect: false,
                         autofocus: true,
                         controller: _controller,
+                        style: TextStyle(
+                          color: context.theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
+                          hintStyle: TextStyle(
+                            color: context.theme.colorScheme.onPrimaryContainer
+                                .withAlpha(200),
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                           contentPadding: const EdgeInsets.all(20),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(32),
+                            borderRadius: BorderRadius.circular(28),
                             borderSide: BorderSide(
-                              width: 1.5,
-                              color: Theme.of(context).colorScheme.primary,
+                              width: 0.5,
+                              color: context.theme.colorScheme.primary,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(32),
+                            borderRadius: BorderRadius.circular(28),
                             borderSide: BorderSide.none,
                           ),
-                          fillColor: Theme.of(context)
-                              .colorScheme
-                              .primaryContainer
+                          fillColor: context.theme.colorScheme.primaryContainer
                               .withAlpha(200),
                           filled: true,
-                          prefixIconColor:
-                              Theme.of(context).colorScheme.primary,
+                          prefixIconColor: context.theme.colorScheme.primary,
                           prefixIcon: const Icon(
                             Icons.email_rounded,
                           ),
@@ -168,6 +186,51 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                       ),
                       const SizedBox(
                         height: 16,
+                      ),
+                      // FilledButton.icon(
+                      //   onPressed: () {
+                      //     final email = _controller.text;
+                      //     context
+                      //         .read<AuthBloc>()
+                      //         .add(AuthEventForgotPassword(email: email));
+                      //   },
+                      //   label: Text(
+                      //     context.loc.forgot_password_view_send_me_link,
+                      //     style: const TextStyle(
+                      //       fontWeight: FontWeight.w500,
+                      //       fontSize: 16,
+                      //     ),
+                      //   ),
+                      //   icon: const Icon(Icons.link_rounded),
+                      //   style: FilledButton.styleFrom(
+                      //     padding: const EdgeInsets.symmetric(
+                      //       horizontal: 28.0,
+                      //       vertical: 16.0,
+                      //     ),
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.circular(26),
+                      //     ),
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                  const Spacer(
+                    flex: 1,
+                  ),
+                  Row(
+                    children: [
+                      IconButton.filledTonal(
+                        onPressed: () {
+                          context.read<AuthBloc>().add(const AuthEventLogOut());
+                        },
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        style: IconButton.styleFrom(padding: const EdgeInsets.symmetric(
+                          horizontal: 28.0,
+                          vertical: 16.0,
+                        ),),
+                      ),
+                      const Spacer(
+                        flex: 1,
                       ),
                       FilledButton.icon(
                         onPressed: () {
@@ -178,25 +241,23 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                         },
                         label: Text(
                           context.loc.forgot_password_view_send_me_link,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
                         ),
                         icon: const Icon(Icons.link_rounded),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28.0,
+                            vertical: 16.0,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(26),
+                          ),
+                        ),
                       ),
                     ],
-                  ),
-                  const Spacer(
-                    flex: 1,
-                  ),
-                  FilledButton.tonalIcon(
-                    onPressed: () {
-                      context.read<AuthBloc>().add(const AuthEventLogOut());
-                    },
-                    label: Text(
-                      context.loc.forgot_password_view_back_to_login,
-                    ),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(40),
-                    ),
                   ),
                 ],
               ),

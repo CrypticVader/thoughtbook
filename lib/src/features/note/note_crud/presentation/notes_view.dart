@@ -12,9 +12,9 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_even
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/note_tag_editor_modal.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/show_color_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/note_tag_editor_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/color_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/menu_action.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/note_editor_view.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_list_view.dart';
@@ -22,15 +22,9 @@ import 'package:thoughtbook/src/features/settings/presentation/settings_view.dar
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 import 'package:thoughtbook/src/utilities/dialogs/logout_dialog.dart';
 
-//TODO: Convert to StateLess
-class NotesView extends StatefulWidget {
+class NotesView extends StatelessWidget {
   const NotesView({Key? key}) : super(key: key);
 
-  @override
-  State<NotesView> createState() => _NotesViewState();
-}
-
-class _NotesViewState extends State<NotesView> {
   Future<void> _onLogout(BuildContext context) async {
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout) {
@@ -48,19 +42,20 @@ class _NotesViewState extends State<NotesView> {
     return null;
   }
 
-  AppBar _getDefaultAppBar(NoteInitializedState state) {
+  AppBar _getDefaultAppBar(BuildContext context, NoteInitializedState state) {
     final layoutPreference = state.layoutPreference;
 
     return AppBar(
+      iconTheme:
+          IconThemeData(color: Theme.of(context).colorScheme.onSurfaceVariant),
       key: ValueKey<bool>(state.selectedNotes.isEmpty),
       toolbarHeight: kToolbarHeight,
-      centerTitle: true,
+      // centerTitle: true,
       title: Text(
         context.loc.app_title,
         style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w500,
-          color: Theme.of(context).colorScheme.onBackground,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
       actions: [
@@ -80,7 +75,8 @@ class _NotesViewState extends State<NotesView> {
     );
   }
 
-  AppBar _getNotesSelectedAppBar(NoteInitializedState state) {
+  AppBar _getNotesSelectedAppBar(
+      BuildContext context, NoteInitializedState state) {
     return AppBar(
       key: ValueKey<bool>(state.selectedNotes.isEmpty),
       toolbarHeight: kToolbarHeight,
@@ -126,11 +122,11 @@ class _NotesViewState extends State<NotesView> {
                   currentColor: currentColor,
                 );
                 noteBloc.add(
-                      NoteUpdateColorEvent(
-                        note: note,
-                        color: (color != null) ? color.value : null,
-                      ),
-                    );
+                  NoteUpdateColorEvent(
+                    note: note,
+                    color: (color != null) ? color.value : null,
+                  ),
+                );
                 break;
               case MenuAction.share:
                 final note = state.selectedNotes.first;
@@ -358,14 +354,14 @@ class _NotesViewState extends State<NotesView> {
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 250),
                   child: (state.selectedNotes.isEmpty)
-                      ? _getDefaultAppBar(state)
-                      : _getNotesSelectedAppBar(state),
+                      ? _getDefaultAppBar(context, state)
+                      : _getNotesSelectedAppBar(context, state),
                 ),
               ),
               floatingActionButton: state.selectedNotes.isEmpty
                   ? OpenContainer(
                       tappable: false,
-                      transitionDuration: const Duration(milliseconds: 320),
+                      transitionDuration: const Duration(milliseconds: 300),
                       transitionType: ContainerTransitionType.fadeThrough,
                       // Using the openBuilder's context results in scope error
                       // when accessing the NoteBloc
@@ -385,13 +381,20 @@ class _NotesViewState extends State<NotesView> {
                           Radius.circular(16.0),
                         ),
                       ),
-                      closedColor: context.theme.colorScheme.primaryContainer,
-                      openColor: Colors.grey,
+                      closedColor: context.theme.colorScheme.inversePrimary,
+                      middleColor: context.theme.colorScheme.secondaryContainer,
+                      openColor: context.theme.colorScheme.secondaryContainer,
                       closedBuilder: (context, openContainer) {
                         return FloatingActionButton(
                           elevation: 0.0,
+                          focusElevation: 0.0,
+                          hoverElevation: 0.0,
+                          highlightElevation: 0.0,
                           onPressed: openContainer,
                           tooltip: context.loc.new_note,
+                          backgroundColor: Colors.transparent,
+                          foregroundColor:
+                              context.theme.colorScheme.onPrimaryContainer,
                           child: const Icon(
                             Icons.add_rounded,
                             size: 44,
@@ -411,40 +414,13 @@ class _NotesViewState extends State<NotesView> {
                           const Spacer(
                             flex: 1,
                           ),
-                          const Divider(
-                            indent: 8.0,
-                            endIndent: 8.0,
-                            thickness: 1,
-                          ),
-                          ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(32),
-                            ),
-                            onTap: () async {
-                              Navigator.of(context).pop();
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const SettingsView(),
-                                ),
-                              );
-                            },
-                            leading: const Icon(Icons.settings_rounded),
-                            title: const Text(
-                              'Settings',
-                              style: TextStyle(fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 8.0,
-                          ),
                           if (state.user != null)
                             Container(
-                              padding: const EdgeInsets.all(12.0),
+                              padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
-                                color: context
-                                    .theme.colorScheme.tertiaryContainer
-                                    .withAlpha(150),
-                                borderRadius: BorderRadius.circular(32.0),
+                                color:
+                                    context.theme.colorScheme.tertiaryContainer,
+                                borderRadius: BorderRadius.circular(28.0),
                               ),
                               child: Column(
                                 children: [
@@ -488,67 +464,49 @@ class _NotesViewState extends State<NotesView> {
                                     ),
                                     label: Text(
                                       context.loc.logout_button,
-                                      style: const TextStyle(
-                                        fontSize: 15.0,
-                                      ),
                                     ),
                                     style: FilledButton.styleFrom(
-                                      backgroundColor: context
-                                          .theme.colorScheme.background
-                                          .withAlpha(150),
-                                      foregroundColor: context
-                                          .theme.colorScheme.onBackground,
-                                      minimumSize: const Size.fromHeight(40.0),
+                                      backgroundColor:
+                                          context.theme.colorScheme.tertiary,
+                                      foregroundColor: context.theme.colorScheme.onTertiary,
+                                      minimumSize: const Size.fromHeight(44.0),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           if (state.user == null)
-                            TextButton(
+                            FilledButton.icon(
                               onPressed: () {
                                 Navigator.pop(context);
                                 context
                                     .read<AuthBloc>()
                                     .add(const AuthEventLogOut());
                               },
-                              style: TextButton.styleFrom(
-                                backgroundColor:
-                                    context.theme.colorScheme.primary,
-                                foregroundColor:
-                                    context.theme.colorScheme.onPrimary,
+                              label: Text(
+                                context.loc.login,
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.login_rounded,
-                                  ),
-                                  const SizedBox(
-                                    width: 8.0,
-                                  ),
-                                  Text(
-                                    context.loc.login,
-                                    style: const TextStyle(
-                                      fontSize: 15.0,
-                                    ),
-                                  ),
-                                ],
+                              icon: const Icon(
+                                Icons.login_rounded,
+                              ),
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(44.0),
                               ),
                             ),
                         ],
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 225),
+                      padding: const EdgeInsets.only(bottom: 128),
                       child: ListView(
                         shrinkWrap: true,
                         padding:
                             const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 0.0),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                                16.0, 32.0, 16.0, 32.0),
+                            padding:
+                                const EdgeInsets.fromLTRB(8.0, 32.0, 8.0, 32.0),
                             child: Text(
                               context.loc.app_title,
                               style: TextStyle(
@@ -559,319 +517,191 @@ class _NotesViewState extends State<NotesView> {
                               ),
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer
-                                  .withAlpha(70),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ListTile(
-                                  leading: Icon(
-                                    Icons.tag_rounded,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer
-                                        .withAlpha(200),
-                                    size: 26,
-                                  ),
-                                  title: Text(
-                                    'Tags',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer,
-                                    ),
-                                  ),
-                                  trailing: IconButton.filled(
-                                    onPressed: () {
-                                      showNoteTagEditorModalBottomSheet(
-                                        context: context,
-                                        tags: () => state.noteTags(),
-                                        onCreateTag: (tagName) => context
-                                            .read<NoteBloc>()
-                                            .add(NoteCreateTagEvent(
-                                                name: tagName)),
-                                        onEditTag: (tag, newName) => context
-                                            .read<NoteBloc>()
-                                            .add(NoteEditTagEvent(
-                                              tag: tag,
-                                              newName: newName,
-                                            )),
-                                        onDeleteTag: (tag) => context
-                                            .read<NoteBloc>()
-                                            .add(NoteDeleteTagEvent(tag: tag)),
-                                      );
-                                    },
-                                    icon: Icon(
-                                      Icons.edit_rounded,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer,
-                                    ),
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .inversePrimary.withAlpha(200),
-                                    ),
-                                  ),
-                                  horizontalTitleGap: 8.0,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 4.0),
+                          Column(
+                            children: [
+                              ListTile(
+                                onTap: () async =>
+                                    await showNoteTagEditorModalBottomSheet(
+                                  context: context,
+                                  tags: () => state.noteTags(),
+                                  onCreateTag: (tagName) => context
+                                      .read<NoteBloc>()
+                                      .add(NoteCreateTagEvent(name: tagName)),
+                                  onEditTag: (tag, newName) => context
+                                      .read<NoteBloc>()
+                                      .add(NoteEditTagEvent(
+                                        tag: tag,
+                                        newName: newName,
+                                      )),
+                                  onDeleteTag: (tag) => context
+                                      .read<NoteBloc>()
+                                      .add(NoteDeleteTagEvent(tag: tag)),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      3.0, 0.0, 3.0, 3.0),
-                                  child: StreamBuilder<List<LocalNoteTag>>(
-                                    stream: state.noteTags(),
-                                    builder: (context, snapshot) {
-                                      switch (snapshot.connectionState) {
-                                        case ConnectionState.active:
-                                        case ConnectionState.waiting:
-                                        case ConnectionState.done:
-                                          if (snapshot.hasData &&
-                                              snapshot.data!.isNotEmpty) {
-                                            final List<LocalNoteTag> noteTags =
-                                                snapshot.data!;
-                                            return ListView.separated(
-                                              itemBuilder: (context, index) {
-                                                final tag = noteTags[index];
-                                                return InkWell(
-                                                  onTap: () {},
-                                                  splashColor: context.theme
-                                                      .colorScheme.onBackground
-                                                      .withAlpha(200),
-                                                  borderRadius:
-                                                      BorderRadius.only(
-                                                    topLeft: (index == 0)
-                                                        ? const Radius.circular(
-                                                            24)
-                                                        : const Radius.circular(
-                                                            4),
-                                                    topRight: (index == 0)
-                                                        ? const Radius.circular(
-                                                            24)
-                                                        : const Radius.circular(
-                                                            4),
-                                                    bottomLeft: (index ==
-                                                            (noteTags.length -
-                                                                1))
-                                                        ? const Radius.circular(
-                                                            24)
-                                                        : const Radius.circular(
-                                                            4),
-                                                    bottomRight: (index ==
-                                                            (noteTags.length -
-                                                                1))
-                                                        ? const Radius.circular(
-                                                            24)
-                                                        : const Radius.circular(
-                                                            4),
-                                                  ),
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color: context
-                                                          .theme
-                                                          .colorScheme
-                                                          .background
-                                                          .withAlpha(170),
-                                                      borderRadius:
-                                                          BorderRadius.only(
-                                                        topLeft: (index == 0)
-                                                            ? const Radius
-                                                                .circular(24)
-                                                            : const Radius
-                                                                .circular(4),
-                                                        topRight: (index == 0)
-                                                            ? const Radius
-                                                                .circular(24)
-                                                            : const Radius
-                                                                .circular(4),
-                                                        bottomLeft: (index ==
-                                                                (noteTags
-                                                                        .length -
-                                                                    1))
-                                                            ? const Radius
-                                                                .circular(24)
-                                                            : const Radius
-                                                                .circular(4),
-                                                        bottomRight: (index ==
-                                                                (noteTags
-                                                                        .length -
-                                                                    1))
-                                                            ? const Radius
-                                                                .circular(24)
-                                                            : const Radius
-                                                                .circular(4),
-                                                      ),
-                                                    ),
-                                                    child: ListTile(
-                                                      dense: true,
-                                                      leading: Icon(
-                                                        Icons.label_rounded,
-                                                        color: context
-                                                            .theme
-                                                            .colorScheme
-                                                            .onBackground
-                                                            .withAlpha(200),
-                                                      ),
-                                                      title: Text(
-                                                        tag.name,
-                                                        style: TextStyle(
-                                                          fontSize: 16,
-                                                          color: context
-                                                              .theme
-                                                              .colorScheme
-                                                              .onBackground,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              shrinkWrap: true,
-                                              physics:
-                                                  const NeverScrollableScrollPhysics(),
-                                              padding: EdgeInsets.zero,
-                                              itemCount: noteTags.length,
-                                              separatorBuilder:
-                                                  (BuildContext context,
-                                                      int index) {
-                                                return const SizedBox(
-                                                  height: 2.0,
-                                                );
-                                              },
-                                            );
-                                          } else {
-                                            return Container(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(24),
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .background
-                                                    .withAlpha(140),
-                                              ),
-                                              child: Center(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.all(8.0),
-                                                  child: Column(
-                                                    children: [
-                                                      Icon(
-                                                        Icons.label_off_rounded,
-                                                        size: 32,
-                                                        color: context
-                                                            .theme
-                                                            .colorScheme
-                                                            .onBackground
-                                                            .withAlpha(200),
-                                                      ),
-                                                      const SizedBox(
-                                                        height: 6.0,
-                                                      ),
-                                                      Text(
-                                                        'Nothing here',
-                                                        style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          color: context
-                                                              .theme
-                                                              .colorScheme
-                                                              .onBackground
-                                                              .withAlpha(200),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        default:
-                                          return Container(
-                                            padding: const EdgeInsets.all(8.0),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(32),
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .background
-                                                  .withAlpha(140),
-                                            ),
-                                            child: Center(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Column(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.label_off_rounded,
-                                                      size: 32,
-                                                      color: context
-                                                          .theme
-                                                          .colorScheme
-                                                          .onBackground
-                                                          .withAlpha(200),
-                                                    ),
-                                                    const SizedBox(
-                                                      height: 6.0,
-                                                    ),
-                                                    Text(
-                                                      'Nothing here',
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: context
-                                                            .theme
-                                                            .colorScheme
-                                                            .onBackground
-                                                            .withAlpha(200),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                      }
-                                    },
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
+                                tileColor:
+                                    context.theme.colorScheme.primaryContainer,
+                                splashColor: context
+                                    .theme.colorScheme.inversePrimary
+                                    .withAlpha(200),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(28),
+                                    topRight: Radius.circular(28),
+                                    bottomLeft: Radius.circular(4),
+                                    bottomRight: Radius.circular(4),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
+                                leading: Icon(
+                                  Icons.label_important_rounded,
+                                  color: context
+                                      .theme.colorScheme.onPrimaryContainer,
+                                ),
+                                title: Text(
+                                  'Labels',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: context
+                                        .theme.colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                                trailing: InkWell(
+                                  onTap: () {},
+                                  borderRadius: BorderRadius.circular(32),
+                                  splashColor: context
+                                      .theme.colorScheme.primaryContainer
+                                      .withAlpha(200),
+                                  child: Ink(
+                                    padding: const EdgeInsets.all(4.0),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          context.theme.colorScheme.surfaceTint,
+                                      borderRadius: BorderRadius.circular(32),
+                                    ),
+                                    child: Icon(
+                                      Icons.keyboard_arrow_down_rounded,
+                                      color: context
+                                          .theme.colorScheme.primaryContainer,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 2.0,
+                              ),
+                              ListTile(
+                                onTap: () {},
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0),
+                                tileColor:
+                                    context.theme.colorScheme.primaryContainer,
+                                splashColor: context
+                                    .theme.colorScheme.inversePrimary
+                                    .withAlpha(150),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(4),
+                                    topRight: Radius.circular(4),
+                                    bottomLeft: Radius.circular(28),
+                                    bottomRight: Radius.circular(28),
+                                  ),
+                                ),
+                                leading: Icon(
+                                  Icons.book_rounded,
+                                  color: context
+                                      .theme.colorScheme.onPrimaryContainer,
+                                ),
+                                title: Text(
+                                  'Notebooks',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: context
+                                        .theme.colorScheme.onPrimaryContainer,
+                                  ),
+                                ),
+                                trailing: InkWell(
+                                  onTap: () {},
+                                  borderRadius: BorderRadius.circular(32),
+                                  splashColor: context
+                                      .theme.colorScheme.primaryContainer
+                                      .withAlpha(200),
+                                  child: Ink(
+                                    padding: const EdgeInsets.all(4.0),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          context.theme.colorScheme.surfaceTint,
+                                      borderRadius: BorderRadius.circular(32),
+                                    ),
+                                    child: Icon(
+                                      Icons.keyboard_arrow_down_rounded,
+                                      color: context
+                                          .theme.colorScheme.primaryContainer,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 16.0,
+                              ),
+                              ListTile(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                onTap: () async {
+                                  Navigator.of(context).pop();
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => BlocProvider.value(
+                                        value: context.read<AuthBloc>(),
+                                        child: const SettingsView(),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                tileColor: context
+                                    .theme.colorScheme.secondaryContainer,
+                                splashColor: context.theme.colorScheme.secondary
+                                    .withAlpha(50),
+                                leading: Icon(
+                                  Icons.settings_rounded,
+                                  color: context
+                                      .theme.colorScheme.onSecondaryContainer,
+                                ),
+                                title: Text(
+                                  'Settings',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: context
+                                        .theme.colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     )
                   ],
                 ),
               ),
-              body: StreamBuilder(
-                stream: state.notes(),
+              body: StreamBuilder<List<PresentableNoteData>>(
+                stream: state.noteData(),
                 builder: (context, snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.waiting:
                     case ConnectionState.done:
                     case ConnectionState.active:
                       if (snapshot.hasData) {
-                        final allNotes = snapshot.data!;
+                        final allNotesData = snapshot.data!;
 
                         return BlocProvider<NoteBloc>.value(
                           value: context.read<NoteBloc>(),
                           child: NotesListView(
                             layoutPreference: state.layoutPreference,
-                            notes: allNotes,
+                            // notes: allNotes,
+                            noteData: allNotesData,
                             selectedNotes: state.selectedNotes,
                             onDeleteNote: (LocalNote note) => context
                                 .read<NoteBloc>()

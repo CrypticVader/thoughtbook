@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:async/async.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
@@ -11,7 +10,7 @@ import 'package:thoughtbook/src/features/note/note_crud/repository/local_storabl
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_storable.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_sync_helper.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_sync_mixin.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/sync_utils.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable_exceptions.dart';
@@ -19,25 +18,19 @@ import 'package:thoughtbook/src/features/note/note_sync/repository/syncable_exce
 /// Service used to keep the local and cloud databases up to date with the latest changes in notes.
 /// Works only when a user is signed in to the application.
 class NoteSyncable
-    with SyncUtilsMixin
+    with SyncUtilsMixin, NoteChangeSyncMixin
     implements Syncable<LocalNoteStorable, CloudNoteStorable> {
   static final NoteSyncable _shared = NoteSyncable._sharedInstance();
 
   factory NoteSyncable() => _shared;
 
-  NoteSyncable._sharedInstance() {
-    // Sets up the local change-feed stream as a StreamQueue
-    _localChangeFeed =
-        StreamQueue<NoteChange>(NoteChangeStorable().changeFeedStream);
-  }
-
-  /// A [StreamQueue] to handle the local change feed stream
-  late final StreamQueue<NoteChange> _localChangeFeed;
+  NoteSyncable._sharedInstance();
 
   /// Should be called after the first user login to retrieve notes from the Firestore collection.
   ///
   /// Returns a [Stream] indicating the progress, in percentage, of the operation.
-  Stream<int> initLocalNotes() async* {
+  @override
+  Stream<int> initLocalFromCloud() async* {
     ensureUserIsSignedInOrThrow();
 
     // Take first event from the stream, and map each element from CloudNote to LocalNote
@@ -48,14 +41,20 @@ class NoteSyncable
     // Load all notes from Firestore belonging to the user to Isar database locally
     for (CloudNote cloudNote in notes) {
       LocalNote newNote =
-          await LocalStore.note.createItem(addToChangeFeed: false);
-      final note = LocalNote.fromCloudNote(cloudNote, newNote.isarId);
+      await LocalStore.note.createItem(addToChangeFeed: false);
+      final tagIds = LocalStore.noteTag.getLocalIdsFor(
+          documentIds: cloudNote.tagDocumentIds);
+      final note = LocalNote.fromCloudNote(
+        note: cloudNote,
+        isarId: newNote.isarId,
+        tagIds: tagIds,
+      );
       await LocalStore.note.updateItem(
         id: newNote.isarId,
         cloudDocumentId: note.cloudDocumentId,
         title: note.title,
         content: note.content,
-        tags: note.tags,
+        tags: note.tagIds,
         color: note.color,
         created: note.created,
         modified: note.modified,
@@ -76,7 +75,7 @@ class NoteSyncable
       '[1/3] Starting sync service...',
       name: 'NoteSyncService',
     );
-    unawaited(handleLocalChangeFeed());
+    unawaited(NoteChangeStorable().handleLocalChangeFeed());
     log(
       '[2/3] Started LocalNote change-feed handler.',
       name: 'NoteSyncService',
@@ -89,19 +88,20 @@ class NoteSyncable
   }
 
   /// Responsible for syncing the changes from the change-feed collection to the Firestore notes collection.
+  @override
   Future<void> syncLocalChangeFeed() async {
     ensureUserIsSignedInOrThrow();
 
-    Stream<void> changeCollectionEvent = await NoteChangeStorable().eventNotifier
-      ..asBroadcastStream();
+    Stream<void> changeCollectionEvent =
+    await NoteChangeStorable().newChangeNotifier;
     while (true) {
       bool changesPending = !(await NoteChangeStorable().hasNoPendingChanges);
       if (changesPending) {
         if (await InternetConnectionChecker().hasConnection) {
           try {
             NoteChange change =
-                await NoteChangeStorable().getOldestChangeAndDelete();
-            await NoteChangeSyncHelper().syncOrIgnoreLocalChange(
+            await NoteChangeStorable().getOldestChangeAndDelete();
+            await syncLocalChange(
               change: change,
               ownerUserId: currentUser.id,
             );
@@ -119,7 +119,7 @@ class NoteSyncable
             name: 'NoteSyncService',
           );
           Stream<InternetConnectionStatus> connectionStream =
-              InternetConnectionChecker().onStatusChange.asBroadcastStream();
+          InternetConnectionChecker().onStatusChange.asBroadcastStream();
           await for (InternetConnectionStatus status in connectionStream) {
             if (status == InternetConnectionStatus.connected) {
               await connectionStream.listen((event) {}).cancel();
@@ -139,33 +139,4 @@ class NoteSyncable
       }
     }
   }
-
-  /// Responsible for listening for [NoteChange] and adding them to the change feed collection.
-  Future<void> handleLocalChangeFeed() async {
-    ensureUserIsSignedInOrThrow();
-    while (true) {
-      try {
-        NoteChange change = await _localChangeFeed.next;
-        log('local change: ${change.type}');
-        if (change.type == SyncableChangeType.create) {
-          await NoteChangeStorable().handleCreateChange(change: change);
-        } else if (change.type == SyncableChangeType.update) {
-          await NoteChangeStorable().handleUpdateChange(change: change);
-        } else if (change.type == SyncableChangeType.delete) {
-          await NoteChangeStorable().handleDeleteChange(change: change);
-        } else {
-          log('Invalid NoteChangeType of value ${change.type.toString()}');
-        }
-      } on StateError {
-        throw NoteFeedClosedSyncException();
-      }
-    }
-  }
-}
-
-enum SyncableChangeType {
-  create,
-  update,
-  delete,
-  deleteAll,
 }

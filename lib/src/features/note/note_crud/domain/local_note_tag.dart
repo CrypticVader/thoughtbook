@@ -1,10 +1,11 @@
+import 'package:equatable/equatable.dart';
 import 'package:isar/isar.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note_tag.dart';
 
-part 'note_tag.g.dart';
+part 'local_note_tag.g.dart';
 
-@Collection()
-class LocalNoteTag {
+@Collection(inheritance: false)
+class LocalNoteTag with EquatableMixin {
   @id
   final int isarId;
 
@@ -19,12 +20,15 @@ class LocalNoteTag {
   @utc
   final DateTime created;
 
+  final bool isSyncedWithCloud;
+
   LocalNoteTag({
     required this.isarId,
     required this.name,
     required this.cloudDocumentId,
     required this.created,
     required this.modified,
+    required this.isSyncedWithCloud,
   });
 
   LocalNoteTag.fromCloudNoteTag(CloudNoteTag noteTag, int id)
@@ -32,16 +36,24 @@ class LocalNoteTag {
         cloudDocumentId = noteTag.documentId,
         name = noteTag.name,
         created = noteTag.created.toDate(),
-        modified = noteTag.modified.toDate();
-
-  @override
-  bool operator ==(covariant LocalNoteTag other) => isarId == other.isarId;
-
-  @override
-  int get hashCode => isarId.hashCode;
+        modified = noteTag.modified.toDate(),
+        isSyncedWithCloud = false;
 
   @override
   String toString() {
-    return 'LocalNoteTag{id: $isarId, cloudDocumentId: $cloudDocumentId, name: $name, created: $created, modified: $modified,}';
+    return 'LocalNoteTag{id: $isarId, cloudDocumentId: $cloudDocumentId, '
+        'name: $name, created: $created, modified: $modified, '
+        'isSyncedWithCloud: $isSyncedWithCloud}';
   }
+
+  @ignore
+  @override
+  List<Object?> get props => [
+        isarId,
+        name,
+        cloudDocumentId,
+        created,
+        modified,
+        isSyncedWithCloud,
+      ];
 }

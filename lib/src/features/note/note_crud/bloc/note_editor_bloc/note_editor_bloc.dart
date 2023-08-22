@@ -2,18 +2,38 @@ import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/services.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 
 class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   int? _noteIsarId;
 
-  Future<Stream<LocalNote>> get noteStream async =>
-      await LocalStore.note.itemStream(id: _noteIsarId!);
+  ValueStream<LocalNote> noteStream() =>
+      LocalStore.note.itemStream(id: _noteIsarId!);
+
+  ValueStream<PresentableNoteData> presentableNote()=>
+      Rx.combineLatest2<LocalNote, List<LocalNoteTag>, PresentableNoteData>(
+        noteStream(),
+        allNoteTags(),
+        (note, allTags) {
+          List<LocalNoteTag> noteTags =
+              allTags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
+          return PresentableNoteData(
+            note: note,
+            noteTags: noteTags,
+          );
+        },
+      ).shareValue();
+
+  ValueStream<List<LocalNoteTag>> allNoteTags() =>
+      LocalStore.noteTag.allItemStream;
 
   Future<LocalNote> get note async {
     LocalNote note;
@@ -46,7 +66,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
         emit(
           NoteEditorInitializedState(
-            noteStream: await noteStream,
+            noteStream: noteStream,
+            noteData: presentableNote,
+            allNoteTags: allNoteTags,
             snackBarText: '',
             isEditable: false,
           ),
@@ -71,11 +93,13 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 
     // Change Editor view type (Preview/Edit)
     on<NoteEditorChangeViewTypeEvent>(
-      (event, emit) async {
+      (event, emit) {
         emit(NoteEditorInitializedState(
+          noteData: presentableNote,
           snackBarText: '',
           isEditable: !event.wasEditable,
-          noteStream: await noteStream,
+          noteStream: noteStream,
+          allNoteTags: allNoteTags,
         ));
       },
     );
@@ -89,7 +113,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             id: note.isarId,
             title: event.newTitle,
             content: event.newContent,
-            tags: note.tags,
+            tags: note.tagIds,
             color: note.color,
             isSyncedWithCloud: false,
             debounceChangeFeedEvent: true,
@@ -108,7 +132,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           if (note.content.isEmpty && note.title.isEmpty) {
             emit(
               NoteEditorInitializedState(
+                noteData: presentableNote,
                 snackBarText: 'Cannot share empty note',
+                allNoteTags: allNoteTags,
                 isEditable: currentState.isEditable,
                 noteStream: currentState.noteStream,
               ),
@@ -145,9 +171,33 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             id: note.isarId,
             title: note.title,
             content: note.content,
-            tags: note.tags,
+            tags: note.tagIds,
             color: newColor,
             isSyncedWithCloud: false,
+          );
+        }
+      },
+    );
+
+    // Update the color of the note
+    on<NoteEditorUpdateTagEvent>(
+      (event, emit) async {
+        final note = await this.note;
+        var tagIds = note.tagIds;
+        final selectedTagId = event.selectedTag.isarId;
+        final shouldRemoveTag = tagIds.contains(selectedTagId);
+        if (shouldRemoveTag) {
+          tagIds.removeWhere((tagId) => tagId == selectedTagId);
+          await LocalStore.note.updateItem(
+            id: note.isarId,
+            tags: tagIds,
+          );
+        } else {
+          tagIds.add(selectedTagId);
+          await LocalStore.note.updateItem(
+            id: note.isarId,
+            tags: tagIds,
+            modified: note.modified,
           );
         }
       },
@@ -173,9 +223,11 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           }
           emit(
             NoteEditorInitializedState(
+              noteData: presentableNote,
               snackBarText: snackBarText,
               isEditable: currentState.isEditable,
               noteStream: currentState.noteStream,
+              allNoteTags: allNoteTags,
             ),
           );
         }

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 
 @immutable
 abstract class NoteEvent {

@@ -1,11 +1,11 @@
-import 'dart:developer';
+import 'dart:developer' show log;
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:rxdart/rxdart.dart' show ValueStream;
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_tag_change.dart';
@@ -50,7 +50,7 @@ abstract class LocalStorable<T> {
   /// Closes all the database collections.
   static Future<void> close() async {
     if (_isar != null) {
-      _isar?.close();
+      _isar!.close();
       _isar = null;
     }
   }
@@ -85,7 +85,7 @@ abstract class LocalStorable<T> {
   ValueStream<List<T>> get allItemStream => throw UnsupportedError(
       'This method must be implemented by a child class.');
 
-  /// Returns the latest version of a [T] from the local database in a [Stream]
-  Future<Stream<T>> itemStream({required int id}) => throw UnsupportedError(
+  /// Returns the latest version of a [T] from the local database in a [ValueStream]
+  ValueStream<T> itemStream({required int id}) => throw UnsupportedError(
       'This method must be implemented by a child class.');
 }

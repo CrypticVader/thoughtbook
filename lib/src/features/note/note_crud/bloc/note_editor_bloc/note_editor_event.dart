@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 
 @immutable
 abstract class NoteEditorEvent {
@@ -48,6 +49,12 @@ class NoteEditorUpdateColorEvent extends NoteEditorEvent {
   final Color? newColor;
 
   const NoteEditorUpdateColorEvent({required this.newColor});
+}
+
+class NoteEditorUpdateTagEvent extends NoteEditorEvent {
+  final LocalNoteTag selectedTag;
+
+  const NoteEditorUpdateTagEvent({required this.selectedTag});
 }
 
 class NoteEditorDeleteEvent extends NoteEditorEvent {

@@ -14,23 +14,51 @@ extension GetNoteChangeCollection on Isar {
   IsarCollection<int, NoteChange> get noteChanges => this.collection();
 }
 
-const NoteChangeSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"NoteChange","idName":"isarId","properties":[{"name":"type","type":"Byte","enumMap":{"create":0,"update":1,"delete":2,"deleteAll":3}},{"name":"changedNote","type":"Object","target":"ChangedNote"},{"name":"timestamp","type":"DateTime"}]}',
+const NoteChangeSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'NoteChange',
+    idName: 'isarId',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'type',
+        type: IsarType.byte,
+        enumMap: {"create": 0, "update": 1, "delete": 2, "deleteAll": 3},
+      ),
+      IsarPropertySchema(
+        name: 'note',
+        type: IsarType.object,
+        target: 'ChangedNote',
+      ),
+      IsarPropertySchema(
+        name: 'timestamp',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'timestamp',
+        properties: [
+          "timestamp",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<int, NoteChange>(
     serialize: serializeNoteChange,
     deserialize: deserializeNoteChange,
     deserializeProperty: deserializeNoteChangeProp,
   ),
   embeddedSchemas: [ChangedNoteSchema],
-  //hash: (-7942045061431579046 * 31 + changedNoteSchemaHash),
 );
 
 @isarProtected
 int serializeNoteChange(IsarWriter writer, NoteChange object) {
   IsarCore.writeByte(writer, 1, object.type.index);
   {
-    final value = object.changedNote;
+    final value = object.note;
     final objectWriter = IsarCore.beginObject(writer, 2);
     serializeChangedNote(objectWriter, value);
     IsarCore.endObject(writer, objectWriter);
@@ -53,16 +81,16 @@ NoteChange deserializeNoteChange(IsarReader reader) {
           SyncableChangeType.create;
     }
   }
-  final ChangedNote _changedNote;
+  final ChangedNote _note;
   {
     final objectReader = IsarCore.readObject(reader, 2);
     if (objectReader.isNull) {
-      _changedNote = ChangedNote(
+      _note = ChangedNote(
         isarId: -9223372036854775808,
         cloudDocumentId: null,
         title: '',
         content: '',
-        tags: const <int>[],
+        tagIds: const <int>[],
         color: null,
         created: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
         modified: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
@@ -71,7 +99,7 @@ NoteChange deserializeNoteChange(IsarReader reader) {
     } else {
       final embedded = deserializeChangedNote(objectReader);
       IsarCore.freeReader(objectReader);
-      _changedNote = embedded;
+      _note = embedded;
     }
   }
   final DateTime _timestamp;
@@ -87,7 +115,7 @@ NoteChange deserializeNoteChange(IsarReader reader) {
   final object = NoteChange(
     isarId: _isarId,
     type: _type,
-    changedNote: _changedNote,
+    note: _note,
     timestamp: _timestamp,
   );
   return object;
@@ -116,7 +144,7 @@ dynamic deserializeNoteChangeProp(IsarReader reader, int property) {
             cloudDocumentId: null,
             title: '',
             content: '',
-            tags: const <int>[],
+            tagIds: const <int>[],
             color: null,
             created:
                 DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
@@ -235,6 +263,38 @@ extension NoteChangeQueryUpdate on IsarQuery<NoteChange> {
       _NoteChangeQueryUpdateImpl(this, limit: 1);
 
   _NoteChangeQueryUpdate get updateAll => _NoteChangeQueryUpdateImpl(this);
+}
+
+class _NoteChangeQueryBuilderUpdateImpl implements _NoteChangeQueryUpdate {
+  const _NoteChangeQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<NoteChange, NoteChange, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? type = ignore,
+    Object? timestamp = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (type != ignore) 1: type as SyncableChangeType?,
+        if (timestamp != ignore) 3: timestamp as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension NoteChangeQueryBuilderUpdate
+    on QueryBuilder<NoteChange, NoteChange, QOperations> {
+  _NoteChangeQueryUpdate get updateFirst =>
+      _NoteChangeQueryBuilderUpdateImpl(this, limit: 1);
+
+  _NoteChangeQueryUpdate get updateAll =>
+      _NoteChangeQueryBuilderUpdateImpl(this);
 }
 
 const _noteChangeType = {
@@ -496,7 +556,7 @@ extension NoteChangeQueryFilter
 
 extension NoteChangeQueryObject
     on QueryBuilder<NoteChange, NoteChange, QFilterCondition> {
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> changedNote(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> note(
       FilterQuery<ChangedNote> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, 2);
@@ -611,7 +671,7 @@ extension NoteChangeQueryProperty1
     });
   }
 
-  QueryBuilder<NoteChange, ChangedNote, QAfterProperty> changedNoteProperty() {
+  QueryBuilder<NoteChange, ChangedNote, QAfterProperty> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
@@ -639,8 +699,7 @@ extension NoteChangeQueryProperty2<R>
     });
   }
 
-  QueryBuilder<NoteChange, (R, ChangedNote), QAfterProperty>
-      changedNoteProperty() {
+  QueryBuilder<NoteChange, (R, ChangedNote), QAfterProperty> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
@@ -668,8 +727,7 @@ extension NoteChangeQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<NoteChange, (R1, R2, ChangedNote), QOperations>
-      changedNoteProperty() {
+  QueryBuilder<NoteChange, (R1, R2, ChangedNote), QOperations> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
@@ -691,10 +749,50 @@ extension NoteChangeQueryProperty3<R1, R2>
 // ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
 // ignore_for_file: type=lint
 
-//const changedNoteSchemaHash = -3969550157125032108;
-const ChangedNoteSchema = IsarSchema(
-  schema:
-      '{"name":"ChangedNote","idName":null,"embedded":true,"properties":[{"name":"isarId","type":"Long"},{"name":"cloudDocumentId","type":"String"},{"name":"title","type":"String"},{"name":"content","type":"String"},{"name":"tags","type":"LongList"},{"name":"color","type":"Long"},{"name":"isSyncedWithCloud","type":"Bool"},{"name":"created","type":"DateTime"},{"name":"modified","type":"DateTime"}]}',
+const ChangedNoteSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'ChangedNote',
+    embedded: true,
+    properties: [
+      IsarPropertySchema(
+        name: 'isarId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'cloudDocumentId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'title',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'content',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'tagIds',
+        type: IsarType.longList,
+      ),
+      IsarPropertySchema(
+        name: 'color',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'isSyncedWithCloud',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'created',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'modified',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<void, ChangedNote>(
     serialize: serializeChangedNote,
     deserialize: deserializeChangedNote,
@@ -715,7 +813,7 @@ int serializeChangedNote(IsarWriter writer, ChangedNote object) {
   IsarCore.writeString(writer, 3, object.title);
   IsarCore.writeString(writer, 4, object.content);
   {
-    final list = object.tags;
+    final list = object.tagIds;
     final listWriter = IsarCore.beginList(writer, 5, list.length);
     for (var i = 0; i < list.length; i++) {
       IsarCore.writeLong(listWriter, i, list[i]);
@@ -739,13 +837,13 @@ ChangedNote deserializeChangedNote(IsarReader reader) {
   _title = IsarCore.readString(reader, 3) ?? '';
   final String _content;
   _content = IsarCore.readString(reader, 4) ?? '';
-  final List<int> _tags;
+  final List<int> _tagIds;
   {
     final length = IsarCore.readList(reader, 5, IsarCore.readerPtrPtr);
     {
       final reader = IsarCore.readerPtr;
       if (reader.isNull) {
-        _tags = const <int>[];
+        _tagIds = const <int>[];
       } else {
         final list =
             List<int>.filled(length, -9223372036854775808, growable: true);
@@ -753,7 +851,7 @@ ChangedNote deserializeChangedNote(IsarReader reader) {
           list[i] = IsarCore.readLong(reader, i);
         }
         IsarCore.freeReader(reader);
-        _tags = list;
+        _tagIds = list;
       }
     }
   }
@@ -791,7 +889,7 @@ ChangedNote deserializeChangedNote(IsarReader reader) {
     cloudDocumentId: _cloudDocumentId,
     title: _title,
     content: _content,
-    tags: _tags,
+    tagIds: _tagIds,
     color: _color,
     isSyncedWithCloud: _isSyncedWithCloud,
     created: _created,
@@ -1434,7 +1532,7 @@ extension ChangedNoteQueryFilter
   }
 
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagsElementEqualTo(
+      tagIdsElementEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1448,7 +1546,7 @@ extension ChangedNoteQueryFilter
   }
 
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagsElementGreaterThan(
+      tagIdsElementGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1462,7 +1560,7 @@ extension ChangedNoteQueryFilter
   }
 
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagsElementGreaterThanOrEqualTo(
+      tagIdsElementGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1476,7 +1574,7 @@ extension ChangedNoteQueryFilter
   }
 
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagsElementLessThan(
+      tagIdsElementLessThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1490,7 +1588,7 @@ extension ChangedNoteQueryFilter
   }
 
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagsElementLessThanOrEqualTo(
+      tagIdsElementLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1504,7 +1602,7 @@ extension ChangedNoteQueryFilter
   }
 
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagsElementBetween(
+      tagIdsElementBetween(
     int lower,
     int upper,
   ) {
@@ -1519,12 +1617,13 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagsIsEmpty() {
-    return not().tagsIsNotEmpty();
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
+      tagIdsIsEmpty() {
+    return not().tagIdsIsNotEmpty();
   }
 
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagsIsNotEmpty() {
+      tagIdsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterOrEqualCondition(property: 5, value: null),

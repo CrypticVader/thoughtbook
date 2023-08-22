@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/note_tag_editor_modal.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/note_tag_editor_bottom_sheet.dart';
 
 Future<void> showNoteTagRenameDialog({
   required BuildContext context,
   required LocalNoteTag tag,
   required NoteTagEditCallback onEditTag,
 }) async {
-  final nameFieldController = TextEditingController();
+  final nameFieldController = TextEditingController(text: tag.name);
   return showDialog(
     context: context,
     builder: (context) {
@@ -27,39 +27,38 @@ Future<void> showNoteTagRenameDialog({
           children: [
             TextField(
               controller: nameFieldController,
+              onSubmitted: (_) {
+                onEditTag(tag, nameFieldController.text);
+                Navigator.of(context).pop();
+              },
               autofocus: true,
               maxLines: 1,
               decoration: InputDecoration(
                 filled: true,
                 fillColor:
-                    context.theme.colorScheme.secondaryContainer.withAlpha(200),
+                    context.theme.colorScheme.primaryContainer.withAlpha(200),
                 border: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: context.theme.colorScheme.secondaryContainer,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: context.theme.colorScheme.secondary.withAlpha(150),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(32),
                 ),
                 contentPadding: const EdgeInsets.all(16.0),
                 hintText: 'Create a new tag',
                 prefixIcon: Icon(
                   Icons.new_label_rounded,
-                  color: context.theme.colorScheme.onSecondaryContainer,
+                  color: context.theme.colorScheme.onPrimaryContainer,
                 ),
               ),
               style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: context.theme.colorScheme.onSecondaryContainer),
+                fontWeight: FontWeight.w500,
+                color: context.theme.colorScheme.onPrimaryContainer,
+              ),
             ),
             const SizedBox(
-              height: 16.0,
+              height: 20.0,
             ),
             FilledButton.tonalIcon(
               onPressed: () => Navigator.of(context).pop(),

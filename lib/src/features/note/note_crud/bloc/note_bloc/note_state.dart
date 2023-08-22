@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart' show immutable;
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/authentication/domain/auth_user.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 
 @immutable
 abstract class NoteState {
@@ -29,7 +30,9 @@ class NoteUninitializedState extends NoteState {
 }
 
 class NoteInitializedState extends NoteState with EquatableMixin {
-  final ValueStream<List<LocalNote>> Function() notes;
+  // final ValueStream<List<LocalNote>> Function() notes;
+
+  final ValueStream<List<PresentableNoteData>> Function() noteData;
 
   final ValueStream<List<LocalNoteTag>> Function() noteTags;
 
@@ -38,13 +41,14 @@ class NoteInitializedState extends NoteState with EquatableMixin {
   /// Store the deleted note in case it need to be restored
   final List<LocalNote>? deletedNotes;
 
-  /// The text to be shown for any generic Snackbar if necessary
+  /// The text to be shown for any generic SnackBar if necessary
   final String? snackBarText;
 
   final String layoutPreference;
 
   const NoteInitializedState({
-    required this.notes,
+    // required this.notes,
+    required this.noteData,
     required this.noteTags,
     required this.selectedNotes,
     this.deletedNotes,
@@ -59,7 +63,8 @@ class NoteInitializedState extends NoteState with EquatableMixin {
 
   @override
   List<Object?> get props => [
-        notes,
+        // notes,
+        noteData,
         noteTags,
         selectedNotes,
         deletedNotes,

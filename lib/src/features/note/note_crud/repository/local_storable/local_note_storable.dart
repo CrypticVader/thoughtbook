@@ -9,7 +9,7 @@ import 'package:thoughtbook/src/features/note/note_crud/repository/local_storabl
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_storable.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_syncable.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
 import 'package:thoughtbook/src/helpers/debouncer/debouncer.dart';
 
 class LocalNoteStorable extends LocalStorable<LocalNote> {
@@ -57,7 +57,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
       cloudDocumentId: cloudDocumentId ?? note.cloudDocumentId,
       title: title ?? note.title,
       content: content ?? note.content,
-      tags: tags ?? note.tags,
+      tagIds: tags ?? note.tagIds,
       color: (color == null || color > 0) ? color : note.color,
       created: created ?? note.created,
       modified: modified ?? DateTime.now().toUtc(),
@@ -66,12 +66,15 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
 
     // Add the updated note to the Isar collection
     await LocalStorable.isar!.writeAsync<void>(
-      (isar) => isar.localNotes.put(newNote),
+      (isar) {
+        isar.localNotes.put(newNote);
+      },
     );
 
     // Add event to notes stream
     _notes.removeWhere((note) => note.isarId == id);
     _notes.add(newNote);
+    _notes.sort((a, b) => -a.created.compareTo(b.created));
     _notesStreamController.add(_notes);
 
     // Add event to note change feed
@@ -92,10 +95,30 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
     }
   }
 
+  Future<void> removeTagIdFromAllItems({required int tagId}) async {
+    final notesWithTag = storableCollection
+        .where()
+        .tagIdsElementEqualTo(tagId)
+        .isarIdProperty()
+        .tagIdsProperty()
+        .modifiedProperty()
+        .findAll();
+    for (final props in notesWithTag) {
+      final id = props.$1;
+      final newTagIds = props.$2..removeWhere((id) => id == tagId);
+      final modified = props.$3;
+      await updateItem(
+        id: id,
+        tags: newTagIds,
+        modified: modified,
+      );
+    }
+  }
+
   @override
   Future<List<LocalNote>> get getAllItems async {
     await _ensureCollectionIsOpen();
-    return storableCollection.where().sortByModifiedDesc().findAll();
+    return storableCollection.where().sortByCreatedDesc().findAll();
   }
 
   @override
@@ -112,8 +135,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
         final note = storableCollection
             .where()
             .cloudDocumentIdEqualTo(cloudDocumentId)
-            .findAll()
-            .first;
+            .findAll(limit: 1)[0];
         return note;
       } on StateError {
         throw CouldNotFindNoteException();
@@ -129,20 +151,19 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
   }
 
   @override
-  Future<Stream<LocalNote>> itemStream({required int id}) async {
-    await _ensureCollectionIsOpen();
-    await getItem(id: id);
-    Stream<LocalNote?> noteStreamNullable = storableCollection.watchObject(
-      id,
-      fireImmediately: true,
-    );
-
-    Stream<LocalNote> noteStream = noteStreamNullable
-        .where((note) => note != null)
-        .map((note) => note!)
-        .asBroadcastStream();
-
-    return noteStream;
+  ValueStream<LocalNote> itemStream({required int id}) {
+    LocalNote? lastEmittedValue;
+    return _notesStreamController.stream.transform<LocalNote>(
+      StreamTransformer.fromHandlers(
+        handleData: (data, sink) {
+          final note = data.where((note) => note.isarId == id).first;
+          if ((lastEmittedValue == null) || (lastEmittedValue != note)) {
+            sink.add(note);
+            lastEmittedValue = note;
+          }
+        },
+      ),
+    ).shareValue();
   }
 
   @override
@@ -158,7 +179,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
       cloudDocumentId: null,
       title: '',
       content: '',
-      tags: [],
+      tagIds: [],
       color: null,
       created: currentTime,
       modified: currentTime,
@@ -175,6 +196,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
 
     // Add event to the stream
     _notes.add(note);
+    _notes.sort((a, b) => -a.created.compareTo(b.created));
     _notesStreamController.add(_notes);
 
     // Add event to note change feed
@@ -244,6 +266,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
 
     // Add event to stream
     _notes.removeWhere((note) => note.isarId == id);
+    _notes.sort((a, b) => -a.created.compareTo(b.created));
     _notesStreamController.add(_notes);
 
     // Add event to note change feed

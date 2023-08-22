@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'note_tag.dart';
+part of 'local_note_tag.dart';
 
 // **************************************************************************
 // _IsarCollectionGenerator
@@ -14,16 +14,50 @@ extension GetLocalNoteTagCollection on Isar {
   IsarCollection<int, LocalNoteTag> get localNoteTags => this.collection();
 }
 
-const LocalNoteTagSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"LocalNoteTag","idName":"isarId","properties":[{"name":"cloudDocumentId","type":"String"},{"name":"name","type":"String"},{"name":"modified","type":"DateTime"},{"name":"created","type":"DateTime"}]}',
+const LocalNoteTagSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'LocalNoteTag',
+    idName: 'isarId',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'cloudDocumentId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'modified',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'created',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'isSyncedWithCloud',
+        type: IsarType.bool,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'name',
+        properties: [
+          "name",
+        ],
+        unique: true,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<int, LocalNoteTag>(
     serialize: serializeLocalNoteTag,
     deserialize: deserializeLocalNoteTag,
     deserializeProperty: deserializeLocalNoteTagProp,
   ),
   embeddedSchemas: [],
-  //hash: -2388113918666744575,
 );
 
 @isarProtected
@@ -39,6 +73,7 @@ int serializeLocalNoteTag(IsarWriter writer, LocalNoteTag object) {
   IsarCore.writeString(writer, 2, object.name);
   IsarCore.writeLong(writer, 3, object.modified.toUtc().microsecondsSinceEpoch);
   IsarCore.writeLong(writer, 4, object.created.toUtc().microsecondsSinceEpoch);
+  IsarCore.writeBool(writer, 5, object.isSyncedWithCloud);
   return object.isarId;
 }
 
@@ -68,12 +103,15 @@ LocalNoteTag deserializeLocalNoteTag(IsarReader reader) {
       _created = DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
     }
   }
+  final bool _isSyncedWithCloud;
+  _isSyncedWithCloud = IsarCore.readBool(reader, 5);
   final object = LocalNoteTag(
     isarId: _isarId,
     cloudDocumentId: _cloudDocumentId,
     name: _name,
     modified: _modified,
     created: _created,
+    isSyncedWithCloud: _isSyncedWithCloud,
   );
   return object;
 }
@@ -105,6 +143,8 @@ dynamic deserializeLocalNoteTagProp(IsarReader reader, int property) {
           return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
         }
       }
+    case 5:
+      return IsarCore.readBool(reader, 5);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -117,6 +157,7 @@ sealed class _LocalNoteTagUpdate {
     String? name,
     DateTime? modified,
     DateTime? created,
+    bool? isSyncedWithCloud,
   });
 }
 
@@ -132,6 +173,7 @@ class _LocalNoteTagUpdateImpl implements _LocalNoteTagUpdate {
     Object? name = ignore,
     Object? modified = ignore,
     Object? created = ignore,
+    Object? isSyncedWithCloud = ignore,
   }) {
     return collection.updateProperties([
           isarId
@@ -140,6 +182,7 @@ class _LocalNoteTagUpdateImpl implements _LocalNoteTagUpdate {
           if (name != ignore) 2: name as String?,
           if (modified != ignore) 3: modified as DateTime?,
           if (created != ignore) 4: created as DateTime?,
+          if (isSyncedWithCloud != ignore) 5: isSyncedWithCloud as bool?,
         }) >
         0;
   }
@@ -152,6 +195,7 @@ sealed class _LocalNoteTagUpdateAll {
     String? name,
     DateTime? modified,
     DateTime? created,
+    bool? isSyncedWithCloud,
   });
 }
 
@@ -167,12 +211,14 @@ class _LocalNoteTagUpdateAllImpl implements _LocalNoteTagUpdateAll {
     Object? name = ignore,
     Object? modified = ignore,
     Object? created = ignore,
+    Object? isSyncedWithCloud = ignore,
   }) {
     return collection.updateProperties(isarId, {
       if (cloudDocumentId != ignore) 1: cloudDocumentId as String?,
       if (name != ignore) 2: name as String?,
       if (modified != ignore) 3: modified as DateTime?,
       if (created != ignore) 4: created as DateTime?,
+      if (isSyncedWithCloud != ignore) 5: isSyncedWithCloud as bool?,
     });
   }
 }
@@ -189,6 +235,7 @@ sealed class _LocalNoteTagQueryUpdate {
     String? name,
     DateTime? modified,
     DateTime? created,
+    bool? isSyncedWithCloud,
   });
 }
 
@@ -204,12 +251,14 @@ class _LocalNoteTagQueryUpdateImpl implements _LocalNoteTagQueryUpdate {
     Object? name = ignore,
     Object? modified = ignore,
     Object? created = ignore,
+    Object? isSyncedWithCloud = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (cloudDocumentId != ignore) 1: cloudDocumentId as String?,
       if (name != ignore) 2: name as String?,
       if (modified != ignore) 3: modified as DateTime?,
       if (created != ignore) 4: created as DateTime?,
+      if (isSyncedWithCloud != ignore) 5: isSyncedWithCloud as bool?,
     });
   }
 }
@@ -219,6 +268,44 @@ extension LocalNoteTagQueryUpdate on IsarQuery<LocalNoteTag> {
       _LocalNoteTagQueryUpdateImpl(this, limit: 1);
 
   _LocalNoteTagQueryUpdate get updateAll => _LocalNoteTagQueryUpdateImpl(this);
+}
+
+class _LocalNoteTagQueryBuilderUpdateImpl implements _LocalNoteTagQueryUpdate {
+  const _LocalNoteTagQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<LocalNoteTag, LocalNoteTag, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? cloudDocumentId = ignore,
+    Object? name = ignore,
+    Object? modified = ignore,
+    Object? created = ignore,
+    Object? isSyncedWithCloud = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (cloudDocumentId != ignore) 1: cloudDocumentId as String?,
+        if (name != ignore) 2: name as String?,
+        if (modified != ignore) 3: modified as DateTime?,
+        if (created != ignore) 4: created as DateTime?,
+        if (isSyncedWithCloud != ignore) 5: isSyncedWithCloud as bool?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension LocalNoteTagQueryBuilderUpdate
+    on QueryBuilder<LocalNoteTag, LocalNoteTag, QOperations> {
+  _LocalNoteTagQueryUpdate get updateFirst =>
+      _LocalNoteTagQueryBuilderUpdateImpl(this, limit: 1);
+
+  _LocalNoteTagQueryUpdate get updateAll =>
+      _LocalNoteTagQueryBuilderUpdateImpl(this);
 }
 
 extension LocalNoteTagQueryFilter
@@ -850,6 +937,20 @@ extension LocalNoteTagQueryFilter
       );
     });
   }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
+      isSyncedWithCloudEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 5,
+          value: value,
+        ),
+      );
+    });
+  }
 }
 
 extension LocalNoteTagQueryObject
@@ -934,6 +1035,20 @@ extension LocalNoteTagQuerySortBy
       return query.addSortBy(4, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
+      sortByIsSyncedWithCloud() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
+      sortByIsSyncedWithCloudDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5, sort: Sort.desc);
+    });
+  }
 }
 
 extension LocalNoteTagQuerySortThenBy
@@ -1001,6 +1116,20 @@ extension LocalNoteTagQuerySortThenBy
       return query.addSortBy(4, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
+      thenByIsSyncedWithCloud() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
+      thenByIsSyncedWithCloudDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5, sort: Sort.desc);
+    });
+  }
 }
 
 extension LocalNoteTagQueryWhereDistinct
@@ -1029,6 +1158,13 @@ extension LocalNoteTagQueryWhereDistinct
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct> distinctByCreated() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(4);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct>
+      distinctByIsSyncedWithCloud() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(5);
     });
   }
 }
@@ -1065,6 +1201,12 @@ extension LocalNoteTagQueryProperty1
       return query.addProperty(4);
     });
   }
+
+  QueryBuilder<LocalNoteTag, bool, QAfterProperty> isSyncedWithCloudProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
+    });
+  }
 }
 
 extension LocalNoteTagQueryProperty2<R>
@@ -1097,6 +1239,13 @@ extension LocalNoteTagQueryProperty2<R>
   QueryBuilder<LocalNoteTag, (R, DateTime), QAfterProperty> createdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R, bool), QAfterProperty>
+      isSyncedWithCloudProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
     });
   }
 }
@@ -1133,6 +1282,13 @@ extension LocalNoteTagQueryProperty3<R1, R2>
       createdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<LocalNoteTag, (R1, R2, bool), QOperations>
+      isSyncedWithCloudProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
     });
   }
 }

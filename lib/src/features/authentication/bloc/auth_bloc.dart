@@ -182,8 +182,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             // the Firestore collection to the local database
             CloudStore.open();
             await LocalStore.open();
-            final Stream<int> loadProgress = Synchronizer.note.initLocalNotes();
-            await for (int progress in loadProgress) {
+
+            final Stream<int> noteTagLoadProgress =
+                Synchronizer.noteTag.initLocalFromCloud();
+            await for (int progress in noteTagLoadProgress) {
+              log('CloudNoteTag retrieval progress: ${progress.toString()}%');
+            }
+            log('Successfully retrieved all note tags from Firestore');
+            final Stream<int> noteLoadProgress =
+                Synchronizer.note.initLocalFromCloud();
+            await for (int progress in noteLoadProgress) {
               log('CloudNote retrieval progress: ${progress.toString()}%');
             }
             log('Successfully retrieved all notes from Firestore');
@@ -216,9 +224,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
         CloudStore.open();
         await LocalStore.open(
-          noteChange: false,
-          noteTagChange: false,
-        );
+            // noteChange: false,
+            // noteTagChange: false,
+            );
         emit(
           const AuthStateLoggedIn(
             isLoading: false,
@@ -260,9 +268,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             ),
           );
         } finally {
-          await LocalStore.note.deleteAllItems(addToChangeFeed: false);
-          await LocalStore.noteTag.deleteAllItems();
-          await LocalStore.close();
+          await LocalStore.close(clearData: true);
           CloudStore.close();
         }
       },

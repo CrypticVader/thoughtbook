@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 
 typedef DialogOptionBuilder<T> = Map<String, T?> Function();
 
 Future<T?> showGenericDialog<T>({
   required BuildContext context,
-  required String title,
-  required Icon icon,
+  required String? title,
+  required Icon? icon,
   required String content,
   required DialogOptionBuilder optionsBuilder,
 }) {
@@ -13,28 +14,55 @@ Future<T?> showGenericDialog<T>({
   return showDialog(
     context: context,
     builder: (context) {
+      var optionIndex = -1;
+      final optionsCount = options.length;
       return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         icon: icon,
-        title: Text(title),
+        title: title!=null?Text(
+          title,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
+        ):null,
         content: Text(
           content,
-          textAlign: TextAlign.center,
+          // textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         actionsAlignment: MainAxisAlignment.center,
-        actions: options.keys.map(
+        actions: options.keys.toList().map<Widget>(
           (optionTitle) {
+            optionIndex++;
+
             final T value = options[optionTitle];
             return Padding(
               padding: const EdgeInsets.symmetric(
-                vertical: 6.0,
+                vertical: 2.0,
               ),
-              child: FilledButton.tonal(
+              child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context)
-                      .colorScheme
-                      .inversePrimary
-                      .withAlpha(150),
-                  minimumSize: const Size.fromHeight(46),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(optionIndex == 0 ? 24 : 4),
+                      topLeft: Radius.circular(optionIndex == 0 ? 24 : 4),
+                      bottomRight: Radius.circular(
+                          (optionIndex == optionsCount - 1) ? 24 : 4),
+                      bottomLeft: Radius.circular(
+                          (optionIndex == optionsCount - 1) ? 24 : 4),
+                    ),
+                  ),
+                  minimumSize: const Size.fromHeight(54),
+                  backgroundColor: (value == null || value == false)
+                      ? context.theme.colorScheme.secondaryContainer
+                      : context.theme.colorScheme.primary,
+                  foregroundColor: (value == null || value == false)
+                      ? context.theme.colorScheme.onSecondaryContainer
+                      : context.theme.colorScheme.onPrimary,
                 ),
                 onPressed: () {
                   if (value != null) {
@@ -43,7 +71,13 @@ Future<T?> showGenericDialog<T>({
                     Navigator.of(context).pop();
                   }
                 },
-                child: Text(optionTitle),
+                child: Text(
+                  optionTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             );
           },

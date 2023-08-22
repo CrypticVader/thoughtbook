@@ -3,8 +3,9 @@ import 'dart:math';
 import 'package:entry/entry.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/show_note_tag_rename_dialog.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/note_tag_rename_dialog.dart';
+import 'package:thoughtbook/src/utilities/dialogs/delete_dialog.dart';
 
 typedef NoteTagCreateCallback = void Function(String tagName);
 typedef NoteTagEditCallback = void Function(
@@ -13,14 +14,14 @@ typedef NoteTagEditCallback = void Function(
 );
 typedef NoteTagDeleteCallback = void Function(LocalNoteTag tag);
 
-showNoteTagEditorModalBottomSheet({
+Future<void> showNoteTagEditorModalBottomSheet({
   required BuildContext context,
   required Stream<List<LocalNoteTag>> Function() tags,
   required NoteTagCreateCallback onCreateTag,
   required NoteTagEditCallback onEditTag,
   required NoteTagDeleteCallback onDeleteTag,
 }) async {
-  await showModalBottomSheet(
+  await showModalBottomSheet<void>(
     context: context,
     isDismissible: true,
     showDragHandle: false,
@@ -78,8 +79,8 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
       builder: (BuildContext context, ScrollController scrollController) {
         return ClipRRect(
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
           ),
           child: Scaffold(
             appBar: PreferredSize(
@@ -93,11 +94,11 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 16.0),
-                      child: Container(
+                      child: Ink(
                         height: 6.0,
                         width: 40,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(32),
+                          borderRadius: BorderRadius.circular(28),
                           color: context.theme.colorScheme.onSurfaceVariant
                               .withAlpha(100),
                         ),
@@ -128,6 +129,11 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                       children: [
                         Flexible(
                           child: TextField(
+                            onSubmitted: (_) {
+                              widget.onCreateTag(newTagTextFieldController.text);
+                              newTagTextFieldController.text = '';
+                            },
+                            textInputAction: TextInputAction.done,
                             controller: newTagTextFieldController,
                             maxLines: 1,
                             // maxLength: 20,
@@ -137,20 +143,12 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                   .theme.colorScheme.secondaryContainer
                                   .withAlpha(200),
                               border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: context
-                                      .theme.colorScheme.secondaryContainer,
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color: context.theme.colorScheme.secondary
-                                      .withAlpha(150),
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(32),
                               ),
                               contentPadding: const EdgeInsets.all(16.0),
                               hintText: 'Create a new tag',
@@ -161,15 +159,17 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                               ),
                             ),
                             style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: context
-                                    .theme.colorScheme.onSecondaryContainer),
+                              fontWeight: FontWeight.w500,
+                              color: context
+                                  .theme.colorScheme.onSecondaryContainer,
+                            ),
                           ),
                         ),
                         const SizedBox(
-                          width: 8.0,
+                          width: 16.0,
                         ),
-                        IconButton.filledTonal(
+                        IconButton.filled(
+                          tooltip: 'Create tag',
                           onPressed: () {
                             widget.onCreateTag(newTagTextFieldController.text);
                             newTagTextFieldController.text = '';
@@ -179,10 +179,11 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                             size: 32,
                           ),
                           style: IconButton.styleFrom(
-                              backgroundColor:
-                                  context.theme.colorScheme.secondary,
-                              foregroundColor:
-                                  context.theme.colorScheme.onSecondary),
+                            backgroundColor:
+                                context.theme.colorScheme.secondary,
+                            foregroundColor:
+                                context.theme.colorScheme.onSecondary,
+                          ),
                         ),
                       ],
                     ),
@@ -230,8 +231,10 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                         milliseconds: min(200, 35 * index)),
                                     duration: const Duration(milliseconds: 100),
                                     opacity: 0,
-                                    scale: 0.8,
+                                    scale: 0.75,
                                     yOffset: 0,
+                                    xOffset: 0,
+                                    curve: Curves.easeInOut,
                                     child: Card(
                                       borderOnForeground: false,
                                       margin: EdgeInsets.zero,
@@ -328,8 +331,18 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                               width: 2.0,
                                             ),
                                             InkWell(
-                                              onTap: () =>
-                                                  widget.onDeleteTag(tag),
+                                              onTap: () async {
+                                                final shouldDelete =
+                                                    await showDeleteDialog(
+                                                  context: context,
+                                                  content:
+                                                      'Are you sure you want to delete this label? '
+                                                      'It will be removed from every note.',
+                                                );
+                                                if (shouldDelete) {
+                                                  widget.onDeleteTag(tag);
+                                                }
+                                              },
                                               splashColor: context.theme
                                                   .colorScheme.onBackground
                                                   .withAlpha(200),

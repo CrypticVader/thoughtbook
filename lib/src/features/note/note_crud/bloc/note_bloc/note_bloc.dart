@@ -10,7 +10,8 @@ import 'package:thoughtbook/src/features/authentication/repository/auth_service.
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/domain/note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
@@ -24,6 +25,25 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
   ValueStream<List<LocalNoteTag>> get allNoteTags =>
       LocalStore.noteTag.allItemStream;
+
+  ValueStream<List<PresentableNoteData>> get allNoteData => Rx.combineLatest2<
+          List<LocalNote>,
+          List<LocalNoteTag>,
+          List<PresentableNoteData>>(allNotes, allNoteTags, (notes, tags) {
+        List<PresentableNoteData> noteData = [];
+        for (final note in notes) {
+          final noteTags = tags
+              .where(
+                (tag) => note.tagIds.contains(tag.isarId),
+              )
+              .toList();
+          noteData.add(PresentableNoteData(
+            note: note,
+            noteTags: noteTags,
+          ));
+        }
+        return noteData;
+      }).shareValue();
 
   AuthUser? get user => AuthService.firebase().currentUser;
 
@@ -40,15 +60,16 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       (event, emit) async {
         if (user == null) {
           await LocalStore.open(
-            // noteChange: false,
-            // noteTagChange: false,
-          );
+              // noteChange: false,
+              // noteTagChange: false,
+              );
           log('Isar opened in NoteBloc, no user');
           emit(
             NoteInitializedState(
               isLoading: false,
               user: null,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
@@ -62,7 +83,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
@@ -71,6 +93,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
           // Start local to cloud sync service
           unawaited(Synchronizer.note.startSync());
+          unawaited(Synchronizer.noteTag.startSync());
         }
         log('NoteBloc initialized');
       },
@@ -86,7 +109,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: const [],
             deletedNotes: event.notes,
@@ -107,7 +131,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: layoutPreference,
@@ -118,7 +143,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: layoutPreference,
@@ -139,7 +165,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: layoutPreference,
@@ -150,7 +177,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: layoutPreference,
@@ -167,7 +195,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
@@ -184,7 +213,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: notes,
             layoutPreference: layoutPreference,
@@ -203,7 +233,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             id: event.note.isarId,
             title: event.note.title,
             content: event.note.content,
-            tags: event.note.tags,
+            tags: event.note.tagIds,
             color: newColor,
             isSyncedWithCloud: false,
           );
@@ -212,7 +242,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
@@ -231,7 +262,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: const [],
             snackBarText: 'Note copied to clipboard',
@@ -249,7 +281,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
@@ -279,7 +312,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
@@ -297,7 +331,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             id: newNote.isarId,
             title: note.title,
             content: note.content,
-            tags: note.tags,
+            tags: note.tagIds,
             color: note.color,
             isSyncedWithCloud: false,
             created: note.created,
@@ -308,7 +342,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: user,
-            notes: () => allNotes,
+            // notes: () => allNotes,
+              noteData: () => allNoteData,
             noteTags: () => allNoteTags,
             selectedNotes: const [],
             layoutPreference: layoutPreference,
@@ -326,7 +361,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
@@ -346,7 +382,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: user,
-                notes: () => allNotes,
+                // notes: () => allNotes,
+              noteData: () => allNoteData,
                 noteTags: () => allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: layoutPreference,
@@ -358,7 +395,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: user,
-                notes: () => allNotes,
+                // notes: () => allNotes,
+              noteData: () => allNoteData,
                 noteTags: () => allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: layoutPreference,
@@ -379,7 +417,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
@@ -397,7 +436,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: user,
-                notes: () => allNotes,
+                // notes: () => allNotes,
+              noteData: () => allNoteData,
                 noteTags: () => allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: layoutPreference,
@@ -409,7 +449,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: user,
-                notes: () => allNotes,
+                // notes: () => allNotes,
+              noteData: () => allNoteData,
                 noteTags: () => allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: layoutPreference,
@@ -421,7 +462,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: user,
-                notes: () => allNotes,
+                // notes: () => allNotes,
+              noteData: () => allNoteData,
                 noteTags: () => allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: layoutPreference,
@@ -443,7 +485,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,
@@ -455,7 +498,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: user,
-              notes: () => allNotes,
+              // notes: () => allNotes,
+              noteData: () => allNoteData,
               noteTags: () => allNoteTags,
               selectedNotes: const [],
               layoutPreference: layoutPreference,

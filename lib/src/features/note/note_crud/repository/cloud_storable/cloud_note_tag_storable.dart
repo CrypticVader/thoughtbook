@@ -88,7 +88,7 @@ class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
       final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
       await storableCollection.doc(cloudDocumentId).update(
         {
-          if (name != null) titleFieldName: name,
+          if (name != null) nameFieldName: name,
           if (created != null) createdFieldName: created,
           modifiedFieldName: modified ?? currentTime,
         },

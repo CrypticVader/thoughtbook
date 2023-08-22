@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_syncable.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
 
 part 'note_tag_change.g.dart';
 
@@ -18,23 +19,54 @@ class NoteTagChange {
   @utc
   final DateTime timestamp;
 
-  /// Field will be null if change was a delete operation
-  @Index()
-  final int noteTagIsarId;
-
-  /// In the case whether the note was deleted locally, this field will be accessed to delete from the cloud
-  /// Field will be null if change was a create operation
-  final String? cloudDocumentId;
-
-  /// The name of the note tag.
-  final String name;
+  final ChangedNoteTag noteTag;
 
   NoteTagChange({
     required this.isarId,
     required this.type,
     required this.timestamp,
-    required this.noteTagIsarId,
-    required this.cloudDocumentId,
-    required this.name,
+    required this.noteTag,
   });
+}
+
+@Embedded()
+class ChangedNoteTag {
+  final int isarId;
+
+  final String? cloudDocumentId;
+
+  final String name;
+
+  @utc
+  final DateTime modified;
+
+  @utc
+  final DateTime created;
+
+  ChangedNoteTag({
+    required this.isarId,
+    required this.name,
+    required this.cloudDocumentId,
+    required this.created,
+    required this.modified,
+  });
+
+  ChangedNoteTag.fromLocalNoteTag(LocalNoteTag noteTag)
+      : isarId = noteTag.isarId,
+        cloudDocumentId = noteTag.cloudDocumentId,
+        name = noteTag.name,
+        created = noteTag.created,
+        modified = noteTag.modified;
+
+  @override
+  bool operator ==(covariant ChangedNoteTag other) => isarId == other.isarId;
+
+  @override
+  int get hashCode => isarId.hashCode;
+
+  @override
+  String toString() {
+    return 'ChangedNoteTag{id: $isarId, cloudDocumentId: $cloudDocumentId, '
+        'name: $name, created: $created, modified: $modified,}';
+  }
 }

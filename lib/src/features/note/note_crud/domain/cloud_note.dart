@@ -13,7 +13,7 @@ class CloudNote {
 
   final String title;
 
-  final List<int> tags;
+  final List<String> tagDocumentIds;
 
   final int? color;
 
@@ -26,7 +26,7 @@ class CloudNote {
     required this.ownerUserId,
     required this.title,
     required this.content,
-    required this.tags,
+    required this.tagDocumentIds,
     required this.color,
     required this.created,
     required this.modified,
@@ -37,7 +37,8 @@ class CloudNote {
         ownerUserId = snapshot.data()[ownerUserIdFieldName],
         content = snapshot.data()[contentFieldName] as String,
         title = snapshot.data()[titleFieldName] as String,
-        tags = List<int>.from(snapshot.data()[tagsFieldName]),
+        tagDocumentIds =
+            List<String>.from(snapshot.data()[tagDocumentIdsFieldName] ?? []),
         // do not cast as int as it is nullable
         color = snapshot.data()[colorFieldName] as int?,
         created = snapshot.data()[createdFieldName] as Timestamp,
@@ -51,6 +52,8 @@ class CloudNote {
 
   @override
   String toString() {
-    return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, title: $title, color: $color, content: $content, created: $created, modified: $modified}';
+    return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, '
+        'tagDocumentIds: $tagDocumentIds, title: $title, color: $color, '
+        'content: $content, created: $created, modified: $modified}';
   }
 }

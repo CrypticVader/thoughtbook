@@ -1,6 +1,6 @@
 import 'package:isar/isar.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_syncable.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
 
 part 'note_change.g.dart';
 
@@ -13,8 +13,8 @@ class NoteChange {
   /// Represents the type of change that was made to the note
   final SyncableChangeType type;
 
-  /// The [ChangedNote] that was changed
-  final ChangedNote changedNote;
+  /// The [LocalNote] that was changed
+  final ChangedNote note;
 
   /// Represents the time when this change was made locally
   @Index()
@@ -25,7 +25,7 @@ class NoteChange {
     required this.isarId,
     required this.type,
     required this.timestamp,
-    required this.changedNote,
+    required this.note,
   });
 }
 
@@ -44,8 +44,8 @@ class ChangedNote {
   /// The content of the note.
   final String content;
 
-  /// The list of id of tags  added to this note.
-  final List<int> tags;
+  /// The list of id of tags added to this note.
+  final List<int> tagIds;
 
   /// The color of the note.
   final int? color;
@@ -66,7 +66,7 @@ class ChangedNote {
     required this.cloudDocumentId,
     required this.title,
     required this.content,
-    required this.tags,
+    required this.tagIds,
     required this.color,
     required this.created,
     required this.modified,
@@ -74,12 +74,11 @@ class ChangedNote {
   });
 
   ChangedNote.fromLocalNote(LocalNote note)
-      :
-        isarId = note.isarId,
+      : isarId = note.isarId,
         content = note.content,
         title = note.title,
         color = note.color,
-        tags = note.tags,
+        tagIds = note.tagIds,
         created = note.created,
         modified = note.modified,
         isSyncedWithCloud = note.isSyncedWithCloud,
@@ -93,6 +92,9 @@ class ChangedNote {
 
   @override
   String toString() {
-    return 'ChangedNote{localId: $isarId, cloudDocumentId: $cloudDocumentId, title: $title, color: $color, content: $content, isSyncedWithCloud: $isSyncedWithCloud, created: $created, modified: $modified}';
+    return 'ChangedNote{localId: $isarId, cloudDocumentId: $cloudDocumentId, '
+        'tagIds: $tagIds ,title: $title, color: $color, content: $content, '
+        'isSyncedWithCloud: $isSyncedWithCloud, created: $created, '
+        'modified: $modified}';
   }
 }

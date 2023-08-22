@@ -14,16 +14,53 @@ extension GetLocalNoteCollection on Isar {
   IsarCollection<int, LocalNote> get localNotes => this.collection();
 }
 
-const LocalNoteSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"LocalNote","idName":"isarId","properties":[{"name":"cloudDocumentId","type":"String"},{"name":"title","type":"String"},{"name":"content","type":"String"},{"name":"tags","type":"LongList"},{"name":"color","type":"Long"},{"name":"isSyncedWithCloud","type":"Bool"},{"name":"created","type":"DateTime"},{"name":"modified","type":"DateTime"}]}',
+const LocalNoteSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'LocalNote',
+    idName: 'isarId',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'cloudDocumentId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'title',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'content',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'tagIds',
+        type: IsarType.longList,
+      ),
+      IsarPropertySchema(
+        name: 'color',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'isSyncedWithCloud',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'created',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'modified',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<int, LocalNote>(
     serialize: serializeLocalNote,
     deserialize: deserializeLocalNote,
     deserializeProperty: deserializeLocalNoteProp,
   ),
   embeddedSchemas: [],
-  //hash: 4819846255785577207,
 );
 
 @isarProtected
@@ -39,7 +76,7 @@ int serializeLocalNote(IsarWriter writer, LocalNote object) {
   IsarCore.writeString(writer, 2, object.title);
   IsarCore.writeString(writer, 3, object.content);
   {
-    final list = object.tags;
+    final list = object.tagIds;
     final listWriter = IsarCore.beginList(writer, 4, list.length);
     for (var i = 0; i < list.length; i++) {
       IsarCore.writeLong(listWriter, i, list[i]);
@@ -63,13 +100,13 @@ LocalNote deserializeLocalNote(IsarReader reader) {
   _title = IsarCore.readString(reader, 2) ?? '';
   final String _content;
   _content = IsarCore.readString(reader, 3) ?? '';
-  final List<int> _tags;
+  final List<int> _tagIds;
   {
     final length = IsarCore.readList(reader, 4, IsarCore.readerPtrPtr);
     {
       final reader = IsarCore.readerPtr;
       if (reader.isNull) {
-        _tags = const <int>[];
+        _tagIds = const <int>[];
       } else {
         final list =
             List<int>.filled(length, -9223372036854775808, growable: true);
@@ -77,7 +114,7 @@ LocalNote deserializeLocalNote(IsarReader reader) {
           list[i] = IsarCore.readLong(reader, i);
         }
         IsarCore.freeReader(reader);
-        _tags = list;
+        _tagIds = list;
       }
     }
   }
@@ -115,7 +152,7 @@ LocalNote deserializeLocalNote(IsarReader reader) {
     cloudDocumentId: _cloudDocumentId,
     title: _title,
     content: _content,
-    tags: _tags,
+    tagIds: _tagIds,
     color: _color,
     isSyncedWithCloud: _isSyncedWithCloud,
     created: _created,
@@ -323,6 +360,47 @@ extension LocalNoteQueryUpdate on IsarQuery<LocalNote> {
       _LocalNoteQueryUpdateImpl(this, limit: 1);
 
   _LocalNoteQueryUpdate get updateAll => _LocalNoteQueryUpdateImpl(this);
+}
+
+class _LocalNoteQueryBuilderUpdateImpl implements _LocalNoteQueryUpdate {
+  const _LocalNoteQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<LocalNote, LocalNote, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? cloudDocumentId = ignore,
+    Object? title = ignore,
+    Object? content = ignore,
+    Object? color = ignore,
+    Object? isSyncedWithCloud = ignore,
+    Object? created = ignore,
+    Object? modified = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (cloudDocumentId != ignore) 1: cloudDocumentId as String?,
+        if (title != ignore) 2: title as String?,
+        if (content != ignore) 3: content as String?,
+        if (color != ignore) 5: color as int?,
+        if (isSyncedWithCloud != ignore) 6: isSyncedWithCloud as bool?,
+        if (created != ignore) 7: created as DateTime?,
+        if (modified != ignore) 8: modified as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension LocalNoteQueryBuilderUpdate
+    on QueryBuilder<LocalNote, LocalNote, QOperations> {
+  _LocalNoteQueryUpdate get updateFirst =>
+      _LocalNoteQueryBuilderUpdateImpl(this, limit: 1);
+
+  _LocalNoteQueryUpdate get updateAll => _LocalNoteQueryBuilderUpdateImpl(this);
 }
 
 extension LocalNoteQueryFilter
@@ -952,7 +1030,8 @@ extension LocalNoteQueryFilter
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsElementEqualTo(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
+      tagIdsElementEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -966,7 +1045,7 @@ extension LocalNoteQueryFilter
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
-      tagsElementGreaterThan(
+      tagIdsElementGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -980,7 +1059,7 @@ extension LocalNoteQueryFilter
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
-      tagsElementGreaterThanOrEqualTo(
+      tagIdsElementGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -993,7 +1072,8 @@ extension LocalNoteQueryFilter
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsElementLessThan(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
+      tagIdsElementLessThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1007,7 +1087,7 @@ extension LocalNoteQueryFilter
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
-      tagsElementLessThanOrEqualTo(
+      tagIdsElementLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1020,7 +1100,8 @@ extension LocalNoteQueryFilter
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsElementBetween(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
+      tagIdsElementBetween(
     int lower,
     int upper,
   ) {
@@ -1035,11 +1116,11 @@ extension LocalNoteQueryFilter
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsIsEmpty() {
-    return not().tagsIsNotEmpty();
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagIdsIsEmpty() {
+    return not().tagIdsIsNotEmpty();
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagsIsNotEmpty() {
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> tagIdsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterOrEqualCondition(property: 4, value: null),
@@ -1578,7 +1659,7 @@ extension LocalNoteQueryWhereDistinct
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterDistinct> distinctByTags() {
+  QueryBuilder<LocalNote, LocalNote, QAfterDistinct> distinctByTagIds() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(4);
     });
@@ -1636,7 +1717,7 @@ extension LocalNoteQueryProperty1
     });
   }
 
-  QueryBuilder<LocalNote, List<int>, QAfterProperty> tagsProperty() {
+  QueryBuilder<LocalNote, List<int>, QAfterProperty> tagIdsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
@@ -1694,7 +1775,7 @@ extension LocalNoteQueryProperty2<R>
     });
   }
 
-  QueryBuilder<LocalNote, (R, List<int>), QAfterProperty> tagsProperty() {
+  QueryBuilder<LocalNote, (R, List<int>), QAfterProperty> tagIdsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
@@ -1753,7 +1834,7 @@ extension LocalNoteQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<LocalNote, (R1, R2, List<int>), QOperations> tagsProperty() {
+  QueryBuilder<LocalNote, (R1, R2, List<int>), QOperations> tagIdsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
