@@ -1,27 +1,30 @@
+import 'dart:async';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:thoughtbook/constants/routes.dart';
-import 'package:thoughtbook/extensions/buildContext/loc.dart';
-import 'package:thoughtbook/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/helpers/loading/loading_screen.dart';
-import 'package:thoughtbook/services/auth/bloc/auth_bloc.dart';
-import 'package:thoughtbook/services/auth/bloc/auth_event.dart';
-import 'package:thoughtbook/services/auth/bloc/auth_state.dart';
-import 'package:thoughtbook/services/auth/firebase_auth_provider.dart';
-import 'package:thoughtbook/views/forgot_password_view.dart';
-import 'package:thoughtbook/views/login_view.dart';
-import 'package:thoughtbook/views/notes/create_update_note_view.dart';
-import 'package:thoughtbook/views/notes/notes_view.dart';
-import 'package:thoughtbook/views/register_view.dart';
-import 'package:thoughtbook/views/verify_email_view.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
+import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/src/features/authentication/bloc/auth_bloc.dart';
+import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
+import 'package:thoughtbook/src/features/authentication/bloc/auth_state.dart';
+import 'package:thoughtbook/src/features/authentication/presentation/forgot_password_view.dart';
+import 'package:thoughtbook/src/features/authentication/presentation/login_view.dart';
+import 'package:thoughtbook/src/features/authentication/presentation/register_view.dart';
+import 'package:thoughtbook/src/features/authentication/presentation/verify_email_view.dart';
+import 'package:thoughtbook/src/features/authentication/repository/firebase_auth_provider.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_view.dart';
+import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
+import 'package:thoughtbook/src/helpers/loading/loading_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  unawaited(AppPreferenceService().initPrefs());
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
@@ -44,7 +47,7 @@ class ThoughtbookApp extends StatefulWidget {
 
 class _ThoughtbookAppState extends State<ThoughtbookApp> {
   static final _defaultLightColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.cyan,
+    seedColor: Colors.deepOrangeAccent,
     brightness: Brightness.light,
   );
 
@@ -55,44 +58,43 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
 
   @override
   Widget build(BuildContext context) {
-    return DynamicColorBuilder(builder: (lightColorScheme, darkColorScheme) {
-      return MaterialApp(
-        supportedLocales: AppLocalizations.supportedLocales,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          fontFamily:
-              (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
-                  ? 'Roboto'
-                  : 'Montserrat',
-          fontFamilyFallback: const ['Roboto'],
-          colorScheme: lightColorScheme ?? _defaultLightColorScheme,
-          splashFactory:
-              (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
-          useMaterial3: true,
-        ),
-        darkTheme: ThemeData(
-          fontFamily:
-              (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
-                  ? 'Roboto'
-                  : 'Montserrat',
-          fontFamilyFallback: const ['Roboto'],
-          colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
-          splashFactory:
-              (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
-          useMaterial3: true,
-        ),
-        themeMode: ThemeMode.system,
-        home: BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(FirebaseAuthProvider()),
-          child: const HomePage(),
-        ),
-        routes: {
-          createOrUpdateNoteRoute: (context) => const CreateUpdateNoteView(),
-        },
-      );
-    });
+    return DynamicColorBuilder(
+      builder: (lightColorScheme, darkColorScheme) {
+        return MaterialApp(
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          debugShowCheckedModeBanner: false,
+          title: 'Thoughtbook',
+          theme: ThemeData(
+            fontFamily:
+                (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
+                    ? 'Roboto'
+                    : 'Montserrat',
+            fontFamilyFallback: const ['Roboto'],
+            colorScheme: lightColorScheme ?? _defaultLightColorScheme,
+            splashFactory:
+                (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            fontFamily:
+                (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
+                    ? 'Roboto'
+                    : 'Montserrat',
+            fontFamilyFallback: const ['Roboto'],
+            colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
+            splashFactory:
+                (kIsWeb) ? InkRipple.splashFactory : InkSparkle.splashFactory,
+            useMaterial3: true,
+          ),
+          themeMode: ThemeMode.system,
+          home: BlocProvider(
+            create: (context) => AuthBloc(FirebaseAuthProvider()),
+            child: const HomePage(),
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -104,7 +106,10 @@ class HomePage extends StatelessWidget {
     required BuildContext context,
   }) {
     if (state is AuthStateLoggedIn) {
-      return const NotesView();
+      return BlocProvider<NoteBloc>(
+        create: (context) => NoteBloc(),
+        child: const NotesView(),
+      );
     } else if (state is AuthStateForgotPassword) {
       return const ForgotPasswordView();
     } else if (state is AuthStateNeedsVerification) {
@@ -128,6 +133,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());
+
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state.isLoading) {
@@ -141,7 +147,15 @@ class HomePage extends StatelessWidget {
       },
       builder: (context, state) {
         return AnimatedSwitcher(
+          switchInCurve: Curves.easeIn,
+          switchOutCurve: Curves.easeOut,
           duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
           child: _getMainLayout(
             state: state,
             context: context,
