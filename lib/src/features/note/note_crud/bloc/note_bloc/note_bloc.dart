@@ -21,34 +21,48 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
-  ValueStream<List<LocalNote>> get allNotes => LocalStore.note.allItemStream;
+  String _searchParameter = '';
 
-  ValueStream<List<LocalNoteTag>> get allNoteTags =>
+  AuthUser? get _user => AuthService.firebase().currentUser;
+
+  String get _layoutPreference =>
+      AppPreferenceService().getPreference(PreferenceKey.layout) as String;
+
+  ValueStream<List<LocalNoteTag>> get _allNoteTags =>
       LocalStore.noteTag.allItemStream;
 
-  ValueStream<List<PresentableNoteData>> get allNoteData => Rx.combineLatest2<
-          List<LocalNote>,
-          List<LocalNoteTag>,
-          List<PresentableNoteData>>(allNotes, allNoteTags, (notes, tags) {
+  ValueStream<List<PresentableNoteData>> get _allNoteData {
+    if (_searchParameter.isEmpty) {
+      return Rx.combineLatest2(LocalStore.note.allItemStream, _allNoteTags,
+          (notes, tags) {
         List<PresentableNoteData> noteData = [];
         for (final note in notes) {
-          final noteTags = tags
-              .where(
-                (tag) => note.tagIds.contains(tag.isarId),
-              )
-              .toList();
-          noteData.add(PresentableNoteData(
-            note: note,
-            noteTags: noteTags,
-          ));
+          final noteTags =
+              tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
+          noteData.add(PresentableNoteData(note: note, noteTags: noteTags));
         }
         return noteData;
       }).shareValue();
-
-  AuthUser? get user => AuthService.firebase().currentUser;
-
-  String get layoutPreference =>
-      AppPreferenceService().getPreference(PreferenceKey.layout) as String;
+    } else {
+      return Rx.combineLatest2(LocalStore.note.allItemStream, _allNoteTags,
+          (notes, tags) {
+        List<PresentableNoteData> noteData = [];
+        for (final note in notes) {
+          final noteTags =
+              tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
+          final noteContainsQuery = note.title.contains(_searchParameter) ||
+              note.content.contains(_searchParameter);
+          final tagContainsQuery = noteTags
+              .where((tag) => tag.name.contains(_searchParameter))
+              .isNotEmpty;
+          if (noteContainsQuery || tagContainsQuery) {
+            noteData.add(PresentableNoteData(note: note, noteTags: noteTags));
+          }
+        }
+        return noteData;
+      }).shareValue();
+    }
+  }
 
   NoteBloc()
       : super(const NoteUninitializedState(
@@ -58,7 +72,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // Initialize
     on<NoteInitializeEvent>(
       (event, emit) async {
-        if (user == null) {
+        if (_user == null) {
           await LocalStore.open(
               // noteChange: false,
               // noteTagChange: false,
@@ -68,11 +82,10 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: null,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: const [],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
             ),
           );
         } else {
@@ -82,12 +95,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: const [],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
             ),
           );
 
@@ -96,6 +108,23 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           unawaited(Synchronizer.noteTag.startSync());
         }
         log('NoteBloc initialized');
+      },
+    );
+
+    // Search notes
+    on<NoteSearchEvent>(
+      (event, emit) {
+        _searchParameter = event.query;
+        emit(
+          NoteInitializedState(
+            isLoading: false,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
+            selectedNotes: const [],
+            layoutPreference: _layoutPreference,
+          ),
+        );
       },
     );
 
@@ -108,13 +137,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: const [],
             deletedNotes: event.notes,
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -130,24 +158,22 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: newSelectedNotes,
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
             ),
           );
         } else {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
             ),
           );
         }
@@ -164,24 +190,22 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: newSelectedNotes,
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
             ),
           );
         } else {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
             ),
           );
         }
@@ -194,12 +218,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: const [],
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -212,12 +235,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: notes,
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -241,12 +263,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: const [],
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -261,13 +282,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: const [],
             snackBarText: 'Note copied to clipboard',
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -280,12 +300,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: const [],
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -311,12 +330,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: const [],
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -341,12 +359,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           NoteInitializedState(
             isLoading: false,
-            user: user,
-            // notes: () => allNotes,
-              noteData: () => allNoteData,
-            noteTags: () => allNoteTags,
+            user: _user,
+            noteData: () => _allNoteData,
+            noteTags: () => _allNoteTags,
             selectedNotes: const [],
-            layoutPreference: layoutPreference,
+            layoutPreference: _layoutPreference,
           ),
         );
       },
@@ -360,12 +377,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: const [],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
               snackBarText: 'Please enter a name for the tag.',
             ),
           );
@@ -381,12 +397,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             emit(
               NoteInitializedState(
                 isLoading: false,
-                user: user,
-                // notes: () => allNotes,
-              noteData: () => allNoteData,
-                noteTags: () => allNoteTags,
+                user: _user,
+                noteData: () => _allNoteData,
+                noteTags: () => _allNoteTags,
                 selectedNotes: const [],
-                layoutPreference: layoutPreference,
+                layoutPreference: _layoutPreference,
                 snackBarText: 'A tag with the given name already exists.',
               ),
             );
@@ -394,12 +409,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             emit(
               NoteInitializedState(
                 isLoading: false,
-                user: user,
-                // notes: () => allNotes,
-              noteData: () => allNoteData,
-                noteTags: () => allNoteTags,
+                user: _user,
+                noteData: () => _allNoteData,
+                noteTags: () => _allNoteTags,
                 selectedNotes: const [],
-                layoutPreference: layoutPreference,
+                layoutPreference: _layoutPreference,
                 snackBarText: 'Oops. Could not create the tag.',
               ),
             );
@@ -416,12 +430,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: const [],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
               snackBarText: 'Please enter a name for the tag.',
             ),
           );
@@ -435,12 +448,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             emit(
               NoteInitializedState(
                 isLoading: false,
-                user: user,
-                // notes: () => allNotes,
-              noteData: () => allNoteData,
-                noteTags: () => allNoteTags,
+                user: _user,
+                noteData: () => _allNoteData,
+                noteTags: () => _allNoteTags,
                 selectedNotes: const [],
-                layoutPreference: layoutPreference,
+                layoutPreference: _layoutPreference,
                 snackBarText: 'Could not find the tag to update.',
               ),
             );
@@ -448,12 +460,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             emit(
               NoteInitializedState(
                 isLoading: false,
-                user: user,
-                // notes: () => allNotes,
-              noteData: () => allNoteData,
-                noteTags: () => allNoteTags,
+                user: _user,
+                noteData: () => _allNoteData,
+                noteTags: () => _allNoteTags,
                 selectedNotes: const [],
-                layoutPreference: layoutPreference,
+                layoutPreference: _layoutPreference,
                 snackBarText: 'Oops. Could not update tag',
               ),
             );
@@ -461,12 +472,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             emit(
               NoteInitializedState(
                 isLoading: false,
-                user: user,
-                // notes: () => allNotes,
-              noteData: () => allNoteData,
-                noteTags: () => allNoteTags,
+                user: _user,
+                noteData: () => _allNoteData,
+                noteTags: () => _allNoteTags,
                 selectedNotes: const [],
-                layoutPreference: layoutPreference,
+                layoutPreference: _layoutPreference,
                 snackBarText: 'A tag with the given name already exists.',
               ),
             );
@@ -484,12 +494,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: const [],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
               snackBarText: 'Could not find the tag to delete.',
             ),
           );
@@ -497,12 +506,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           emit(
             NoteInitializedState(
               isLoading: false,
-              user: user,
-              // notes: () => allNotes,
-              noteData: () => allNoteData,
-              noteTags: () => allNoteTags,
+              user: _user,
+              noteData: () => _allNoteData,
+              noteTags: () => _allNoteTags,
               selectedNotes: const [],
-              layoutPreference: layoutPreference,
+              layoutPreference: _layoutPreference,
               snackBarText: 'Oops. Could not delete tag',
             ),
           );

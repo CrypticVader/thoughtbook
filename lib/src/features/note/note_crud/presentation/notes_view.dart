@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'
     show BlocConsumer, BlocProvider, ReadContext;
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -13,8 +14,12 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_stat
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/note_tag_editor_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/color_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_filter_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_group_mode_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_sort_mode_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_tag_editor_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/common_widgets/tonal_chip.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/color_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/menu_action.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/note_editor_view.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_list_view.dart';
@@ -37,49 +42,143 @@ class NotesView extends StatelessWidget {
     required NoteInitializedState state,
   }) {
     if (state.selectedNotes.isNotEmpty) {
-      return context.theme.colorScheme.primaryContainer.withAlpha(100);
+      return Color.alphaBlend(
+        context.themeColors.primaryContainer.withAlpha(100),
+        context.themeColors.background,
+      );
     }
     return null;
   }
 
-  AppBar _getDefaultAppBar(BuildContext context, NoteInitializedState state) {
+  SliverAppBar _getDefaultAppBar(
+    BuildContext context,
+    NoteInitializedState state,
+    bool isScrolled,
+  ) {
     final layoutPreference = state.layoutPreference;
 
-    return AppBar(
-      iconTheme:
-          IconThemeData(color: Theme.of(context).colorScheme.onSurfaceVariant),
+    return SliverAppBar(
+      pinned: true,
+      snap: true,
+      floating: true,
+      backgroundColor: Color.alphaBlend(
+        context.themeColors.surfaceVariant.withAlpha(isScrolled ? 85 : 0),
+        context.themeColors.background,
+      ),
+      surfaceTintColor: Colors.transparent,
       key: ValueKey<bool>(state.selectedNotes.isEmpty),
-      toolbarHeight: kToolbarHeight,
-      // centerTitle: true,
-      title: Text(
-        context.loc.app_title,
+      leadingWidth: kMinInteractiveDimension,
+      titleSpacing: 16.0,
+      automaticallyImplyLeading: false,
+      title: TextField(
+        onChanged: (value) =>
+            context.read<NoteBloc>().add(NoteSearchEvent(query: value)),
+        textInputAction: TextInputAction.search,
+        keyboardType: TextInputType.text,
         style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          color: context.themeColors.onSecondaryContainer,
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+        ),
+        decoration: InputDecoration(
+          hintStyle: TextStyle(
+            color: context.themeColors.onSecondaryContainer.withAlpha(150),
+            fontWeight: FontWeight.w500,
+            fontSize: 16,
+          ),
+          contentPadding: const EdgeInsets.all(12),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(32.0),
+            borderSide: BorderSide(
+              strokeAlign: BorderSide.strokeAlignInside,
+              width: 1,
+              color: context.themeColors.onBackground.withAlpha(80),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(32.0),
+            borderSide: BorderSide.none,
+          ),
+          fillColor: Color.alphaBlend(
+            context.themeColors.primary.withAlpha(isScrolled ? 40 : 25),
+            context.themeColors.background,
+          ),
+          filled: true,
+          prefixIconColor: context.themeColors.secondary,
+          suffixIconColor: context.themeColors.secondary,
+          prefixIcon: IconButton(
+            onPressed: () => Scaffold.of(context).openDrawer(),
+            icon: const Icon(Icons.menu_rounded),
+          ),
+          suffixIcon: IconButton(
+            onPressed: () =>
+                context.read<NoteBloc>().add(const NoteToggleLayoutEvent()),
+            icon: Icon(
+              (layoutPreference == LayoutPreference.list.value)
+                  ? Icons.grid_view_rounded
+                  : Icons.list_rounded,
+            ),
+            tooltip: (layoutPreference == LayoutPreference.list.value)
+                ? context.loc.notes_view_grid_layout
+                : context.loc.notes_view_list_layout,
+          ),
+          hintText: 'Search your notes & tags',
         ),
       ),
-      actions: [
-        IconButton(
-          onPressed: () =>
-              context.read<NoteBloc>().add(const NoteToggleLayoutEvent()),
-          icon: Icon(
-            (layoutPreference == LayoutPreference.list.value)
-                ? Icons.grid_view_rounded
-                : Icons.list_rounded,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(kMinInteractiveDimension + 8),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 10.0, top: 8.0),
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 16.0,
+                ),
+                TonalChip(
+                  onTap: () async =>
+                      await showNoteFilterPickerBottomSheet(context),
+                  label: 'All notes',
+                  iconData: Icons.filter_list_rounded,
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+                TonalChip(
+                  onTap: () async =>
+                      await showNoteSortModePickerBottomSheet(context),
+                  label: 'Date created',
+                  iconData: Icons.sort_rounded,
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+                TonalChip(
+                  onTap: () async =>
+                      await showNoteGroupModePickerBottomSheet(context),
+                  label: 'Ungrouped',
+                  iconData: Icons.category_rounded,
+                ),
+                const SizedBox(
+                  width: 16.0,
+                ),
+              ],
+            ),
           ),
-          tooltip: (layoutPreference == LayoutPreference.list.value)
-              ? context.loc.notes_view_grid_layout
-              : context.loc.notes_view_list_layout,
         ),
-      ],
+      ),
     );
   }
 
-  AppBar _getNotesSelectedAppBar(
+  Widget _getNotesSelectedAppBar(
       BuildContext context, NoteInitializedState state) {
-    return AppBar(
+    return SliverAppBar(
+      surfaceTintColor: Colors.transparent,
       key: ValueKey<bool>(state.selectedNotes.isEmpty),
-      toolbarHeight: kToolbarHeight,
+      // snap: true,
+      // floating: true,
+      pinned: true,
       backgroundColor: _getTileColor(context: context, state: state),
       title: Text(
         context.loc.notes_title(
@@ -89,7 +188,7 @@ class NotesView extends StatelessWidget {
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w500,
-          color: Theme.of(context).colorScheme.onBackground,
+          color: context.themeColors.onBackground,
         ),
       ),
       leading: IconButton(
@@ -235,11 +334,11 @@ class NotesView extends StatelessWidget {
           // Show generic SnackBar
           if (state.snackBarText != null) {
             final snackBar = SnackBar(
-              backgroundColor: context.theme.colorScheme.tertiary,
+              backgroundColor: context.themeColors.tertiary,
               content: Text(
                 state.snackBarText!,
                 style: TextStyle(
-                  color: context.theme.colorScheme.onTertiary,
+                  color: context.themeColors.onTertiary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -263,14 +362,14 @@ class NotesView extends StatelessWidget {
                 horizontal: 16.0,
                 vertical: 6.0,
               ),
-              backgroundColor: context.theme.colorScheme.tertiary,
+              backgroundColor: context.themeColors.tertiary,
               duration: const Duration(seconds: 4),
               content: Row(
                 children: [
                   Text(
                     context.loc.note_deleted,
                     style: TextStyle(
-                      color: context.theme.colorScheme.onTertiary,
+                      color: context.themeColors.onTertiary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -292,7 +391,7 @@ class NotesView extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.restore_rounded,
-                            color: context.theme.colorScheme.onTertiary,
+                            color: context.themeColors.onTertiary,
                           ),
                           const SizedBox(
                             width: 4.0,
@@ -300,7 +399,7 @@ class NotesView extends StatelessWidget {
                           Text(
                             context.loc.undo,
                             style: TextStyle(
-                              color: context.theme.colorScheme.onTertiary,
+                              color: context.themeColors.onTertiary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -349,15 +448,6 @@ class NotesView extends StatelessWidget {
               }
             },
             child: Scaffold(
-              appBar: PreferredSize(
-                preferredSize: const Size.fromHeight(kToolbarHeight),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: (state.selectedNotes.isEmpty)
-                      ? _getDefaultAppBar(context, state)
-                      : _getNotesSelectedAppBar(context, state),
-                ),
-              ),
               floatingActionButton: state.selectedNotes.isEmpty
                   ? OpenContainer(
                       tappable: false,
@@ -381,9 +471,9 @@ class NotesView extends StatelessWidget {
                           Radius.circular(16.0),
                         ),
                       ),
-                      closedColor: context.theme.colorScheme.inversePrimary,
-                      middleColor: context.theme.colorScheme.secondaryContainer,
-                      openColor: context.theme.colorScheme.secondaryContainer,
+                      closedColor: context.themeColors.primaryContainer,
+                      middleColor: context.themeColors.secondaryContainer,
+                      openColor: context.themeColors.secondaryContainer,
                       closedBuilder: (context, openContainer) {
                         return FloatingActionButton(
                           elevation: 0.0,
@@ -394,7 +484,7 @@ class NotesView extends StatelessWidget {
                           tooltip: context.loc.new_note,
                           backgroundColor: Colors.transparent,
                           foregroundColor:
-                              context.theme.colorScheme.onPrimaryContainer,
+                              context.themeColors.onPrimaryContainer,
                           child: const Icon(
                             Icons.add_rounded,
                             size: 44,
@@ -418,8 +508,7 @@ class NotesView extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
-                                color:
-                                    context.theme.colorScheme.tertiaryContainer,
+                                color: context.themeColors.tertiaryContainer,
                                 borderRadius: BorderRadius.circular(28.0),
                               ),
                               child: Column(
@@ -466,12 +555,15 @@ class NotesView extends StatelessWidget {
                                       context.loc.logout_button,
                                     ),
                                     style: FilledButton.styleFrom(
-                                      backgroundColor:
-                                          context.theme.colorScheme.tertiary,
-                                      foregroundColor: context.theme.colorScheme.onTertiary,
-                                      minimumSize: const Size.fromHeight(44.0),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
-                                    ),
+                                        backgroundColor:
+                                            context.themeColors.tertiary,
+                                        foregroundColor: context
+                                            .theme.colorScheme.onTertiary,
+                                        minimumSize:
+                                            const Size.fromHeight(44.0),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20))),
                                   ),
                                 ],
                               ),
@@ -512,8 +604,7 @@ class NotesView extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.w700,
-                                color:
-                                    Theme.of(context).colorScheme.onBackground,
+                                color: context.themeColors.onBackground,
                               ),
                             ),
                           ),
@@ -539,8 +630,7 @@ class NotesView extends StatelessWidget {
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16.0),
-                                tileColor:
-                                    context.theme.colorScheme.primaryContainer,
+                                tileColor: context.themeColors.primaryContainer,
                                 splashColor: context
                                     .theme.colorScheme.inversePrimary
                                     .withAlpha(200),
@@ -565,27 +655,6 @@ class NotesView extends StatelessWidget {
                                         .theme.colorScheme.onPrimaryContainer,
                                   ),
                                 ),
-                                trailing: InkWell(
-                                  onTap: () {},
-                                  borderRadius: BorderRadius.circular(32),
-                                  splashColor: context
-                                      .theme.colorScheme.primaryContainer
-                                      .withAlpha(200),
-                                  child: Ink(
-                                    padding: const EdgeInsets.all(4.0),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          context.theme.colorScheme.surfaceTint,
-                                      borderRadius: BorderRadius.circular(32),
-                                    ),
-                                    child: Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      color: context
-                                          .theme.colorScheme.primaryContainer,
-                                      size: 28,
-                                    ),
-                                  ),
-                                ),
                               ),
                               const SizedBox(
                                 height: 2.0,
@@ -594,8 +663,7 @@ class NotesView extends StatelessWidget {
                                 onTap: () {},
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16.0),
-                                tileColor:
-                                    context.theme.colorScheme.primaryContainer,
+                                tileColor: context.themeColors.primaryContainer,
                                 splashColor: context
                                     .theme.colorScheme.inversePrimary
                                     .withAlpha(150),
@@ -629,8 +697,7 @@ class NotesView extends StatelessWidget {
                                   child: Ink(
                                     padding: const EdgeInsets.all(4.0),
                                     decoration: BoxDecoration(
-                                      color:
-                                          context.theme.colorScheme.surfaceTint,
+                                      color: context.themeColors.surfaceTint,
                                       borderRadius: BorderRadius.circular(32),
                                     ),
                                     child: Icon(
@@ -662,8 +729,8 @@ class NotesView extends StatelessWidget {
                                 },
                                 tileColor: context
                                     .theme.colorScheme.secondaryContainer,
-                                splashColor: context.theme.colorScheme.secondary
-                                    .withAlpha(50),
+                                splashColor:
+                                    context.themeColors.secondary.withAlpha(50),
                                 leading: Icon(
                                   Icons.settings_rounded,
                                   color: context
@@ -686,62 +753,73 @@ class NotesView extends StatelessWidget {
                   ],
                 ),
               ),
-              body: StreamBuilder<List<PresentableNoteData>>(
-                stream: state.noteData(),
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                    case ConnectionState.done:
-                    case ConnectionState.active:
-                      if (snapshot.hasData) {
-                        final allNotesData = snapshot.data!;
-
-                        return BlocProvider<NoteBloc>.value(
-                          value: context.read<NoteBloc>(),
-                          child: NotesListView(
-                            layoutPreference: state.layoutPreference,
-                            // notes: allNotes,
-                            noteData: allNotesData,
-                            selectedNotes: state.selectedNotes,
-                            onDeleteNote: (LocalNote note) => context
-                                .read<NoteBloc>()
-                                .add(NoteDeleteEvent(notes: [note])),
-                            onTap: (
-                              LocalNote note,
-                              void Function() openNote,
-                            ) {
-                              if (state.selectedNotes.isEmpty) {
-                                openNote();
-                              } else {
-                                context.read<NoteBloc>().add(NoteTapEvent(
-                                      note: note,
-                                      selectedNotes: state.selectedNotes,
-                                    ));
-                              }
-                            },
-                            onLongPress: (LocalNote note) =>
-                                context.read<NoteBloc>().add(NoteLongPressEvent(
-                                      note: note,
-                                      selectedNotes: state.selectedNotes,
-                                    )),
-                          ),
-                        );
-                      } else {
-                        return Center(
-                          child: Text(
-                            context.loc.notes_view_create_note_to_see_here,
-                          ),
-                        );
-                      }
-                    default:
-                      return Center(
-                        child: SpinKitDoubleBounce(
-                          color: context.theme.colorScheme.primary,
-                          size: 60,
-                        ),
-                      );
-                  }
+              body: NestedScrollView(
+                floatHeaderSlivers: true,
+                headerSliverBuilder:
+                    (BuildContext context, bool innerBoxIsScrolled) {
+                  return [
+                    (state.selectedNotes.isEmpty)
+                        ? _getDefaultAppBar(context, state, innerBoxIsScrolled)
+                        : _getNotesSelectedAppBar(context, state),
+                  ];
                 },
+                body: StreamBuilder<List<PresentableNoteData>>(
+                  stream: state.noteData(),
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.done:
+                      case ConnectionState.active:
+                        if (snapshot.hasData) {
+                          final allNotesData = snapshot.data!;
+                          return BlocProvider<NoteBloc>.value(
+                            value: context.read<NoteBloc>(),
+                            child: NotesListView(
+                              layoutPreference: state.layoutPreference,
+                              // notes: allNotes,
+                              noteData: allNotesData,
+                              selectedNotes: state.selectedNotes,
+                              onDeleteNote: (LocalNote note) => context
+                                  .read<NoteBloc>()
+                                  .add(NoteDeleteEvent(notes: [note])),
+                              onTap: (
+                                LocalNote note,
+                                void Function() openNote,
+                              ) {
+                                if (state.selectedNotes.isEmpty) {
+                                  openNote();
+                                } else {
+                                  context.read<NoteBloc>().add(NoteTapEvent(
+                                        note: note,
+                                        selectedNotes: state.selectedNotes,
+                                      ));
+                                }
+                              },
+                              onLongPress: (LocalNote note) => context
+                                  .read<NoteBloc>()
+                                  .add(NoteLongPressEvent(
+                                    note: note,
+                                    selectedNotes: state.selectedNotes,
+                                  )),
+                            ),
+                          );
+                        } else {
+                          return Center(
+                            child: Text(
+                              context.loc.notes_view_create_note_to_see_here,
+                            ),
+                          );
+                        }
+                      default:
+                        return Center(
+                          child: SpinKitDoubleBounce(
+                            color: context.themeColors.primary,
+                            size: 60,
+                          ),
+                        );
+                    }
+                  },
+                ),
               ),
             ),
           );

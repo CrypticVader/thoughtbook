@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/note_tag_editor_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_tag_editor_bottom_sheet.dart';
 
 Future<void> showNoteTagRenameDialog({
   required BuildContext context,

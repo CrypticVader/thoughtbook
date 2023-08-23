@@ -18,7 +18,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   ValueStream<LocalNote> noteStream() =>
       LocalStore.note.itemStream(id: _noteIsarId!);
 
-  ValueStream<PresentableNoteData> presentableNote()=>
+  ValueStream<PresentableNoteData> presentableNote() =>
       Rx.combineLatest2<LocalNote, List<LocalNoteTag>, PresentableNoteData>(
         noteStream(),
         allNoteTags(),

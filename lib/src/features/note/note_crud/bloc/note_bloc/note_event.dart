@@ -11,6 +11,12 @@ class NoteInitializeEvent extends NoteEvent {
   const NoteInitializeEvent();
 }
 
+class NoteSearchEvent extends NoteEvent {
+  final String query;
+
+  const NoteSearchEvent({required this.query});
+}
+
 class NoteDeleteEvent extends NoteEvent {
   /// List of notes to be deleted
   final List<LocalNote> notes;

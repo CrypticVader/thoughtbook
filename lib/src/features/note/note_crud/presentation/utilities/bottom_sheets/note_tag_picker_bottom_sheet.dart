@@ -121,7 +121,7 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                   topLeft: Radius.circular(28),
                 ),
                 child: DraggableScrollableSheet(
-                  controller: controller,
+                  // controller: controller,
                   expand: false,
                   initialChildSize: min(0.75, maxHeight),
                   maxChildSize: maxHeight,
@@ -171,73 +171,68 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                         physics: const ClampingScrollPhysics(),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListView.separated(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemBuilder: (context, index) {
-                                  final tag = allNoteTagList[index];
-                                  final isSelected =
-                                      noteTagIds.contains(tag.isarId);
-                                  return ListTile(
-                                    onTap: () => widget.onTapTag(tag),
-                                    splashColor:
-                                        colorScheme.secondary.withAlpha(100),
-                                    tileColor: colorScheme.secondaryContainer,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: index == 0
+                          child: ListView.separated(
+                            physics: const NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemBuilder: (context, index) {
+                              final tag = allNoteTagList[index];
+                              final isSelected =
+                                  noteTagIds.contains(tag.isarId);
+                              return ListTile(
+                                onTap: () => widget.onTapTag(tag),
+                                splashColor:
+                                    colorScheme.secondary.withAlpha(100),
+                                tileColor: colorScheme.secondaryContainer,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: index == 0
+                                        ? const Radius.circular(24)
+                                        : const Radius.circular(4),
+                                    topRight: index == 0
+                                        ? const Radius.circular(24)
+                                        : const Radius.circular(4),
+                                    bottomLeft:
+                                        (index == allNoteTagList.length - 1)
                                             ? const Radius.circular(24)
                                             : const Radius.circular(4),
-                                        topRight: index == 0
+                                    bottomRight:
+                                        (index == allNoteTagList.length - 1)
                                             ? const Radius.circular(24)
                                             : const Radius.circular(4),
-                                        bottomLeft:
-                                            (index == allNoteTagList.length - 1)
-                                                ? const Radius.circular(24)
-                                                : const Radius.circular(4),
-                                        bottomRight:
-                                            (index == allNoteTagList.length - 1)
-                                                ? const Radius.circular(24)
-                                                : const Radius.circular(4),
-                                      ),
-                                    ),
-                                    leading: Icon(
-                                      Icons.label_rounded,
-                                      color: colorScheme.onSecondaryContainer,
-                                    ),
-                                    title: Text(
-                                      tag.name,
-                                      style: TextStyle(
-                                        color: colorScheme.onSecondaryContainer,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    trailing: Checkbox(
-                                      side: BorderSide(
-                                        color: colorScheme.secondary,
-                                        width: 2,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4.0)),
-                                      activeColor: colorScheme.secondary,
-                                      checkColor: colorScheme.onPrimary,
-                                      value: isSelected,
-                                      onChanged: (value) =>
-                                          widget.onTapTag(tag),
-                                    ),
-                                  );
-                                },
-                                separatorBuilder: (context, index) =>
-                                    const SizedBox(
-                                  height: 2,
+                                  ),
                                 ),
-                                itemCount: allNoteTagList.length,
-                              ),
-                            ],
+                                leading: Icon(
+                                  Icons.label_rounded,
+                                  color: colorScheme.onSecondaryContainer,
+                                ),
+                                title: Text(
+                                  tag.name,
+                                  style: TextStyle(
+                                    color: colorScheme.onSecondaryContainer,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                trailing: Checkbox(
+                                  side: BorderSide(
+                                    color: colorScheme.secondary,
+                                    width: 2,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(4.0)),
+                                  activeColor: colorScheme.secondary,
+                                  checkColor: colorScheme.onPrimary,
+                                  value: isSelected,
+                                  onChanged: (value) =>
+                                      widget.onTapTag(tag),
+                                ),
+                              );
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(
+                              height: 2,
+                            ),
+                            itemCount: allNoteTagList.length,
                           ),
                         ),
                       ),
