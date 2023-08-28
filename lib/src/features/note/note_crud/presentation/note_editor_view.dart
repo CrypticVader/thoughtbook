@@ -1,10 +1,12 @@
 import 'package:animations/animations.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/extensions/dateTime/custom_format.dart';
@@ -15,6 +17,7 @@ import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/color_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_tag_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/common_widgets/tonal_chip.dart';
 import 'package:thoughtbook/src/utilities/dialogs/generic_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -46,6 +49,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
   late final TextEditingController _noteContentController;
   late final TextEditingController _noteTitleController;
   late NoteEditorBloc noteEditorBloc;
+  bool _showFab = true;
   ColorScheme noteColors = ColorScheme.fromSeed(
     seedColor: Colors.grey,
     brightness:
@@ -184,309 +188,318 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                       brightness:
                           _isDarkMode ? Brightness.dark : Brightness.light,
                     );
-
                     return Scaffold(
-                      appBar: PreferredSize(
-                        preferredSize: const Size.fromHeight(kToolbarHeight),
-                        child: AnimatedContainer(
+                      floatingActionButton: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 150),
+                        opacity: _showFab ? 1 : 0,
+                        child: AnimatedScale(
+                          scale: _showFab ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: FloatingActionButton.extended(
+                            onPressed: () => context.read<NoteEditorBloc>().add(
+                                  NoteEditorChangeViewTypeEvent(
+                                    wasEditable: isEditable,
+                                  ),
+                                ),
+                            backgroundColor: noteColors.tertiaryContainer,
+                            tooltip: isEditable ? 'Preview Note' : 'Edit note',
+                            label: isEditable
+                                ? const Text('Read')
+                                : const Text('Edit'),
+                            foregroundColor: noteColors.onTertiaryContainer,
+                            icon: Icon(
+                              isEditable
+                                  ? FluentIcons.reading_mode_mobile_24_filled
+                                  : FluentIcons.note_edit_24_filled,
+                              color: noteColors.onTertiaryContainer,
+                            ),
+                          ),
+                        ),
+                      ),
+                      body: NestedScrollView(
+                        floatHeaderSlivers: true,
+                        headerSliverBuilder: (context, innerBoxIsScrolled) {
+                          return [
+                            SliverPinnedHeader(
+                              child: AnimatedContainer(
+                                color: innerBoxIsScrolled
+                                    ? Color.alphaBlend(
+                                        context
+                                            .theme.colorScheme.onSurfaceVariant
+                                            .withAlpha(20),
+                                        noteColors.primaryContainer,
+                                      )
+                                    : Color.alphaBlend(
+                                        noteColors.primaryContainer
+                                            .withAlpha(200),
+                                        context.theme.colorScheme.background,
+                                      ),
+                                duration: const Duration(milliseconds: 150),
+                                child: AppBar(
+                                  // pinned: true,
+                                  surfaceTintColor: Colors.transparent,
+                                  iconTheme: IconThemeData(
+                                    color: noteColors.onPrimaryContainer,
+                                  ),
+                                  backgroundColor: Colors.transparent,
+                                  leading: IconButton(
+                                    tooltip: 'Go back',
+                                    icon: const Icon(
+                                        FluentIcons.chevron_left_28_filled),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  actions: [
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          tooltip: context.loc.change_color,
+                                          onPressed: () async =>
+                                              await _updateNoteColor(note),
+                                          icon: const Icon(
+                                              FluentIcons.color_24_regular),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => context
+                                              .read<NoteEditorBloc>()
+                                              .add(
+                                                  const NoteEditorShareEvent()),
+                                          icon: const Icon(
+                                              FluentIcons.share_24_regular),
+                                          tooltip: context.loc.share_note,
+                                        ),
+                                        IconButton(
+                                          tooltip: context.loc.copy_text,
+                                          onPressed: () => context
+                                              .read<NoteEditorBloc>()
+                                              .add(const NoteEditorCopyEvent()),
+                                          icon: const Icon(
+                                              FluentIcons.copy_24_regular),
+                                        ),
+                                        IconButton(
+                                          tooltip: context.loc.delete,
+                                          onPressed: () => context
+                                              .read<NoteEditorBloc>()
+                                              .add(
+                                                  const NoteEditorDeleteEvent()),
+                                          icon: const Icon(
+                                              FluentIcons.delete_24_regular),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      width: 8.0,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SliverToBoxAdapter(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: AnimatedContainer(
+                                  color: innerBoxIsScrolled
+                                      ? Color.alphaBlend(
+                                          context.theme.colorScheme
+                                              .onSurfaceVariant
+                                              .withAlpha(20),
+                                          noteColors.primaryContainer,
+                                        )
+                                      : Color.alphaBlend(
+                                          noteColors.primaryContainer
+                                              .withAlpha(200),
+                                          context.theme.colorScheme.background,
+                                        ),
+                                  duration: const Duration(milliseconds: 150),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        const SizedBox(width: 8.0),
+                                        TonalChip(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
+                                          onTap: () => showGenericDialog(
+                                            context: context,
+                                            title: 'Info',
+                                            icon: const Icon(
+                                              FluentIcons
+                                                  .calendar_ltr_24_filled,
+                                              size: 40,
+                                            ),
+                                            content: 'content',
+                                            optionsBuilder: () => {'OK': null},
+                                          ),
+                                          label: note.modified.customFormat(),
+                                          iconData: FluentIcons
+                                              .calendar_ltr_24_filled,
+                                          backgroundColor: Color.alphaBlend(
+                                            noteColors.primaryContainer
+                                                .withAlpha(innerBoxIsScrolled
+                                                    ? 200
+                                                    : 255),
+                                            noteColors.background,
+                                          ),
+                                          foregroundColor:
+                                              noteColors.onPrimaryContainer,
+                                          splashColor: noteColors.primary,
+                                        ),
+                                        const SizedBox(width: 8.0),
+                                        TonalChip(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
+                                          onTap: () async =>
+                                              await showNoteTagPickerModalBottomSheet(
+                                            context: context,
+                                            noteStream: state.noteStream,
+                                            allNoteTags: state.allNoteTags,
+                                            onTapTag: (tag) => context
+                                                .read<NoteEditorBloc>()
+                                                .add(NoteEditorUpdateTagEvent(
+                                                    selectedTag: tag)),
+                                            colorScheme: noteColors,
+                                          ),
+                                          label: tags.isEmpty
+                                              ? 'No labels'
+                                              : tags
+                                                  .map((tag) => tag.name)
+                                                  .join(', '),
+                                          iconData: tags.isEmpty
+                                              ? FluentIcons
+                                                  .tag_dismiss_24_filled
+                                              : FluentIcons.tag_24_filled,
+                                          backgroundColor: Color.alphaBlend(
+                                            noteColors.primaryContainer
+                                                .withAlpha(innerBoxIsScrolled
+                                                    ? 200
+                                                    : 255),
+                                            noteColors.background,
+                                          ),
+                                          foregroundColor:
+                                              noteColors.onPrimaryContainer,
+                                          splashColor: noteColors.primary,
+                                        ),
+                                        const SizedBox(width: 8.0),
+                                        TonalChip(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
+                                          onTap: () => showGenericDialog(
+                                            context: context,
+                                            title: note.isSyncedWithCloud
+                                                ? 'Backed Up'
+                                                : 'Pending Sync',
+                                            icon: note.isSyncedWithCloud
+                                                ? const Icon(
+                                                    Icons.cloud_done_rounded,
+                                                    size: 40,
+                                                  )
+                                                : const Icon(
+                                                    Icons.cloud_upload_rounded,
+                                                    size: 40,
+                                                  ),
+                                            content: noteData
+                                                    .note.isSyncedWithCloud
+                                                ? 'This note is saved to the the '
+                                                    'cloud & can be accessed'
+                                                    ' by using your account.'
+                                                : 'Changes made to this note are '
+                                                    'pending to be saved to the cloud, '
+                                                    'but are safe on your device.'
+                                                    ' We will save the changes when your '
+                                                    'device is online.',
+                                            optionsBuilder: () => {'OK': null},
+                                          ),
+                                          label: note.isSyncedWithCloud
+                                              ? 'Changes saved'
+                                              : 'Changes unsaved',
+                                          iconData: note.isSyncedWithCloud
+                                              ? FluentIcons
+                                                  .cloud_checkmark_24_filled
+                                              : FluentIcons
+                                                  .cloud_arrow_up_24_filled,
+                                          backgroundColor: Color.alphaBlend(
+                                            noteColors.primaryContainer
+                                                .withAlpha(innerBoxIsScrolled
+                                                    ? 200
+                                                    : 255),
+                                            noteColors.background,
+                                          ),
+                                          foregroundColor:
+                                              noteColors.onPrimaryContainer,
+                                          splashColor: noteColors.primary,
+                                        ),
+                                        const SizedBox(width: 8.0),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ];
+                        },
+                        body: AnimatedContainer(
                           color: Color.alphaBlend(
                             noteColors.primaryContainer.withAlpha(200),
                             context.theme.colorScheme.background,
                           ),
-                          duration: const Duration(milliseconds: 500),
-                          child: AppBar(
-                            iconTheme: IconThemeData(
-                              color: noteColors.onPrimaryContainer,
-                            ),
-                            backgroundColor: Colors.transparent,
-                            leading: IconButton(
-                              tooltip: 'Go back',
-                              icon: const Icon(CupertinoIcons.back),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                            actions: [
-                              Row(
-                                children: [
-                                  IconButton(
-                                    tooltip: context.loc.change_color,
-                                    onPressed: () async =>
-                                        await _updateNoteColor(note),
-                                    icon: const Icon(Icons.palette_rounded),
-                                  ),
-                                  IconButton(
-                                    onPressed: () => context
-                                        .read<NoteEditorBloc>()
-                                        .add(const NoteEditorShareEvent()),
-                                    icon: const Icon(Icons.share_rounded),
-                                    tooltip: context.loc.share_note,
-                                  ),
-                                  IconButton(
-                                    tooltip: context.loc.copy_text,
-                                    onPressed: () => context
-                                        .read<NoteEditorBloc>()
-                                        .add(const NoteEditorCopyEvent()),
-                                    icon: const Icon(Icons.copy_rounded),
-                                  ),
-                                  IconButton(
-                                    tooltip: context.loc.delete,
-                                    onPressed: () => context
-                                        .read<NoteEditorBloc>()
-                                        .add(const NoteEditorDeleteEvent()),
-                                    icon: const Icon(Icons.delete_rounded),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                width: 8.0,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      floatingActionButton: FloatingActionButton.extended(
-                        onPressed: () => context.read<NoteEditorBloc>().add(
-                              NoteEditorChangeViewTypeEvent(
-                                wasEditable: isEditable,
-                              ),
-                            ),
-                        backgroundColor: noteColors.tertiaryContainer,
-                        tooltip: isEditable ? 'Preview Note' : 'Edit note',
-                        label: isEditable
-                            ? const Text('Preview')
-                            : const Text('Edit'),
-                        foregroundColor: noteColors.onTertiaryContainer,
-                        icon: Icon(
-                          isEditable
-                              ? Icons.preview_rounded
-                              : Icons.edit_rounded,
-                          color: noteColors.onTertiaryContainer,
-                        ),
-                      ),
-                      body: AnimatedContainer(
-                        color: Color.alphaBlend(
-                          noteColors.primaryContainer.withAlpha(200),
-                          context.theme.colorScheme.background,
-                        ),
-                        constraints: const BoxConstraints.expand(),
-                        duration: const Duration(milliseconds: 500),
-                        child: SingleChildScrollView(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 54),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      InkWell(
-                                        onTap: () => showGenericDialog(
-                                          context: context,
-                                          title: 'Info',
-                                          icon: const Icon(
-                                            Icons.history_rounded,
-                                            size: 40,
-                                          ),
-                                          content: 'content',
-                                          optionsBuilder: () => {'OK': null},
-                                        ),
-                                        splashColor:
-                                            noteColors.onTertiaryContainer,
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(10.0),
-                                          decoration: BoxDecoration(
-                                            color: noteColors.background
-                                                .withAlpha(120),
-                                            borderRadius:
-                                                BorderRadius.circular(14.0),
-                                            border: Border.all(
-                                              color: noteColors.onBackground
-                                                  .withAlpha(100),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.date_range_rounded,
-                                                size: 20,
-                                                color: noteColors.onBackground,
-                                              ),
-                                              const SizedBox(width: 8.0),
-                                              Text(
-                                                note.modified.customFormat(),
-                                                style: TextStyle(
-                                                  color:
-                                                      noteColors.onBackground,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize: 14.0,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                          constraints: const BoxConstraints.expand(),
+                          duration: const Duration(milliseconds: 150),
+                          child: NotificationListener<UserScrollNotification>(
+                            onNotification: (notification) {
+                              ScrollDirection direction =
+                                  notification.direction;
+                              if (direction == ScrollDirection.forward) {
+                                if (_showFab != true) {
+                                  setState(() {
+                                    _showFab = true;
+                                  });
+                                }
+                              } else if (direction == ScrollDirection.reverse) {
+                                if (_showFab != false) {
+                                  setState(() {
+                                    _showFab = false;
+                                  });
+                                }
+                              }
+                              return true;
+                            },
+                            child: SingleChildScrollView(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                    16.0, 0.0, 16.0, 48.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AnimatedCrossFade(
+                                      firstCurve: Curves.ease,
+                                      secondCurve: Curves.ease,
+                                      sizeCurve: Curves.ease,
+                                      firstChild: NoteReadableView(
+                                        key: const ValueKey<bool>(false),
+                                        title: note.title,
+                                        content: note.content,
+                                        noteColors: noteColors,
                                       ),
-                                      const SizedBox(width: 8.0),
-                                      InkWell(
-                                        onTap: () async =>
-                                            await showNoteTagPickerModalBottomSheet(
-                                          context: context,
-                                          noteStream: state.noteStream,
-                                          allNoteTags: state.allNoteTags,
-                                          onTapTag: (tag) => context
-                                              .read<NoteEditorBloc>()
-                                              .add(NoteEditorUpdateTagEvent(
-                                                  selectedTag: tag)),
-                                          colorScheme: noteColors,
-                                        ),
-                                        splashColor:
-                                            noteColors.onTertiaryContainer,
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(10.0),
-                                          decoration: BoxDecoration(
-                                            color: noteColors.background
-                                                .withAlpha(120),
-                                            borderRadius:
-                                                BorderRadius.circular(14.0),
-                                            border: Border.all(
-                                              color: noteColors.onBackground
-                                                  .withAlpha(100),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                tags.isEmpty
-                                                    ? Icons.label_off_rounded
-                                                    : Icons.label_rounded,
-                                                size: 20,
-                                                color: noteColors.onBackground,
-                                              ),
-                                              const SizedBox(width: 8.0),
-                                              Text(
-                                                tags.isEmpty
-                                                    ? 'No labels'
-                                                    : tags
-                                                        .map((tag) => tag.name)
-                                                        .join(', '),
-                                                style: TextStyle(
-                                                  color:
-                                                      noteColors.onBackground,
-                                                  fontStyle: tags.isEmpty
-                                                      ? FontStyle.italic
-                                                      : FontStyle.normal,
-                                                  fontSize: 14.0,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
+                                      secondChild: NoteEditableView(
+                                        key: const ValueKey<bool>(true),
+                                        textColor:
+                                            noteColors.onSecondaryContainer,
+                                        titleController: _noteTitleController,
+                                        contentController:
+                                            _noteContentController,
+                                        shouldAutofocusContent:
+                                            widget.shouldAutoFocusContent,
                                       ),
-                                      const SizedBox(width: 8.0),
-                                      InkWell(
-                                        onTap: () => showGenericDialog(
-                                          context: context,
-                                          title: note.isSyncedWithCloud
-                                              ? 'Backed Up'
-                                              : 'Pending Sync',
-                                          icon: note.isSyncedWithCloud
-                                              ? const Icon(
-                                                  Icons.cloud_done_rounded,
-                                                  size: 40,
-                                                )
-                                              : const Icon(
-                                                  Icons.cloud_upload_rounded,
-                                                  size: 40,
-                                                ),
-                                          content: noteData
-                                                  .note.isSyncedWithCloud
-                                              ? 'This note is saved to the the '
-                                                  'cloud & can be accessed'
-                                                  ' by using your account.'
-                                              : 'Changes made to this note are '
-                                                  'pending to be saved to the cloud, '
-                                                  'but are safe on your device.'
-                                                  ' We will save the changes when your '
-                                                  'device is online.',
-                                          optionsBuilder: () => {'OK': null},
-                                        ),
-                                        splashColor:
-                                            noteColors.onTertiaryContainer,
-                                        borderRadius: BorderRadius.circular(14),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(10.0),
-                                          decoration: BoxDecoration(
-                                            color: noteColors.background
-                                                .withAlpha(120),
-                                            borderRadius:
-                                                BorderRadius.circular(14.0),
-                                            border: Border.all(
-                                              color: noteColors.onBackground
-                                                  .withAlpha(100),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                note.isSyncedWithCloud
-                                                    ? Icons.cloud_done_rounded
-                                                    : Icons
-                                                        .cloud_upload_rounded,
-                                                size: 20,
-                                                color: noteColors.onBackground,
-                                              ),
-                                              const SizedBox(width: 8.0),
-                                              Text(
-                                                note.isSyncedWithCloud
-                                                    ? 'Changes saved'
-                                                    : 'Changes unsaved',
-                                                style: TextStyle(
-                                                  color:
-                                                      noteColors.onBackground,
-                                                  fontSize: 14.0,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                      crossFadeState: !isEditable
+                                          ? CrossFadeState.showFirst
+                                          : CrossFadeState.showSecond,
+                                      duration:
+                                          const Duration(milliseconds: 300),
+                                    ),
+                                  ],
                                 ),
-                                AnimatedCrossFade(
-                                  firstCurve: Curves.ease,
-                                  secondCurve: Curves.ease,
-                                  sizeCurve: Curves.ease,
-                                  firstChild: NoteReadableView(
-                                    key: const ValueKey<bool>(false),
-                                    title: note.title,
-                                    content: note.content,
-                                    noteColors: noteColors,
-                                  ),
-                                  secondChild: NoteEditableView(
-                                    key: const ValueKey<bool>(true),
-                                    textColor: noteColors.onSecondaryContainer,
-                                    titleController: _noteTitleController,
-                                    contentController: _noteContentController,
-                                    shouldAutofocusContent:
-                                        widget.shouldAutoFocusContent,
-                                  ),
-                                  crossFadeState: !isEditable
-                                      ? CrossFadeState.showFirst
-                                      : CrossFadeState.showSecond,
-                                  duration: const Duration(milliseconds: 300),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -721,44 +734,54 @@ class NoteReadableView extends StatelessWidget {
               );
             },
             styleSheet: MarkdownStyleSheet(
-              a: TextStyle(
-                color: noteColors.primary,
-              ),
-              code: const TextStyle(
-                backgroundColor: Colors.transparent,
-                fontSize: 14.0,
-                height: 1.3,
-              ),
-              codeblockDecoration: BoxDecoration(
-                color: noteColors.background.withAlpha(200),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              codeblockPadding: const EdgeInsets.all(12.0),
-              p: TextStyle(
-                color: noteColors.onSecondaryContainer,
-                fontWeight: FontWeight.w400,
-                fontSize: 16.0,
-                height: 1.5,
-              ),
-              h1: TextStyle(
-                color: noteColors.onSecondaryContainer,
-                fontWeight: FontWeight.w500,
-                fontSize: 22.0,
-                height: 1.5,
-              ),
-              h2: TextStyle(
-                color: noteColors.onSecondaryContainer,
-                fontWeight: FontWeight.w500,
-                fontSize: 20.0,
-                height: 1.5,
-              ),
-              h3: TextStyle(
-                color: noteColors.onSecondaryContainer,
-                fontWeight: FontWeight.w500,
-                fontSize: 18.0,
-                height: 1.5,
-              ),
-            ),
+                a: TextStyle(
+                  color: noteColors.primary,
+                ),
+                code: const TextStyle(
+                  backgroundColor: Colors.transparent,
+                  fontSize: 14.0,
+                  height: 1.3,
+                ),
+                codeblockDecoration: BoxDecoration(
+                  color: noteColors.background.withAlpha(200),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                codeblockPadding: const EdgeInsets.all(12.0),
+                blockquoteDecoration: BoxDecoration(
+                  color: noteColors.primaryContainer,
+                  border: Border.all(
+                    color: noteColors.onPrimaryContainer.withAlpha(120),
+                    width: 0.5,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                blockquotePadding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                p: TextStyle(
+                  color: noteColors.onSecondaryContainer,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 16.0,
+                  height: 1.5,
+                ),
+                h1: TextStyle(
+                  color: noteColors.onSecondaryContainer,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 22.0,
+                  height: 1.5,
+                ),
+                h2: TextStyle(
+                  color: noteColors.onSecondaryContainer,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 20.0,
+                  height: 1.5,
+                ),
+                h3: TextStyle(
+                  color: noteColors.onSecondaryContainer,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 18.0,
+                  height: 1.5,
+                ),
+                blockquote: TextStyle(color: noteColors.onPrimaryContainer)),
           ),
         ),
       ],

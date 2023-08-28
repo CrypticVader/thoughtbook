@@ -12,6 +12,7 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_stat
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_type.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
@@ -23,6 +24,23 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
   String _searchParameter = '';
 
+  SortType _sortType = const SortType(
+    mode: SortMode.dataCreated,
+    order: SortOrder.descending,
+  );
+
+  final FilterProps _filterProps = FilterProps(
+    filterSet: <int>{},
+    requireEntireFilter: false,
+  );
+
+  FilterProps get _getFilterProps => FilterProps(
+        filterSet: Set.from(_filterProps.filterSet),
+        requireEntireFilter: _filterProps.requireEntireFilter,
+      );
+
+  Set<int> get _setFilterTagIds => _filterProps.filterSet;
+
   AuthUser? get _user => AuthService.firebase().currentUser;
 
   String get _layoutPreference =>
@@ -31,10 +49,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   ValueStream<List<LocalNoteTag>> get _allNoteTags =>
       LocalStore.noteTag.allItemStream;
 
-  ValueStream<List<PresentableNoteData>> get _allNoteData {
+  ValueStream<List<PresentableNoteData>> get _notesData {
+    // Processing the stream using the search parameter
+    late final ValueStream<List<PresentableNoteData>> queriedStream;
     if (_searchParameter.isEmpty) {
-      return Rx.combineLatest2(LocalStore.note.allItemStream, _allNoteTags,
-          (notes, tags) {
+      queriedStream = Rx.combineLatest2(
+          LocalStore.note.allItemStream, _allNoteTags, (notes, tags) {
         List<PresentableNoteData> noteData = [];
         for (final note in notes) {
           final noteTags =
@@ -44,8 +64,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         return noteData;
       }).shareValue();
     } else {
-      return Rx.combineLatest2(LocalStore.note.allItemStream, _allNoteTags,
-          (notes, tags) {
+      queriedStream = Rx.combineLatest2(
+          LocalStore.note.allItemStream, _allNoteTags, (notes, tags) {
         List<PresentableNoteData> noteData = [];
         for (final note in notes) {
           final noteTags =
@@ -62,6 +82,63 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         return noteData;
       }).shareValue();
     }
+
+    // Processing the stream using the filter set
+    late final ValueStream<List<PresentableNoteData>> filteredStream;
+    if (_getFilterProps.filterSet.isEmpty) {
+      filteredStream = queriedStream;
+    } else {
+      filteredStream = queriedStream
+          .transform<List<PresentableNoteData>>(StreamTransformer.fromHandlers(
+        handleData: (notesData, sink) {
+          late final List<PresentableNoteData> filteredData;
+          if (_getFilterProps.requireEntireFilter) {
+            filteredData = getNotesWithAllTags(
+              notesData: notesData,
+              filterTagIds: _getFilterProps.filterSet,
+            );
+          } else {
+            filteredData = getNotesWithAnyTag(
+              notesData: notesData,
+              filterTagIds: _getFilterProps.filterSet,
+            );
+          }
+          sink.add(filteredData);
+        },
+      )).shareValue();
+    }
+
+    // Processing the stream using the sort mode
+    late final ValueStream<List<PresentableNoteData>> sortedStream;
+    switch (_sortType.mode) {
+      case SortMode.dateModified:
+        if (_sortType.order == SortOrder.descending) {
+          sortedStream = filteredStream.map((notesData) {
+            notesData
+                .sort((a, b) => -a.note.modified.compareTo(b.note.modified));
+            return notesData;
+          }).shareValue();
+        } else {
+          sortedStream = filteredStream.map((notesData) {
+            notesData
+                .sort((a, b) => a.note.modified.compareTo(b.note.modified));
+            return notesData;
+          }).shareValue();
+        }
+      case SortMode.dataCreated:
+        if (_sortType.order == SortOrder.descending) {
+          sortedStream = filteredStream.map((notesData) {
+            notesData.sort((a, b) => -a.note.created.compareTo(b.note.created));
+            return notesData;
+          }).shareValue();
+        } else {
+          sortedStream = filteredStream.map((notesData) {
+            notesData.sort((a, b) => a.note.created.compareTo(b.note.created));
+            return notesData;
+          }).shareValue();
+        }
+    }
+    return sortedStream;
   }
 
   NoteBloc()
@@ -82,7 +159,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: null,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -96,7 +175,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -119,7 +200,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -127,6 +210,48 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         );
       },
     );
+
+    // Modify note filter
+    on<NoteModifyFilterEvent>((event, emit) {
+      _filterProps.requireEntireFilter = event.requireEntireFilter;
+
+      if (event.selectedTagId != null) {
+        if (_getFilterProps.filterSet.contains(event.selectedTagId!)) {
+          _setFilterTagIds.remove(event.selectedTagId!);
+        } else {
+          _setFilterTagIds.add(event.selectedTagId!);
+        }
+      }
+      emit(
+        NoteInitializedState(
+          isLoading: false,
+          user: _user,
+          noteData: () => _notesData,
+          filterProps: _getFilterProps,
+          sortType: _sortType,
+          noteTags: () => _allNoteTags,
+          selectedNotes: const [],
+          layoutPreference: _layoutPreference,
+        ),
+      );
+    });
+
+    // Modify sort type
+    on<NoteModifySortEvent>((event, emit) {
+      _sortType = SortType(mode: event.sortMode, order: event.sortOrder);
+      emit(
+        NoteInitializedState(
+          isLoading: false,
+          user: _user,
+          noteData: () => _notesData,
+          filterProps: _getFilterProps,
+          sortType: _sortType,
+          noteTags: () => _allNoteTags,
+          selectedNotes: const [],
+          layoutPreference: _layoutPreference,
+        ),
+      );
+    });
 
     // Delete note
     on<NoteDeleteEvent>(
@@ -138,7 +263,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             deletedNotes: event.notes,
@@ -159,7 +286,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: _layoutPreference,
@@ -170,7 +299,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: _layoutPreference,
@@ -191,7 +322,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: _layoutPreference,
@@ -202,7 +335,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: _layoutPreference,
@@ -219,7 +354,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -236,7 +373,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: notes,
             layoutPreference: _layoutPreference,
@@ -264,7 +403,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -283,7 +424,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             snackBarText: 'Note copied to clipboard',
@@ -301,7 +444,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -331,7 +476,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -360,7 +507,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _allNoteData,
+            noteData: () => _notesData,
+            filterProps: _getFilterProps,
+            sortType: _sortType,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -378,7 +527,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -398,7 +549,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: _user,
-                noteData: () => _allNoteData,
+                noteData: () => _notesData,
+                filterProps: _getFilterProps,
+                sortType: _sortType,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -410,7 +563,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: _user,
-                noteData: () => _allNoteData,
+                noteData: () => _notesData,
+                filterProps: _getFilterProps,
+                sortType: _sortType,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -431,7 +586,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -449,7 +606,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: _user,
-                noteData: () => _allNoteData,
+                noteData: () => _notesData,
+                filterProps: _getFilterProps,
+                sortType: _sortType,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -461,7 +620,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: _user,
-                noteData: () => _allNoteData,
+                noteData: () => _notesData,
+                filterProps: _getFilterProps,
+                sortType: _sortType,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -473,7 +634,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               NoteInitializedState(
                 isLoading: false,
                 user: _user,
-                noteData: () => _allNoteData,
+                noteData: () => _notesData,
+                filterProps: _getFilterProps,
+                sortType: _sortType,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -495,7 +658,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -507,7 +672,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             NoteInitializedState(
               isLoading: false,
               user: _user,
-              noteData: () => _allNoteData,
+              noteData: () => _notesData,
+              filterProps: _getFilterProps,
+              sortType: _sortType,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -524,4 +691,38 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     super.onTransition(transition);
     log(transition.toString());
   }
+}
+
+List<PresentableNoteData> getNotesWithAllTags({
+  required List<PresentableNoteData> notesData,
+  required Set<int> filterTagIds,
+}) {
+  return notesData
+      .where((noteData) =>
+          filterTagIds.intersection(Set.from(noteData.note.tagIds)).length ==
+          filterTagIds.length)
+      .toList();
+}
+
+List<PresentableNoteData> getNotesWithAnyTag({
+  required List<PresentableNoteData> notesData,
+
+  /// Do not access this field directly. Use its getter `getFilterTagIds` to read,
+  /// & the setter 'setFilterTagIds' only if necessary.
+  required Set<int> filterTagIds,
+}) {
+  return notesData
+      .where((noteData) =>
+          filterTagIds.intersection(Set.from(noteData.note.tagIds)).isNotEmpty)
+      .toList();
+}
+
+class FilterProps {
+  Set<int> filterSet;
+  bool requireEntireFilter;
+
+  FilterProps({
+    required this.filterSet,
+    required this.requireEntireFilter,
+  });
 }

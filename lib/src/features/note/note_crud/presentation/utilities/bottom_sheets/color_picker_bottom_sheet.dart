@@ -74,7 +74,7 @@ Future<Color?> showColorPickerModalBottomSheet({
                   colorScheme.surfaceTint.withAlpha(70),
                   colorScheme.background,
                 ),
-                borderRadius: BorderRadius.circular(44),
+                borderRadius: BorderRadius.circular(40),
               ),
               child: GridView.count(
                 physics: const NeverScrollableScrollPhysics(),
@@ -93,7 +93,7 @@ Future<Color?> showColorPickerModalBottomSheet({
                     },
                     splashColor: color,
                     highlightColor: color,
-                    borderRadius: BorderRadius.circular(32),
+                    borderRadius: const BorderRadius.all(Radius.circular(32)),
                     child: Tooltip(
                       message: colorName,
                       child: Stack(
@@ -103,15 +103,16 @@ Future<Color?> showColorPickerModalBottomSheet({
                                   height: 66,
                                   width: 66,
                                   decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
                                     border: Border.all(
-                                      strokeAlign: BorderSide.strokeAlignInside,
+                                      strokeAlign: BorderSide.strokeAlignOutside,
                                       color: Color.alphaBlend(
-                                        colorScheme!.onBackground,
+                                        colorScheme!.onBackground.withAlpha(120),
                                         color,
                                       ),
                                       width: 2.0,
                                     ),
-                                    shape: BoxShape.circle,
+                                    // shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.check_rounded,
@@ -128,9 +129,9 @@ Future<Color?> showColorPickerModalBottomSheet({
                                 ),
                           Ink(
                             decoration: BoxDecoration(
+                              shape: BoxShape.circle,
                               boxShadow: kElevationToShadow[1],
                               color: color.withAlpha(140),
-                              shape: BoxShape.circle,
                             ),
                           ),
                         ],

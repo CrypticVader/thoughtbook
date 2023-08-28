@@ -74,7 +74,6 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
     // Add event to notes stream
     _notes.removeWhere((note) => note.isarId == id);
     _notes.add(newNote);
-    _notes.sort((a, b) => -a.created.compareTo(b.created));
     _notesStreamController.add(_notes);
 
     // Add event to note change feed
@@ -118,7 +117,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
   @override
   Future<List<LocalNote>> get getAllItems async {
     await _ensureCollectionIsOpen();
-    return storableCollection.where().sortByCreatedDesc().findAll();
+    return storableCollection.where().findAll();
   }
 
   @override
@@ -196,7 +195,6 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
 
     // Add event to the stream
     _notes.add(note);
-    _notes.sort((a, b) => -a.created.compareTo(b.created));
     _notesStreamController.add(_notes);
 
     // Add event to note change feed
@@ -266,7 +264,6 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
 
     // Add event to stream
     _notes.removeWhere((note) => note.isarId == id);
-    _notes.sort((a, b) => -a.created.compareTo(b.created));
     _notesStreamController.add(_notes);
 
     // Add event to note change feed

@@ -2,9 +2,11 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/authentication/domain/auth_user.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_type.dart';
 
 @immutable
 abstract class NoteState {
@@ -30,13 +32,15 @@ class NoteUninitializedState extends NoteState {
 }
 
 class NoteInitializedState extends NoteState with EquatableMixin {
-  // final ValueStream<List<LocalNote>> Function() notes;
-
   final ValueStream<List<PresentableNoteData>> Function() noteData;
 
   final ValueStream<List<LocalNoteTag>> Function() noteTags;
 
   final List<LocalNote> selectedNotes;
+
+  final FilterProps filterProps;
+
+  final SortType sortType;
 
   /// Store the deleted note in case it need to be restored
   final List<LocalNote>? deletedNotes;
@@ -47,9 +51,10 @@ class NoteInitializedState extends NoteState with EquatableMixin {
   final String layoutPreference;
 
   const NoteInitializedState({
-    // required this.notes,
     required this.noteData,
     required this.noteTags,
+    required this.filterProps,
+    required this.sortType,
     required this.selectedNotes,
     this.deletedNotes,
     this.snackBarText,
@@ -63,7 +68,6 @@ class NoteInitializedState extends NoteState with EquatableMixin {
 
   @override
   List<Object?> get props => [
-        // notes,
         noteData,
         noteTags,
         selectedNotes,

@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:animations/animations.dart';
 import 'package:entry/entry.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -67,24 +69,37 @@ class _NotesListViewState extends State<NotesListView> {
   @override
   Widget build(BuildContext context) {
     if (widget.noteData.isEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.edit_note_rounded,
-            size: 140,
-            color: context.theme.colorScheme.primary,
+      return Center(
+        child: Ink(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: context.themeColors.secondaryContainer.withAlpha(120),
+            borderRadius: BorderRadius.circular(28),
           ),
-          Center(
-            child: Text(
-              context.loc.notes_view_create_note_to_see_here,
-              style: TextStyle(
-                fontSize: 15,
-                color: context.theme.colorScheme.onBackground,
-              ),
+          child: UnconstrainedBox(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  FluentIcons.note_add_48_filled,
+                  size: 150,
+                  color: context.theme.colorScheme.onSecondaryContainer.withAlpha(150),
+                ),
+                const SizedBox(height: 16.0,),
+                Center(
+                  child: Text(
+                    context.loc.notes_view_create_note_to_see_here,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: context.theme.colorScheme.onSecondaryContainer.withAlpha(220),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       );
     } else {
       return MasonryGridView.count(
@@ -105,7 +120,7 @@ class _NotesListViewState extends State<NotesListView> {
             onLongPress: (note) => widget.onLongPress(note),
             onDeleteNote: (noteData) {
               setState(() {
-                widget.noteData.remove(noteData);/**/
+                widget.noteData.remove(noteData); /**/
               });
               widget.onDeleteNote(noteData.note);
             },
@@ -184,7 +199,6 @@ class _NoteItemState extends State<NoteItem> {
       duration: const Duration(milliseconds: 220),
       opacity: 0,
       scale: 0.95,
-      // curve: Curves.easeInOutCubicEmphasized,
       curve: Curves.easeInOutExpo,
       yOffset: 0.0,
       xOffset: 0.0,
@@ -227,13 +241,13 @@ class _NoteItemState extends State<NoteItem> {
             closedElevation: 0,
             openElevation: 0,
             closedColor: Color.alphaBlend(
-                noteColors.primaryContainer.withAlpha(170),
+                noteColors.primaryContainer.withAlpha(135),
                 noteColors.background),
             middleColor: Color.alphaBlend(
-                noteColors.primaryContainer.withAlpha(170),
+                noteColors.primaryContainer.withAlpha(135),
                 noteColors.background),
             openColor: Color.alphaBlend(
-                noteColors.primaryContainer.withAlpha(170),
+                noteColors.primaryContainer.withAlpha(135),
                 noteColors.background),
             useRootNavigator: true,
             closedShape: RoundedRectangleBorder(
@@ -279,24 +293,27 @@ class _NoteItemState extends State<NoteItem> {
                         ),
                       if (widget.noteData.note.content.isNotEmpty)
                         CustomPaint(
-                          foregroundPainter: FadingEffect(
-                            color: Color.alphaBlend(
-                                noteColors.primaryContainer.withAlpha(170),
-                                noteColors.background),
-                          ),
+                          foregroundPainter:
+                              widget.noteData.note.content.length > 200
+                                  ? FadingEffect(
+                                      color: Color.alphaBlend(
+                                          noteColors.primaryContainer
+                                              .withAlpha(135),
+                                          noteColors.background),
+                                    )
+                                  : null,
                           child: LimitedBox(
-                            maxHeight: 200,
+                            maxHeight: 240,
                             child: Markdown(
                               padding: EdgeInsets.zero,
                               controller: null,
                               physics: const NeverScrollableScrollPhysics(),
                               data: widget.noteData.note.content.substring(
                                   0,
-                                  min(750,
+                                  min(650,
                                       widget.noteData.note.content.length)),
                               softLineBreak: true,
                               shrinkWrap: true,
-                              // fitContent: true,
                               styleSheet: MarkdownStyleSheet(
                                 a: TextStyle(
                                   color: noteColors.primary,
@@ -341,21 +358,24 @@ class _NoteItemState extends State<NoteItem> {
                         ),
                       if (widget.noteData.note.tagIds.isNotEmpty)
                         Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
+                          spacing: 4.0,
+                          runSpacing: 4.0,
                           crossAxisAlignment: WrapCrossAlignment.start,
                           alignment: WrapAlignment.start,
                           children: widget.noteData.noteTags
                               .map<Widget>(
                                 (tag) => Ink(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 6.0, horizontal: 8.0),
                                   decoration: BoxDecoration(
-                                    color: noteColors.tertiaryContainer,
-                                    borderRadius: BorderRadius.circular(14.0),
+                                    color: noteColors.tertiaryContainer
+                                        .withAlpha(200),
+                                    borderRadius: BorderRadius.circular(12.0),
                                     border: Border.all(
+                                      strokeAlign: BorderSide.strokeAlignInside,
                                       color: noteColors.onTertiaryContainer
-                                          .withAlpha(20),
-                                      width: 0.75,
+                                          .withAlpha(60),
+                                      width: 0.5,
                                     ),
                                   ),
                                   child: Row(
@@ -363,15 +383,15 @@ class _NoteItemState extends State<NoteItem> {
                                     children: [
                                       ConstrainedBox(
                                         constraints:
-                                            const BoxConstraints(maxWidth: 128),
+                                            const BoxConstraints(maxWidth: 120),
                                         child: Text(
                                           tag.name,
                                           maxLines: 1,
-                                          overflow: TextOverflow.fade,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             color:
                                                 noteColors.onTertiaryContainer,
-                                            fontSize: 14.0,
+                                            fontSize: 13.0,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -421,16 +441,18 @@ class FadingEffect extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Rect rect = Rect.fromPoints(
-      Offset(-16, size.height - 32.0),
-      Offset(size.width + 32, size.height + 1),
+      Offset(-16, size.height - 20.0),
+      Offset(size.width + 16, size.height + 1),
     );
     LinearGradient lg = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          color.withAlpha(0),
-          color,
-        ]);
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        color.withAlpha(0),
+        color,
+      ],
+      stops: const [0.4, 1.0],
+    );
     Paint paint = Paint()..shader = lg.createShader(rect);
     canvas.drawRect(rect, paint);
   }

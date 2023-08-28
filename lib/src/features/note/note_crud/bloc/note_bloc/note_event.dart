@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_type.dart';
 
 @immutable
 abstract class NoteEvent {
@@ -15,6 +16,26 @@ class NoteSearchEvent extends NoteEvent {
   final String query;
 
   const NoteSearchEvent({required this.query});
+}
+
+class NoteModifyFilterEvent extends NoteEvent {
+  final int? selectedTagId;
+  final bool requireEntireFilter;
+
+  const NoteModifyFilterEvent({
+    required this.selectedTagId,
+    required this.requireEntireFilter,
+  });
+}
+
+class NoteModifySortEvent extends NoteEvent {
+  final SortOrder sortOrder;
+  final SortMode sortMode;
+
+  const NoteModifySortEvent({
+    required this.sortMode,
+    required this.sortOrder,
+  });
 }
 
 class NoteDeleteEvent extends NoteEvent {

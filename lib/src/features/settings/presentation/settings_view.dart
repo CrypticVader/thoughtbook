@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
@@ -32,7 +33,7 @@ class _SettingsViewState extends State<SettingsView> {
                   pinned: true,
                   leading: IconButton(
                     tooltip: 'Go back',
-                    icon: const Icon(Icons.arrow_back_rounded),
+                    icon: const Icon(FluentIcons.arrow_left_24_filled),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   backgroundColor: Color.alphaBlend(
@@ -53,12 +54,12 @@ class _SettingsViewState extends State<SettingsView> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: ListView(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: const EdgeInsets.all(16.0),
                   children: [
                     // Account Settings
                     const PreferenceSectionHeader(
                       text: 'Account',
-                      icon: Icons.account_circle_rounded,
+                      icon: FluentIcons.person_accounts_24_filled,
                     ),
                     PreferenceSection(
                       items: [
@@ -79,7 +80,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 foregroundColor:
                                     context.theme.colorScheme.onPrimary,
                                 child: const Icon(
-                                  Icons.person_rounded,
+                                  FluentIcons.person_24_filled,
                                   size: 36,
                                 ),
                               ),
@@ -114,7 +115,7 @@ class _SettingsViewState extends State<SettingsView> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.manage_accounts_rounded,
+                                FluentIcons.edit_settings_24_filled,
                                 color: context.theme.colorScheme.onBackground,
                               ),
                               const SizedBox(
@@ -146,7 +147,7 @@ class _SettingsViewState extends State<SettingsView> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.logout_rounded,
+                                FluentIcons.sign_out_24_filled,
                                 color: context.theme.colorScheme.onBackground,
                               ),
                               const SizedBox(
@@ -170,7 +171,7 @@ class _SettingsViewState extends State<SettingsView> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.delete_forever_rounded,
+                                FluentIcons.person_delete_24_filled,
                                 color: context.theme.colorScheme.error,
                               ),
                               const SizedBox(
@@ -197,7 +198,7 @@ class _SettingsViewState extends State<SettingsView> {
                     // Appearance Settings
                     const PreferenceSectionHeader(
                       text: 'Appearance',
-                      icon: Icons.design_services_rounded,
+                      icon: FluentIcons.design_ideas_24_filled,
                     ),
                     PreferenceSection(
                       items: [
@@ -205,7 +206,7 @@ class _SettingsViewState extends State<SettingsView> {
                           body: Row(
                             children: [
                               Icon(
-                                Icons.invert_colors_rounded,
+                                FluentIcons.dark_theme_24_filled,
                                 color: context.theme.colorScheme.onBackground,
                               ),
                               const SizedBox(
@@ -226,7 +227,7 @@ class _SettingsViewState extends State<SettingsView> {
                           body: Row(
                             children: [
                               Icon(
-                                Icons.color_lens_rounded,
+                                FluentIcons.color_fill_24_filled,
                                 color: context.theme.colorScheme.onBackground,
                               ),
                               const SizedBox(
@@ -247,7 +248,7 @@ class _SettingsViewState extends State<SettingsView> {
                           body: Row(
                             children: [
                               Icon(
-                                Icons.dashboard_rounded,
+                                FluentIcons.board_split_24_filled,
                                 color: context.theme.colorScheme.onBackground,
                               ),
                               const SizedBox(
@@ -260,6 +261,38 @@ class _SettingsViewState extends State<SettingsView> {
                                   fontWeight: FontWeight.w500,
                                   color: context.theme.colorScheme.onBackground,
                                 ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PreferenceItem(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                          body: Row(
+                            children: [
+                              Icon(
+                                FluentIcons.pin_24_filled,
+                                color: context.theme.colorScheme.onBackground,
+                              ),
+                              const SizedBox(
+                                width: 16.0,
+                              ),
+                              Expanded(
+                                flex: 4,
+                                child: Text(
+                                  'Pin toolbar in the note editor',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: context.theme.colorScheme.onBackground,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(
+                                flex: 1,
+                              ),
+                              Switch(
+                                value: true,
+                                onChanged: (value) {},
                               ),
                             ],
                           ),
@@ -349,8 +382,10 @@ class PreferenceSection extends StatelessWidget {
         if (index == 0) {
           return InkWell(
             onTap: item.onTap,
-            splashColor: context.theme.colorScheme.inversePrimary.withAlpha(120),
-            highlightColor: context.theme.colorScheme.inversePrimary.withAlpha(100),
+            splashColor:
+                context.theme.colorScheme.inversePrimary.withAlpha(120),
+            highlightColor:
+                context.theme.colorScheme.inversePrimary.withAlpha(100),
             borderRadius: const BorderRadius.only(
               topRight: Radius.circular(24),
               topLeft: Radius.circular(24),
@@ -374,8 +409,10 @@ class PreferenceSection extends StatelessWidget {
         } else if (index == (items.length - 1)) {
           return InkWell(
             onTap: item.onTap,
-            splashColor: context.theme.colorScheme.inversePrimary.withAlpha(120),
-            highlightColor: context.theme.colorScheme.inversePrimary.withAlpha(100),
+            splashColor:
+                context.theme.colorScheme.inversePrimary.withAlpha(120),
+            highlightColor:
+                context.theme.colorScheme.inversePrimary.withAlpha(100),
             borderRadius: const BorderRadius.only(
               bottomRight: Radius.circular(24),
               bottomLeft: Radius.circular(24),
@@ -399,8 +436,10 @@ class PreferenceSection extends StatelessWidget {
         } else {
           return InkWell(
             onTap: item.onTap,
-            splashColor: context.theme.colorScheme.inversePrimary.withAlpha(120),
-            highlightColor: context.theme.colorScheme.inversePrimary.withAlpha(100),
+            splashColor:
+                context.theme.colorScheme.inversePrimary.withAlpha(120),
+            highlightColor:
+                context.theme.colorScheme.inversePrimary.withAlpha(100),
             borderRadius: const BorderRadius.only(
               bottomRight: Radius.circular(4),
               bottomLeft: Radius.circular(4),
