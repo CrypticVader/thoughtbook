@@ -25,8 +25,8 @@ typedef NoteDataCallback = void Function(PresentableNoteData noteData);
 class NotesListView extends StatefulWidget {
   final String layoutPreference;
 
-  final List<PresentableNoteData> noteData;
-  final List<LocalNote> selectedNotes;
+  final List<PresentableNoteData> notesData;
+  final Set<LocalNote> selectedNotes;
   final NoteCallback onDeleteNote;
   final void Function(LocalNote note, void Function() openContainer) onTap;
   final NoteCallback onLongPress;
@@ -34,7 +34,7 @@ class NotesListView extends StatefulWidget {
   const NotesListView({
     Key? key,
     required this.layoutPreference,
-    required this.noteData,
+    required this.notesData,
     required this.selectedNotes,
     required this.onDeleteNote,
     required this.onTap,
@@ -67,7 +67,7 @@ class _NotesListViewState extends State<NotesListView> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.noteData.isEmpty) {
+    if (widget.notesData.isEmpty) {
       return Center(
         child: Ink(
           padding: const EdgeInsets.all(32),
@@ -104,7 +104,7 @@ class _NotesListViewState extends State<NotesListView> {
       return MasonryGridView.count(
         key: ValueKey<int>(_getLayoutColumnCount(context)),
         primary: true,
-        itemCount: widget.noteData.length,
+        itemCount: widget.notesData.length,
         crossAxisSpacing: 8.0,
         mainAxisSpacing: 8.0,
         crossAxisCount: _getLayoutColumnCount(context),
@@ -112,7 +112,7 @@ class _NotesListViewState extends State<NotesListView> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (BuildContext context, int index) {
-          final noteData = widget.noteData.elementAt(index);
+          final noteData = widget.notesData.elementAt(index);
           return NoteItem(
             // key: ValueKey<int>(noteData.note.isarId),
             noteData: noteData,
@@ -121,7 +121,7 @@ class _NotesListViewState extends State<NotesListView> {
             onLongPress: (note) => widget.onLongPress(note),
             onDeleteNote: (noteData) {
               setState(() {
-                widget.noteData.remove(noteData); /**/
+                widget.notesData.remove(noteData); /**/
               });
               widget.onDeleteNote(noteData.note);
             },

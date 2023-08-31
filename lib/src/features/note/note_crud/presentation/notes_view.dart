@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:animations/animations.dart';
 import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -553,7 +551,7 @@ class _NotesViewState extends State<NotesView> {
                 .then((value) => confirmDelete);
             if (!confirmDelete) {
               noteBloc.add(
-                  NoteUndoDeleteEvent(deletedNotes: state.deletedNotes ?? []));
+                  NoteUndoDeleteEvent(deletedNotes: state.deletedNotes ?? {}));
             }
           }
         }
@@ -597,7 +595,7 @@ class _NotesViewState extends State<NotesView> {
                               shouldAutoFocusContent: true,
                               onDeleteNote: (note) => context
                                   .read<NoteBloc>()
-                                  .add(NoteDeleteEvent(notes: [note])),
+                                  .add(NoteDeleteEvent(notes: {note})),
                             ),
                           ),
                           closedElevation: 8.0,
@@ -1018,8 +1016,12 @@ class _NotesViewState extends State<NotesView> {
                                       children: allNotesData.keys
                                           .map((groupHeader) => NoteGroup(
                                                 state: state,
-                                                allNotesData: allNotesData,
+                                                groupNotesData:
+                                                    allNotesData[groupHeader]!,
                                                 groupHeader: groupHeader,
+                                                // TODO: notify bloc
+                                                onSelectGroup: () {},
+                                                onUnselectGroup: () {},
                                               ))
                                           .toList(),
                                     ),
@@ -1063,13 +1065,19 @@ class _NotesViewState extends State<NotesView> {
 class NoteListGroupHeader extends StatefulWidget {
   final String groupHeader;
   final bool isCollapsed;
+  final bool isSelected;
   final void Function() onTapHeader;
+  final void Function() onSelectGroup;
+  final void Function() onUnselectGroup;
 
   const NoteListGroupHeader({
     super.key,
     required this.groupHeader,
     required this.isCollapsed,
+    required this.isSelected,
     required this.onTapHeader,
+    required this.onSelectGroup,
+    required this.onUnselectGroup,
   });
 
   @override
@@ -1100,99 +1108,110 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-      child: InkWell(
-        onTap: () {
-          widget.onTapHeader();
-          if (_controller.isDismissed) {
-            _controller.forward();
-          } else {
-            _controller.reverse();
-          }
-        },
-        splashColor: context.themeColors.surfaceVariant.withAlpha(120),
-        highlightColor: context.themeColors.surfaceVariant,
-        borderRadius: widget.isCollapsed
-            ? BorderRadius.circular(26)
-            : const BorderRadius.only(
-                topRight: Radius.circular(24),
-                topLeft: Radius.circular(24),
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-              ),
-        child: Ink(
-          padding: const EdgeInsets.fromLTRB(16, 2, 2, 2),
-          decoration: BoxDecoration(
-            color: context.themeColors.secondaryContainer.withAlpha(90),
-            borderRadius: widget.isCollapsed
-                ? BorderRadius.circular(26)
-                : const BorderRadius.only(
-                    topRight: Radius.circular(24),
-                    topLeft: Radius.circular(24),
-                    bottomLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
-                  ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Row(
-                  children: [
-                    RotationTransition(
-                      turns: _animation,
-                      child: Icon(
-                        FluentIcons.chevron_down_24_filled,
-                        size: 20,
-                        color: context.themeColors.onPrimaryContainer
-                            .withAlpha(170),
-                      ),
+    return Card(
+      margin: EdgeInsets.zero,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+        child: InkWell(
+          onTap: () {
+            widget.onTapHeader();
+            if (_controller.isDismissed) {
+              _controller.forward();
+            } else {
+              _controller.reverse();
+            }
+          },
+          splashColor: context.themeColors.surfaceVariant.withAlpha(120),
+          highlightColor: context.themeColors.surfaceVariant,
+          borderRadius: widget.isCollapsed
+              ? BorderRadius.circular(26)
+              : const BorderRadius.only(
+                  topRight: Radius.circular(24),
+                  topLeft: Radius.circular(24),
+                  bottomLeft: Radius.circular(16),
+                  bottomRight: Radius.circular(16),
+                ),
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(16, 2, 2, 2),
+            decoration: BoxDecoration(
+              color: context.themeColors.secondaryContainer.withAlpha(90),
+              borderRadius: widget.isCollapsed
+                  ? BorderRadius.circular(26)
+                  : const BorderRadius.only(
+                      topRight: Radius.circular(24),
+                      topLeft: Radius.circular(24),
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
                     ),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        widget.groupHeader,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: context.themeColors.onPrimaryContainer,
-                          overflow: TextOverflow.ellipsis,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Row(
+                    children: [
+                      RotationTransition(
+                        turns: _animation,
+                        child: Icon(
+                          FluentIcons.chevron_down_24_filled,
+                          size: 20,
+                          color: context.themeColors.onSecondaryContainer
+                              .withAlpha(120),
                         ),
                       ),
-                    )
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton.filledTonal(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.check_rounded,
-                  size: 24,
-                ),
-                style: IconButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: widget.isCollapsed
-                        ? const BorderRadius.only(
-                            topRight: Radius.circular(22),
-                            topLeft: Radius.circular(12),
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(22),
-                          )
-                        : const BorderRadius.only(
-                            topRight: Radius.circular(22),
-                            topLeft: Radius.circular(12),
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          widget.groupHeader,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: context.themeColors.onSecondaryContainer,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                      )
+                    ],
                   ),
-                  backgroundColor:
-                      context.themeColors.inversePrimary.withAlpha(150),
-                  foregroundColor: context.themeColors.onSecondaryContainer,
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                IconButton.filledTonal(
+                  onPressed: () {
+                    if (widget.isSelected) {
+                      widget.onSelectGroup();
+                    } else {
+                      widget.onUnselectGroup();
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.check_rounded,
+                    size: 24,
+                  ),
+                  style: IconButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: widget.isCollapsed
+                          ? const BorderRadius.only(
+                              topRight: Radius.circular(22),
+                              topLeft: Radius.circular(12),
+                              bottomLeft: Radius.circular(12),
+                              bottomRight: Radius.circular(22),
+                            )
+                          : const BorderRadius.only(
+                              topRight: Radius.circular(22),
+                              topLeft: Radius.circular(12),
+                              bottomLeft: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
+                            ),
+                    ),
+                    backgroundColor: context.themeColors.inversePrimary
+                        .withAlpha(widget.isSelected ? 250 : 150),
+                    foregroundColor: context.themeColors.onSecondaryContainer,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1205,12 +1224,16 @@ class NoteGroup extends StatefulWidget {
     super.key,
     required this.groupHeader,
     required this.state,
-    required this.allNotesData,
+    required this.groupNotesData,
+    required this.onSelectGroup,
+    required this.onUnselectGroup,
   });
 
   final String groupHeader;
   final NoteInitializedState state;
-  final Map<String, List<PresentableNoteData>> allNotesData;
+  final List<PresentableNoteData> groupNotesData;
+  final void Function() onSelectGroup;
+  final void Function() onUnselectGroup;
 
   @override
   State<NoteGroup> createState() => _NoteGroupState();
@@ -1218,6 +1241,17 @@ class NoteGroup extends StatefulWidget {
 
 class _NoteGroupState extends State<NoteGroup> {
   bool isCollapsed = false;
+  bool isSelected = false;
+
+  @override
+  void initState() {
+    Iterable<int> selectedNoteIds =
+        widget.state.selectedNotes.map((note) => note.isarId);
+    isSelected = widget.groupNotesData
+        .map((noteData) => noteData.note.isarId)
+        .every((noteId) => selectedNoteIds.contains(noteId));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1225,17 +1259,15 @@ class _NoteGroupState extends State<NoteGroup> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.groupHeader.isNotEmpty)
-          Card(
-            margin: EdgeInsets.zero,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            child: NoteListGroupHeader(
-              isCollapsed: isCollapsed,
-              groupHeader: widget.groupHeader,
-              onTapHeader: () => setState(() {
-                isCollapsed = !isCollapsed;
-              }),
-            ),
+          NoteListGroupHeader(
+            isSelected: isSelected,
+            isCollapsed: isCollapsed,
+            groupHeader: widget.groupHeader,
+            onTapHeader: () => setState(() {
+              isCollapsed = !isCollapsed;
+            }),
+            onSelectGroup: () => widget.onSelectGroup(),
+            onUnselectGroup: () => widget.onUnselectGroup(),
           ),
         AnimatedSwitcher(
           duration: 450.milliseconds,
@@ -1254,11 +1286,11 @@ class _NoteGroupState extends State<NoteGroup> {
           child: !isCollapsed
               ? NotesListView(
                   layoutPreference: widget.state.layoutPreference,
-                  noteData: widget.allNotesData[widget.groupHeader]!,
+                  notesData: widget.groupNotesData,
                   selectedNotes: widget.state.selectedNotes,
                   onDeleteNote: (LocalNote note) => context
                       .read<NoteBloc>()
-                      .add(NoteDeleteEvent(notes: [note])),
+                      .add(NoteDeleteEvent(notes: {note})),
                   onTap: (
                     LocalNote note,
                     void Function() openNote,
@@ -1266,17 +1298,12 @@ class _NoteGroupState extends State<NoteGroup> {
                     if (widget.state.selectedNotes.isEmpty) {
                       openNote();
                     } else {
-                      context.read<NoteBloc>().add(NoteTapEvent(
-                            note: note,
-                            selectedNotes: widget.state.selectedNotes,
-                          ));
+                      context.read<NoteBloc>().add(NoteTapEvent(note: note));
                     }
                   },
-                  onLongPress: (LocalNote note) =>
-                      context.read<NoteBloc>().add(NoteLongPressEvent(
-                            note: note,
-                            selectedNotes: widget.state.selectedNotes,
-                          )),
+                  onLongPress: (LocalNote note) => context
+                      .read<NoteBloc>()
+                      .add(NoteLongPressEvent(note: note)),
                 )
               : const SizedBox(height: 10),
         ),

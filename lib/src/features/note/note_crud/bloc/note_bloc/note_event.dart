@@ -53,7 +53,7 @@ class NoteModifyGroupingEvent extends NoteEvent {
 
 class NoteDeleteEvent extends NoteEvent {
   /// List of notes to be deleted
-  final List<LocalNote> notes;
+  final Set<LocalNote> notes;
 
   const NoteDeleteEvent({
     required this.notes,
@@ -64,12 +64,8 @@ class NoteTapEvent extends NoteEvent {
   /// Note that was tapped
   final LocalNote note;
 
-  /// Existing list of selected notes
-  final List<LocalNote> selectedNotes;
-
   const NoteTapEvent({
     required this.note,
-    required this.selectedNotes,
   });
 }
 
@@ -77,12 +73,8 @@ class NoteLongPressEvent extends NoteEvent {
   /// Note that was long pressed
   final LocalNote note;
 
-  /// Existing list of selected notes
-  final List<LocalNote> selectedNotes;
-
   const NoteLongPressEvent({
     required this.note,
-    required this.selectedNotes,
   });
 }
 
@@ -131,7 +123,7 @@ class NoteToggleLayoutEvent extends NoteEvent {
 
 class NoteUndoDeleteEvent extends NoteEvent {
   /// List of notes to be restored
-  final List<LocalNote> deletedNotes;
+  final Set<LocalNote> deletedNotes;
 
   const NoteUndoDeleteEvent({required this.deletedNotes});
 }

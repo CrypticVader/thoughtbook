@@ -37,7 +37,7 @@ class NoteInitializedState extends NoteState with EquatableMixin {
 
   final ValueStream<List<LocalNoteTag>> Function() noteTags;
 
-  final List<LocalNote> selectedNotes;
+  final Set<LocalNote> selectedNotes;
 
   final FilterProps filterProps;
 
@@ -46,7 +46,7 @@ class NoteInitializedState extends NoteState with EquatableMixin {
   final GroupProps groupProps;
 
   /// Store the deleted note in case it need to be restored
-  final List<LocalNote>? deletedNotes;
+  final Set<LocalNote>? deletedNotes;
 
   /// The text to be shown for any generic SnackBar if necessary
   final String? snackBarText;
