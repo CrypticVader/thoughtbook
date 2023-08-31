@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_type.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
 
 Future<void> showNoteSortModePickerBottomSheet({
   required BuildContext context,
@@ -92,7 +92,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                     ),
                   ),
                   Text(
-                    'Sort notes',
+                    'Sort your notes',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 18,

@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:animations/animations.dart';
 import 'package:entry/entry.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -109,7 +108,9 @@ class _NotesListViewState extends State<NotesListView> {
         crossAxisSpacing: 8.0,
         mainAxisSpacing: 8.0,
         crossAxisCount: _getLayoutColumnCount(context),
-        padding: const EdgeInsets.fromLTRB(10.0, 8.0, 10.0, 64.0),
+        padding: const EdgeInsets.fromLTRB(10.0, 8.0, 10.0, 16.0),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (BuildContext context, int index) {
           final noteData = widget.noteData.elementAt(index);
           return NoteItem(
@@ -257,12 +258,12 @@ class _NoteItemState extends State<NoteItem> {
                       color: context.theme.colorScheme.tertiary,
                     )
                   : BorderSide.none,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
             ),
             closedBuilder: (context, openContainer) {
               _openContainer = openContainer;
               return InkWell(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 onLongPress: () => widget.onLongPress(widget.noteData.note),
                 onTap: () => widget.onTap(widget.noteData.note, _openContainer),
                 splashColor: noteColors.inversePrimary.withAlpha(120),
@@ -294,7 +295,7 @@ class _NoteItemState extends State<NoteItem> {
                       if (widget.noteData.note.content.isNotEmpty)
                         CustomPaint(
                           foregroundPainter:
-                              widget.noteData.note.content.length > 200
+                              widget.noteData.note.content.length > 300
                                   ? FadingEffect(
                                       color: Color.alphaBlend(
                                           noteColors.primaryContainer
@@ -314,6 +315,33 @@ class _NoteItemState extends State<NoteItem> {
                                       widget.noteData.note.content.length)),
                               softLineBreak: true,
                               shrinkWrap: true,
+                              bulletBuilder: (index, style) {
+                                switch (style) {
+                                  case BulletStyle.orderedList:
+                                    return Text(
+                                      '${index.toString()}.',
+                                      style: TextStyle(
+                                        color: noteColors.onPrimaryContainer,
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                        height: 1.5,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    );
+                                  case BulletStyle.unorderedList:
+                                    return Padding(
+                                      padding: const EdgeInsets.fromLTRB(10, 12, 10, 8),
+                                      child: Container(
+                                        width: 4,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: noteColors.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    );
+                                }
+                              },
                               styleSheet: MarkdownStyleSheet(
                                 a: TextStyle(
                                   color: noteColors.primary,

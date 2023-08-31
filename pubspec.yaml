@@ -68,6 +68,8 @@ dependencies:
   url_launcher: ^6.1.12
   sliver_tools: ^0.2.12
   fluentui_system_icons: ^1.1.210
+  dartx: ^1.2.0
+  auto_size_text: ^3.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

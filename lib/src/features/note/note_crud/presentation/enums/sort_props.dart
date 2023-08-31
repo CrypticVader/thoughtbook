@@ -1,12 +1,15 @@
+import 'package:flutter/foundation.dart';
+
 enum SortMode { dateModified, dataCreated }
 
 enum SortOrder { ascending, descending }
 
-class SortType {
+@immutable
+class SortProps {
   final SortMode mode;
   final SortOrder order;
 
-  const SortType({
+  const SortProps({
     required this.mode,
     required this.order,
   });

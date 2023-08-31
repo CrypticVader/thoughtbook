@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:animations/animations.dart';
+import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -15,7 +18,8 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_stat
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_type.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_filter_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_group_mode_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_sort_mode_picker_bottom_sheet.dart';
@@ -39,9 +43,10 @@ class _NotesViewState extends State<NotesView> {
   bool _showFab = true;
 
   Future<void> _onLogout(BuildContext context) async {
+    final authBloc = context.read<AuthBloc>();
     final shouldLogout = await showLogoutDialog(context);
     if (shouldLogout) {
-      context.read<AuthBloc>().add(const AuthEventLogOut());
+      authBloc.add(const AuthEventLogOut());
     }
   }
 
@@ -51,6 +56,12 @@ class _NotesViewState extends State<NotesView> {
     bool isScrolled,
   ) {
     final layoutPreference = state.layoutPreference;
+    final groupChipLabel = switch (state.groupProps.groupParameter) {
+      GroupParameter.dateModified => 'Grouped by date modified',
+      GroupParameter.dateCreated => 'Grouped by date created',
+      GroupParameter.tag => 'Grouped by tag',
+      GroupParameter.none => 'Ungrouped',
+    };
 
     return SliverAppBar(
       pinned: true,
@@ -139,7 +150,7 @@ class _NotesViewState extends State<NotesView> {
                     currentFilter: state.filterProps.filterSet,
                     requireEntireFilter: state.filterProps.requireEntireFilter,
                     onSelect: (tagId, requireEntireFilter) =>
-                        context.read<NoteBloc>().add(NoteModifyFilterEvent(
+                        context.read<NoteBloc>().add(NoteModifyFilteringEvent(
                               selectedTagId: tagId,
                               requireEntireFilter: requireEntireFilter,
                             )),
@@ -162,15 +173,15 @@ class _NotesViewState extends State<NotesView> {
                 TonalChip(
                   onTap: () async => await showNoteSortModePickerBottomSheet(
                     context: context,
-                    sortMode: state.sortType.mode,
-                    sortOrder: state.sortType.order,
+                    sortMode: state.sortProps.mode,
+                    sortOrder: state.sortProps.order,
                     onSelect: (sortOrder, sortMode) =>
-                        context.read<NoteBloc>().add(NoteModifySortEvent(
+                        context.read<NoteBloc>().add(NoteModifySortingEvent(
                               sortMode: sortMode,
                               sortOrder: sortOrder,
                             )),
                   ),
-                  label: state.sortType.mode == SortMode.dataCreated
+                  label: state.sortProps.mode == SortMode.dataCreated
                       ? 'Date created'
                       : 'Date modified',
                   iconData: FluentIcons.arrow_sort_24_filled,
@@ -179,9 +190,20 @@ class _NotesViewState extends State<NotesView> {
                   width: 8,
                 ),
                 TonalChip(
-                  onTap: () async =>
-                      await showNoteGroupModePickerBottomSheet(context),
-                  label: 'Ungrouped',
+                  onTap: () async => await showNoteGroupModePickerBottomSheet(
+                    context: context,
+                    groupParameter: state.groupProps.groupParameter,
+                    groupOrder: state.groupProps.groupOrder,
+                    tagGroupLogic: state.groupProps.tagGroupLogic,
+                    onChangeProps: (groupParameter, groupOrder,
+                            tagGroupLogic) =>
+                        context.read<NoteBloc>().add(NoteModifyGroupingEvent(
+                              groupParameter: groupParameter,
+                              groupOrder: groupOrder,
+                              tagGroupLogic: tagGroupLogic,
+                            )),
+                  ),
+                  label: groupChipLabel,
                   iconData: FluentIcons.group_24_filled,
                 ),
                 const SizedBox(
@@ -192,6 +214,244 @@ class _NotesViewState extends State<NotesView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _getNoteSelectionToolbar(
+    BuildContext context,
+    NoteInitializedState state,
+  ) {
+    return AnimatedSwitcher(
+      switchInCurve: Curves.easeInOutCubic,
+      switchOutCurve: Curves.easeInOutCubic,
+      transitionBuilder: (child, animation) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.05),
+            end: Offset.zero,
+          ).animate(animation),
+          child: FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
+        );
+      },
+      duration: const Duration(milliseconds: 250),
+      child: (state.selectedNotes.isNotEmpty)
+          ? Column(
+              children: [
+                const Spacer(
+                  flex: 1,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 24.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 4.0, vertical: 8.0),
+                    decoration: BoxDecoration(
+                      color: Color.alphaBlend(
+                        context.themeColors.primary,
+                        context.themeColors.background,
+                      ),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          tooltip: context.loc.close,
+                          onPressed: () => context
+                              .read<NoteBloc>()
+                              .add(const NoteUnselectAllEvent()),
+                          icon: const Icon(
+                            FluentIcons.dismiss_24_filled,
+                          ),
+                          style: IconButton.styleFrom(
+                            foregroundColor: context.themeColors.onPrimary,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 4.0,
+                        ),
+                        AnimatedSwitcher(
+                          switchInCurve: Curves.easeInOutCubic,
+                          switchOutCurve: Curves.easeInOutCubic,
+                          duration: const Duration(milliseconds: 350),
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                          child: Text(
+                            context.loc.notes_title(
+                              state.selectedNotes.length,
+                              context.loc.app_title,
+                            ),
+                            key: ValueKey<int>(state.selectedNotes.length),
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w500,
+                              color: context.themeColors.onPrimary,
+                            ),
+                          ),
+                        ),
+                        const Spacer(
+                          flex: 1,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: context.themeColors.primaryContainer,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                switchOutCurve: Curves.easeInOutCubic,
+                                switchInCurve: Curves.easeInOutCubic,
+                                transitionBuilder: (child, animation) {
+                                  return ScaleTransition(
+                                    scale: animation,
+                                    child: FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: (state.selectedNotes.length == 1)
+                                    ? IconButton(
+                                        onPressed: () async {
+                                          final note =
+                                              state.selectedNotes.first;
+                                          final currentColor =
+                                              (note.color != null)
+                                                  ? Color(note.color!)
+                                                  : null;
+                                          final noteBloc =
+                                              context.read<NoteBloc>();
+                                          final color =
+                                              await showColorPickerModalBottomSheet(
+                                            context: context,
+                                            currentColor: currentColor,
+                                          );
+                                          noteBloc.add(
+                                            NoteUpdateColorEvent(
+                                              note: note,
+                                              color: (color != null)
+                                                  ? color.value
+                                                  : null,
+                                            ),
+                                          );
+                                        },
+                                        icon: Icon(
+                                          FluentIcons.color_24_filled,
+                                          color: context
+                                              .themeColors.onPrimaryContainer,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                switchOutCurve: Curves.easeInOutCubic,
+                                switchInCurve: Curves.easeInOutCubic,
+                                transitionBuilder: (child, animation) {
+                                  return ScaleTransition(
+                                    scale: animation,
+                                    child: FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: (state.selectedNotes.length == 1)
+                                    ? IconButton(
+                                        onPressed: () async {
+                                          final note =
+                                              state.selectedNotes.first;
+                                          context
+                                              .read<NoteBloc>()
+                                              .add(NoteShareEvent(note));
+                                        },
+                                        icon: Icon(
+                                          FluentIcons.share_24_filled,
+                                          color: context
+                                              .themeColors.onPrimaryContainer,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                switchOutCurve: Curves.easeInOutCubic,
+                                switchInCurve: Curves.easeInOutCubic,
+                                transitionBuilder: (child, animation) {
+                                  return ScaleTransition(
+                                    scale: animation,
+                                    child: FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: (state.selectedNotes.length == 1)
+                                    ? IconButton(
+                                        onPressed: () {
+                                          final note =
+                                              state.selectedNotes.first;
+                                          context
+                                              .read<NoteBloc>()
+                                              .add(NoteCopyEvent(note));
+                                        },
+                                        icon: Icon(
+                                          FluentIcons.copy_24_filled,
+                                          color: context
+                                              .themeColors.onPrimaryContainer,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  context.read<NoteBloc>().add(
+                                        NoteDeleteEvent(
+                                          notes: state.selectedNotes,
+                                        ),
+                                      );
+                                },
+                                icon: Icon(
+                                  FluentIcons.delete_24_filled,
+                                  color: context.themeColors.onPrimaryContainer,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // const Spacer(
+                        //   flex: 1,
+                        // ),
+                        const SizedBox(
+                          width: 8.0,
+                        ),
+                        IconButton(
+                          tooltip: context.loc.select_all_notes,
+                          onPressed: () async => context.read<NoteBloc>().add(
+                                const NoteEventSelectAllNotes(),
+                              ),
+                          icon: const Icon(
+                            FluentIcons.select_all_on_24_filled,
+                          ),
+                          style: IconButton.styleFrom(
+                            foregroundColor: context.themeColors.onPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : null,
     );
   }
 
@@ -719,7 +979,7 @@ class _NotesViewState extends State<NotesView> {
                     ),
                   ];
                 },
-                body: StreamBuilder<List<PresentableNoteData>>(
+                body: StreamBuilder<Map<String, List<PresentableNoteData>>>(
                   stream: state.noteData(),
                   builder: (context, snapshot) {
                     switch (snapshot.connectionState) {
@@ -752,371 +1012,20 @@ class _NotesViewState extends State<NotesView> {
                                     }
                                     return true;
                                   },
-                                  child: NotesListView(
-                                    layoutPreference: state.layoutPreference,
-                                    noteData: allNotesData,
-                                    selectedNotes: state.selectedNotes,
-                                    onDeleteNote: (LocalNote note) => context
-                                        .read<NoteBloc>()
-                                        .add(NoteDeleteEvent(notes: [note])),
-                                    onTap: (
-                                      LocalNote note,
-                                      void Function() openNote,
-                                    ) {
-                                      if (state.selectedNotes.isEmpty) {
-                                        openNote();
-                                      } else {
-                                        context
-                                            .read<NoteBloc>()
-                                            .add(NoteTapEvent(
-                                              note: note,
-                                              selectedNotes:
-                                                  state.selectedNotes,
-                                            ));
-                                      }
-                                    },
-                                    onLongPress: (LocalNote note) => context
-                                        .read<NoteBloc>()
-                                        .add(NoteLongPressEvent(
-                                          note: note,
-                                          selectedNotes: state.selectedNotes,
-                                        )),
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: allNotesData.keys
+                                          .map((groupHeader) => NoteGroup(
+                                                state: state,
+                                                allNotesData: allNotesData,
+                                                groupHeader: groupHeader,
+                                              ))
+                                          .toList(),
+                                    ),
                                   ),
                                 ),
-                                AnimatedSwitcher(
-                                  switchInCurve: Curves.easeInOutCubic,
-                                  switchOutCurve: Curves.easeInOutCubic,
-                                  transitionBuilder: (child, animation) {
-                                    return SlideTransition(
-                                      position: Tween<Offset>(
-                                        begin: const Offset(0, 0.05),
-                                        end: Offset.zero,
-                                      ).animate(animation),
-                                      child: FadeTransition(
-                                        opacity: animation,
-                                        child: child,
-                                      ),
-                                    );
-                                  },
-                                  duration: const Duration(milliseconds: 250),
-                                  child: (state.selectedNotes.isNotEmpty)
-                                      ? Column(
-                                          children: [
-                                            const Spacer(
-                                              flex: 1,
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      8.0, 0.0, 8.0, 24.0),
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 4.0,
-                                                        vertical: 8.0),
-                                                decoration: BoxDecoration(
-                                                  color: Color.alphaBlend(
-                                                    context.themeColors.primary,
-                                                    context
-                                                        .themeColors.background,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(32),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    IconButton(
-                                                      tooltip:
-                                                          context.loc.close,
-                                                      onPressed: () => context
-                                                          .read<NoteBloc>()
-                                                          .add(
-                                                              const NoteUnselectAllEvent()),
-                                                      icon: const Icon(
-                                                        FluentIcons
-                                                            .dismiss_24_filled,
-                                                      ),
-                                                      style:
-                                                          IconButton.styleFrom(
-                                                        foregroundColor: context
-                                                            .themeColors
-                                                            .onPrimary,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 4.0,
-                                                    ),
-                                                    AnimatedSwitcher(
-                                                      switchInCurve:
-                                                          Curves.easeInOutCubic,
-                                                      switchOutCurve:
-                                                          Curves.easeInOutCubic,
-                                                      duration: const Duration(
-                                                          milliseconds: 350),
-                                                      transitionBuilder:
-                                                          (child, animation) {
-                                                        return FadeTransition(
-                                                          opacity: animation,
-                                                          child: child,
-                                                        );
-                                                      },
-                                                      child: Text(
-                                                        context.loc.notes_title(
-                                                          state.selectedNotes
-                                                              .length,
-                                                          context.loc.app_title,
-                                                        ),
-                                                        key: ValueKey<int>(state
-                                                            .selectedNotes
-                                                            .length),
-                                                        style: TextStyle(
-                                                          fontSize: 22,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: context
-                                                              .themeColors
-                                                              .onPrimary,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    const Spacer(
-                                                      flex: 1,
-                                                    ),
-                                                    Container(
-                                                      decoration: BoxDecoration(
-                                                        color: context
-                                                            .themeColors
-                                                            .primaryContainer,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20),
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          AnimatedSwitcher(
-                                                            duration:
-                                                                const Duration(
-                                                                    milliseconds:
-                                                                        200),
-                                                            switchOutCurve: Curves
-                                                                .easeInOutCubic,
-                                                            switchInCurve: Curves
-                                                                .easeInOutCubic,
-                                                            transitionBuilder:
-                                                                (child,
-                                                                    animation) {
-                                                              return ScaleTransition(
-                                                                scale:
-                                                                    animation,
-                                                                child:
-                                                                    FadeTransition(
-                                                                  opacity:
-                                                                      animation,
-                                                                  child: child,
-                                                                ),
-                                                              );
-                                                            },
-                                                            child: (state
-                                                                        .selectedNotes
-                                                                        .length ==
-                                                                    1)
-                                                                ? IconButton(
-                                                                    onPressed:
-                                                                        () async {
-                                                                      final note = state
-                                                                          .selectedNotes
-                                                                          .first;
-                                                                      final currentColor = (note.color !=
-                                                                              null)
-                                                                          ? Color(
-                                                                              note.color!)
-                                                                          : null;
-                                                                      final noteBloc =
-                                                                          context
-                                                                              .read<NoteBloc>();
-                                                                      final color =
-                                                                          await showColorPickerModalBottomSheet(
-                                                                        context:
-                                                                            context,
-                                                                        currentColor:
-                                                                            currentColor,
-                                                                      );
-                                                                      noteBloc
-                                                                          .add(
-                                                                        NoteUpdateColorEvent(
-                                                                          note:
-                                                                              note,
-                                                                          color: (color != null)
-                                                                              ? color.value
-                                                                              : null,
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                    icon: Icon(
-                                                                      FluentIcons
-                                                                          .color_24_filled,
-                                                                      color: context
-                                                                          .themeColors
-                                                                          .onPrimaryContainer,
-                                                                    ),
-                                                                  )
-                                                                : null,
-                                                          ),
-                                                          AnimatedSwitcher(
-                                                            duration:
-                                                                const Duration(
-                                                                    milliseconds:
-                                                                        200),
-                                                            switchOutCurve: Curves
-                                                                .easeInOutCubic,
-                                                            switchInCurve: Curves
-                                                                .easeInOutCubic,
-                                                            transitionBuilder:
-                                                                (child,
-                                                                    animation) {
-                                                              return ScaleTransition(
-                                                                scale:
-                                                                    animation,
-                                                                child:
-                                                                    FadeTransition(
-                                                                  opacity:
-                                                                      animation,
-                                                                  child: child,
-                                                                ),
-                                                              );
-                                                            },
-                                                            child: (state
-                                                                        .selectedNotes
-                                                                        .length ==
-                                                                    1)
-                                                                ? IconButton(
-                                                                    onPressed:
-                                                                        () async {
-                                                                      final note = state
-                                                                          .selectedNotes
-                                                                          .first;
-                                                                      context
-                                                                          .read<
-                                                                              NoteBloc>()
-                                                                          .add(NoteShareEvent(
-                                                                              note));
-                                                                    },
-                                                                    icon: Icon(
-                                                                      FluentIcons
-                                                                          .share_24_filled,
-                                                                      color: context
-                                                                          .themeColors
-                                                                          .onPrimaryContainer,
-                                                                    ),
-                                                                  )
-                                                                : null,
-                                                          ),
-                                                          AnimatedSwitcher(
-                                                            duration:
-                                                                const Duration(
-                                                                    milliseconds:
-                                                                        200),
-                                                            switchOutCurve: Curves
-                                                                .easeInOutCubic,
-                                                            switchInCurve: Curves
-                                                                .easeInOutCubic,
-                                                            transitionBuilder:
-                                                                (child,
-                                                                    animation) {
-                                                              return ScaleTransition(
-                                                                scale:
-                                                                    animation,
-                                                                child:
-                                                                    FadeTransition(
-                                                                  opacity:
-                                                                      animation,
-                                                                  child: child,
-                                                                ),
-                                                              );
-                                                            },
-                                                            child: (state
-                                                                        .selectedNotes
-                                                                        .length ==
-                                                                    1)
-                                                                ? IconButton(
-                                                                    onPressed:
-                                                                        () {
-                                                                      final note = state
-                                                                          .selectedNotes
-                                                                          .first;
-                                                                      context
-                                                                          .read<
-                                                                              NoteBloc>()
-                                                                          .add(NoteCopyEvent(
-                                                                              note));
-                                                                    },
-                                                                    icon: Icon(
-                                                                      FluentIcons
-                                                                          .copy_24_filled,
-                                                                      color: context
-                                                                          .themeColors
-                                                                          .onPrimaryContainer,
-                                                                    ),
-                                                                  )
-                                                                : null,
-                                                          ),
-                                                          IconButton(
-                                                            onPressed: () {
-                                                              context
-                                                                  .read<
-                                                                      NoteBloc>()
-                                                                  .add(
-                                                                    NoteDeleteEvent(
-                                                                      notes: state
-                                                                          .selectedNotes,
-                                                                    ),
-                                                                  );
-                                                            },
-                                                            icon: Icon(
-                                                              FluentIcons
-                                                                  .delete_24_filled,
-                                                              color: context
-                                                                  .themeColors
-                                                                  .onPrimaryContainer,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    // const Spacer(
-                                                    //   flex: 1,
-                                                    // ),
-                                                    const SizedBox(
-                                                      width: 8.0,
-                                                    ),
-                                                    IconButton(
-                                                      tooltip: context
-                                                          .loc.select_all_notes,
-                                                      onPressed: () async =>
-                                                          context
-                                                              .read<NoteBloc>()
-                                                              .add(
-                                                                const NoteEventSelectAllNotes(),
-                                                              ),
-                                                      icon: const Icon(
-                                                        FluentIcons
-                                                            .select_all_on_24_filled,
-                                                      ),
-                                                      style:
-                                                          IconButton.styleFrom(
-                                                        foregroundColor: context
-                                                            .themeColors
-                                                            .onPrimary,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : null,
-                                ),
+                                _getNoteSelectionToolbar(context, state),
                               ],
                             ),
                           );
@@ -1147,6 +1056,231 @@ class _NotesViewState extends State<NotesView> {
           );
         }
       },
+    );
+  }
+}
+
+class NoteListGroupHeader extends StatefulWidget {
+  final String groupHeader;
+  final bool isCollapsed;
+  final void Function() onTapHeader;
+
+  const NoteListGroupHeader({
+    super.key,
+    required this.groupHeader,
+    required this.isCollapsed,
+    required this.onTapHeader,
+  });
+
+  @override
+  State<NoteListGroupHeader> createState() => _NoteListGroupHeaderState();
+}
+
+class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _animation = Tween(begin: 0.0, end: -0.5).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOutQuad));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
+      child: InkWell(
+        onTap: () {
+          widget.onTapHeader();
+          if (_controller.isDismissed) {
+            _controller.forward();
+          } else {
+            _controller.reverse();
+          }
+        },
+        splashColor: context.themeColors.surfaceVariant.withAlpha(120),
+        highlightColor: context.themeColors.surfaceVariant,
+        borderRadius: widget.isCollapsed
+            ? BorderRadius.circular(26)
+            : const BorderRadius.only(
+                topRight: Radius.circular(24),
+                topLeft: Radius.circular(24),
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+              ),
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(16, 2, 2, 2),
+          decoration: BoxDecoration(
+            color: context.themeColors.secondaryContainer.withAlpha(90),
+            borderRadius: widget.isCollapsed
+                ? BorderRadius.circular(26)
+                : const BorderRadius.only(
+                    topRight: Radius.circular(24),
+                    topLeft: Radius.circular(24),
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                  ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  children: [
+                    RotationTransition(
+                      turns: _animation,
+                      child: Icon(
+                        FluentIcons.chevron_down_24_filled,
+                        size: 20,
+                        color: context.themeColors.onPrimaryContainer
+                            .withAlpha(170),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        widget.groupHeader,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: context.themeColors.onPrimaryContainer,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton.filledTonal(
+                onPressed: () {},
+                icon: const Icon(
+                  Icons.check_rounded,
+                  size: 24,
+                ),
+                style: IconButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: widget.isCollapsed
+                        ? const BorderRadius.only(
+                            topRight: Radius.circular(22),
+                            topLeft: Radius.circular(12),
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(22),
+                          )
+                        : const BorderRadius.only(
+                            topRight: Radius.circular(22),
+                            topLeft: Radius.circular(12),
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                  ),
+                  backgroundColor:
+                      context.themeColors.inversePrimary.withAlpha(150),
+                  foregroundColor: context.themeColors.onSecondaryContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NoteGroup extends StatefulWidget {
+  const NoteGroup({
+    super.key,
+    required this.groupHeader,
+    required this.state,
+    required this.allNotesData,
+  });
+
+  final String groupHeader;
+  final NoteInitializedState state;
+  final Map<String, List<PresentableNoteData>> allNotesData;
+
+  @override
+  State<NoteGroup> createState() => _NoteGroupState();
+}
+
+class _NoteGroupState extends State<NoteGroup> {
+  bool isCollapsed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.groupHeader.isNotEmpty)
+          Card(
+            margin: EdgeInsets.zero,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            child: NoteListGroupHeader(
+              isCollapsed: isCollapsed,
+              groupHeader: widget.groupHeader,
+              onTapHeader: () => setState(() {
+                isCollapsed = !isCollapsed;
+              }),
+            ),
+          ),
+        AnimatedSwitcher(
+          duration: 450.milliseconds,
+          switchInCurve: Curves.fastOutSlowIn,
+          switchOutCurve: Curves.fastOutSlowIn.flipped,
+          transitionBuilder: (child, animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SizeTransition(
+                axis: Axis.vertical,
+                sizeFactor: animation,
+                child: child,
+              ),
+            );
+          },
+          child: !isCollapsed
+              ? NotesListView(
+                  layoutPreference: widget.state.layoutPreference,
+                  noteData: widget.allNotesData[widget.groupHeader]!,
+                  selectedNotes: widget.state.selectedNotes,
+                  onDeleteNote: (LocalNote note) => context
+                      .read<NoteBloc>()
+                      .add(NoteDeleteEvent(notes: [note])),
+                  onTap: (
+                    LocalNote note,
+                    void Function() openNote,
+                  ) {
+                    if (widget.state.selectedNotes.isEmpty) {
+                      openNote();
+                    } else {
+                      context.read<NoteBloc>().add(NoteTapEvent(
+                            note: note,
+                            selectedNotes: widget.state.selectedNotes,
+                          ));
+                    }
+                  },
+                  onLongPress: (LocalNote note) =>
+                      context.read<NoteBloc>().add(NoteLongPressEvent(
+                            note: note,
+                            selectedNotes: widget.state.selectedNotes,
+                          )),
+                )
+              : const SizedBox(height: 10),
+        ),
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
@@ -81,15 +82,15 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
               ),
               leading: null,
               automaticallyImplyLeading: false,
-              toolbarHeight: 74,
+              toolbarHeight: 72,
               centerTitle: true,
               title: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(0.0, 6.0, 0.0, 12.0),
+                    padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
                     child: Ink(
-                      height: 5.0,
-                      width: 40,
+                      height: 6.0,
+                      width: 44,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
                         color:
@@ -101,7 +102,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                     'Filter your notes',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                      fontSize: 18,
                       color: Color.alphaBlend(
                         context.themeColors.surfaceTint.withAlpha(25),
                         context.themeColors.onBackground,
@@ -122,14 +123,15 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                       final children = snapshot.data!
                           .map<Widget>((tag) => UnconstrainedBox(
                                 child: TonalChip(
-                                  padding: const EdgeInsets.all(10.0),
-                                  borderRadius: BorderRadius.circular(16),
+                                  padding: const EdgeInsets.all(12.0),
+                                  borderRadius: BorderRadius.circular(18),
                                   textStyle: TextStyle(
                                     color: filterIds.contains(tag.isarId)
                                         ? context.themeColors.onPrimaryContainer
                                         : context
-                                            .themeColors.onSecondaryContainer,
-                                    fontWeight: FontWeight.w500,
+                                            .themeColors.onSecondaryContainer
+                                            .withAlpha(220),
+                                    fontWeight: FontWeight.w600,
                                     fontSize: 15.0,
                                   ),
                                   onTap: () {
@@ -165,13 +167,13 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                               widget.onSelect(null, requireEntireFilter);
                             },
                             splashColor:
-                                context.themeColors.tertiary.withAlpha(70),
+                                context.themeColors.tertiary.withAlpha(40),
                             highlightColor:
-                                context.themeColors.tertiary.withAlpha(70),
+                                context.themeColors.tertiary.withAlpha(40),
                             borderRadius: BorderRadius.circular(24),
                             child: Ink(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 4.0, vertical: 8.0),
+                                  horizontal: 6.0, vertical: 12.0),
                               decoration: BoxDecoration(
                                 color: context.themeColors.tertiaryContainer,
                                 borderRadius: BorderRadius.circular(24),
@@ -180,7 +182,8 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                 children: [
                                   Checkbox(
                                     side: BorderSide(
-                                      color: context.themeColors.onTertiaryContainer,
+                                      color: context
+                                          .themeColors.onTertiaryContainer,
                                       width: 2,
                                     ),
                                     shape: RoundedRectangleBorder(
@@ -208,7 +211,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           fontWeight: FontWeight.w500,
                                           color: context
                                               .themeColors.onTertiaryContainer,
-                                          fontSize: 14),
+                                          fontSize: 15),
                                     ),
                                   ),
                                 ],
@@ -216,21 +219,21 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                             ),
                           ),
                           const Divider(
-                            indent: 12,
-                            endIndent: 12,
-                            height: 32,
+                            indent: 16,
+                            endIndent: 16,
+                            height: 36,
                           ),
                           Row(
                             children: [
                               Icon(
-                                Icons.label_important_rounded,
+                                FluentIcons.tag_multiple_24_filled,
                                 color: Color.alphaBlend(
                                   context.themeColors.surfaceTint.withAlpha(40),
                                   context.themeColors.onBackground,
                                 ),
                               ),
                               const SizedBox(
-                                width: 12.0,
+                                width: 16.0,
                               ),
                               Text(
                                 'Select tags to view notes from',
@@ -249,13 +252,8 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                             height: 12.0,
                           ),
                           Center(
-                            child: Ink(
-                              padding: const EdgeInsets.all(18.0),
-                              decoration: BoxDecoration(
-                                color: context.themeColors.secondaryContainer
-                                    .withAlpha(70),
-                                borderRadius: BorderRadius.circular(28),
-                              ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
                               child: Wrap(
                                 crossAxisAlignment: WrapCrossAlignment.start,
                                 alignment: WrapAlignment.start,

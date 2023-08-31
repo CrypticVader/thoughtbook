@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -12,7 +13,9 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_stat
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_type.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/filter_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
@@ -24,9 +27,15 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
   String _searchParameter = '';
 
-  SortType _sortType = const SortType(
+  SortProps _sortProps = const SortProps(
     mode: SortMode.dataCreated,
     order: SortOrder.descending,
+  );
+
+  GroupProps _groupProps = const GroupProps(
+    groupParameter: GroupParameter.none,
+    groupOrder: GroupOrder.descending,
+    tagGroupLogic: TagGroupLogic.separateCombinations,
   );
 
   final FilterProps _filterProps = FilterProps(
@@ -49,7 +58,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
   ValueStream<List<LocalNoteTag>> get _allNoteTags =>
       LocalStore.noteTag.allItemStream;
 
-  ValueStream<List<PresentableNoteData>> get _notesData {
+  ValueStream<Map<String, List<PresentableNoteData>>> get _notesData {
     // Processing the stream using the search parameter
     late final ValueStream<List<PresentableNoteData>> queriedStream;
     if (_searchParameter.isEmpty) {
@@ -108,11 +117,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       )).shareValue();
     }
 
-    // Processing the stream using the sort mode
+    // Processing the stream using the sorting mode
     late final ValueStream<List<PresentableNoteData>> sortedStream;
-    switch (_sortType.mode) {
+    switch (_sortProps.mode) {
       case SortMode.dateModified:
-        if (_sortType.order == SortOrder.descending) {
+        if (_sortProps.order == SortOrder.descending) {
           sortedStream = filteredStream.map((notesData) {
             notesData
                 .sort((a, b) => -a.note.modified.compareTo(b.note.modified));
@@ -126,7 +135,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           }).shareValue();
         }
       case SortMode.dataCreated:
-        if (_sortType.order == SortOrder.descending) {
+        if (_sortProps.order == SortOrder.descending) {
           sortedStream = filteredStream.map((notesData) {
             notesData.sort((a, b) => -a.note.created.compareTo(b.note.created));
             return notesData;
@@ -138,7 +147,42 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           }).shareValue();
         }
     }
-    return sortedStream;
+
+    // Processing the stream using the grouping type
+    late final ValueStream<Map<String, List<PresentableNoteData>>>
+        groupedStream;
+    switch (_groupProps.groupParameter) {
+      case GroupParameter.dateModified:
+        groupedStream = sortedStream
+            .map<Map<String, List<PresentableNoteData>>>((notesData) =>
+                groupByModified(
+                  notesData: notesData,
+                  inAscending: _groupProps.groupOrder == GroupOrder.ascending,
+                ))
+            .shareValue();
+      case GroupParameter.dateCreated:
+        groupedStream = sortedStream
+            .map<Map<String, List<PresentableNoteData>>>((notesData) =>
+                groupByCreated(
+                  notesData: notesData,
+                  inAscending: _groupProps.groupOrder == GroupOrder.ascending,
+                ))
+            .shareValue();
+      case GroupParameter.tag:
+        groupedStream = sortedStream
+            .map<Map<String, List<PresentableNoteData>>>(
+                (notesData) => groupByTag(
+                      notesData: notesData,
+                      tagGroupLogic: _groupProps.tagGroupLogic,
+                    ))
+            .shareValue();
+      case GroupParameter.none:
+        groupedStream = sortedStream
+            .map<Map<String, List<PresentableNoteData>>>(
+                (noteData) => {'': noteData})
+            .shareValue();
+    }
+    return groupedStream;
   }
 
   NoteBloc()
@@ -161,7 +205,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: null,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -177,7 +222,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -202,7 +248,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -212,7 +259,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     );
 
     // Modify note filter
-    on<NoteModifyFilterEvent>((event, emit) {
+    on<NoteModifyFilteringEvent>((event, emit) {
       _filterProps.requireEntireFilter = event.requireEntireFilter;
 
       if (event.selectedTagId != null) {
@@ -228,7 +275,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           user: _user,
           noteData: () => _notesData,
           filterProps: _getFilterProps,
-          sortType: _sortType,
+          sortProps: _sortProps,
+          groupProps: _groupProps,
           noteTags: () => _allNoteTags,
           selectedNotes: const [],
           layoutPreference: _layoutPreference,
@@ -237,15 +285,41 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     });
 
     // Modify sort type
-    on<NoteModifySortEvent>((event, emit) {
-      _sortType = SortType(mode: event.sortMode, order: event.sortOrder);
+    on<NoteModifySortingEvent>((event, emit) {
+      _sortProps = SortProps(
+        mode: event.sortMode,
+        order: event.sortOrder,
+      );
       emit(
         NoteInitializedState(
           isLoading: false,
           user: _user,
           noteData: () => _notesData,
           filterProps: _getFilterProps,
-          sortType: _sortType,
+          sortProps: _sortProps,
+          groupProps: _groupProps,
+          noteTags: () => _allNoteTags,
+          selectedNotes: const [],
+          layoutPreference: _layoutPreference,
+        ),
+      );
+    });
+
+    // Modify grouping props
+    on<NoteModifyGroupingEvent>((event, emit) {
+      _groupProps = GroupProps(
+        groupParameter: event.groupParameter,
+        groupOrder: event.groupOrder,
+        tagGroupLogic: event.tagGroupLogic,
+      );
+      emit(
+        NoteInitializedState(
+          isLoading: false,
+          user: _user,
+          noteData: () => _notesData,
+          filterProps: _getFilterProps,
+          sortProps: _sortProps,
+          groupProps: _groupProps,
           noteTags: () => _allNoteTags,
           selectedNotes: const [],
           layoutPreference: _layoutPreference,
@@ -265,7 +339,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             deletedNotes: event.notes,
@@ -288,7 +363,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: _layoutPreference,
@@ -301,7 +377,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: _layoutPreference,
@@ -324,7 +401,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: newSelectedNotes,
               layoutPreference: _layoutPreference,
@@ -337,7 +415,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: event.selectedNotes + [event.note],
               layoutPreference: _layoutPreference,
@@ -356,7 +435,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -375,7 +455,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: notes,
             layoutPreference: _layoutPreference,
@@ -405,7 +486,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -426,7 +508,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             snackBarText: 'Note copied to clipboard',
@@ -446,7 +529,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -478,7 +562,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -509,7 +594,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             user: _user,
             noteData: () => _notesData,
             filterProps: _getFilterProps,
-            sortType: _sortType,
+            sortProps: _sortProps,
+            groupProps: _groupProps,
             noteTags: () => _allNoteTags,
             selectedNotes: const [],
             layoutPreference: _layoutPreference,
@@ -529,7 +615,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -551,7 +638,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
                 user: _user,
                 noteData: () => _notesData,
                 filterProps: _getFilterProps,
-                sortType: _sortType,
+                sortProps: _sortProps,
+                groupProps: _groupProps,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -565,7 +653,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
                 user: _user,
                 noteData: () => _notesData,
                 filterProps: _getFilterProps,
-                sortType: _sortType,
+                sortProps: _sortProps,
+                groupProps: _groupProps,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -588,7 +677,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -608,7 +698,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
                 user: _user,
                 noteData: () => _notesData,
                 filterProps: _getFilterProps,
-                sortType: _sortType,
+                sortProps: _sortProps,
+                groupProps: _groupProps,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -622,7 +713,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
                 user: _user,
                 noteData: () => _notesData,
                 filterProps: _getFilterProps,
-                sortType: _sortType,
+                sortProps: _sortProps,
+                groupProps: _groupProps,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -636,7 +728,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
                 user: _user,
                 noteData: () => _notesData,
                 filterProps: _getFilterProps,
-                sortType: _sortType,
+                sortProps: _sortProps,
+                groupProps: _groupProps,
                 noteTags: () => _allNoteTags,
                 selectedNotes: const [],
                 layoutPreference: _layoutPreference,
@@ -660,7 +753,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -674,7 +768,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               user: _user,
               noteData: () => _notesData,
               filterProps: _getFilterProps,
-              sortType: _sortType,
+              sortProps: _sortProps,
+              groupProps: _groupProps,
               noteTags: () => _allNoteTags,
               selectedNotes: const [],
               layoutPreference: _layoutPreference,
@@ -706,9 +801,6 @@ List<PresentableNoteData> getNotesWithAllTags({
 
 List<PresentableNoteData> getNotesWithAnyTag({
   required List<PresentableNoteData> notesData,
-
-  /// Do not access this field directly. Use its getter `getFilterTagIds` to read,
-  /// & the setter 'setFilterTagIds' only if necessary.
   required Set<int> filterTagIds,
 }) {
   return notesData
@@ -717,12 +809,210 @@ List<PresentableNoteData> getNotesWithAnyTag({
       .toList();
 }
 
-class FilterProps {
-  Set<int> filterSet;
-  bool requireEntireFilter;
+Map<String, List<PresentableNoteData>> groupByModified({
+  required List<PresentableNoteData> notesData,
+  required bool inAscending,
+}) {
+  Map<String, List<PresentableNoteData>> groupedData = {};
 
-  FilterProps({
-    required this.filterSet,
-    required this.requireEntireFilter,
-  });
+  final notesToday = notesData
+      .where((noteData) => noteData.note.modified.toLocal().isToday)
+      .toList();
+  if (notesToday.isNotEmpty) {
+    groupedData['Today'] = notesToday;
+    notesData.removeWhere((noteData) => notesToday
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesYesterday = notesData
+      .where((noteData) => noteData.note.modified.toLocal().wasYesterday)
+      .toList();
+  if (notesYesterday.isNotEmpty) {
+    groupedData['Yesterday'] = notesYesterday;
+    notesData.removeWhere((noteData) => notesYesterday
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesLastWeek = notesData.where((noteData) {
+    final daysDiff = 0.days.ago.day - noteData.note.modified.toLocal().day;
+    final monthDiff = 0.days.ago.month - noteData.note.modified.toLocal().month;
+    final yearDiff = 0.days.ago.year - noteData.note.modified.toLocal().year;
+    return daysDiff.between(2, 7) && (monthDiff == 0) && (yearDiff == 0);
+  }).toList();
+  if (notesLastWeek.isNotEmpty) {
+    groupedData['Last Week'] = notesLastWeek;
+    notesData.removeWhere((noteData) => notesLastWeek
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesLastMonth = notesData.where((noteData) {
+    final daysDiff = 0.days.ago.day - noteData.note.modified.toLocal().day;
+    final monthDiff = 0.days.ago.month - noteData.note.modified.toLocal().month;
+    final yearDiff = 0.days.ago.year - noteData.note.modified.toLocal().year;
+    return (daysDiff > 7) && (monthDiff == 0) && (yearDiff == 0);
+  }).toList();
+  if (notesLastMonth.isNotEmpty) {
+    groupedData['Earlier this month'] = notesLastMonth;
+    notesData.removeWhere((noteData) => notesLastMonth
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesEarlierThisYear = notesData.where((noteData) {
+    final monthDiff = 0.days.ago.month - noteData.note.modified.toLocal().month;
+    final yearDiff = 0.days.ago.year - noteData.note.modified.toLocal().year;
+    return (monthDiff > 0) && (yearDiff == 0);
+  }).toList();
+  if (notesEarlierThisYear.isNotEmpty) {
+    groupedData['Earlier this year'] = notesEarlierThisYear;
+    notesData.removeWhere((noteData) => notesEarlierThisYear
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  int year = 0.days.fromNow.year;
+  while (notesData.isNotEmpty) {
+    final groupYear = --year;
+    final notesOfYear = notesData.where((noteData) {
+      return (groupYear == noteData.note.modified.toLocal().year);
+    }).toList();
+    if (notesOfYear.isNotEmpty) {
+      groupedData['In ${groupYear.toString()}'] = notesOfYear;
+      notesData.removeWhere((noteData) => notesOfYear
+          .any((element) => element.note.isarId == noteData.note.isarId));
+    }
+  }
+
+  if (inAscending) {
+    Map<String, List<PresentableNoteData>> groupedDataReversed = {};
+    for (String key in groupedData.keys.reversed) {
+      groupedDataReversed[key] = groupedData[key]!;
+    }
+    return groupedDataReversed;
+  } else {
+    return groupedData;
+  }
+}
+
+Map<String, List<PresentableNoteData>> groupByCreated({
+  required List<PresentableNoteData> notesData,
+  required bool inAscending,
+}) {
+  Map<String, List<PresentableNoteData>> groupedData = {};
+
+  final notesToday = notesData
+      .where((noteData) => noteData.note.created.toLocal().isToday)
+      .toList();
+  if (notesToday.isNotEmpty) {
+    groupedData['Today'] = notesToday;
+    notesData.removeWhere((noteData) => notesToday
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesYesterday = notesData
+      .where((noteData) => noteData.note.created.toLocal().wasYesterday)
+      .toList();
+  if (notesYesterday.isNotEmpty) {
+    groupedData['Yesterday'] = notesYesterday;
+    notesData.removeWhere((noteData) => notesYesterday
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesLastWeek = notesData.where((noteData) {
+    final daysDiff = 0.days.ago.day - noteData.note.created.toLocal().day;
+    final monthDiff = 0.days.ago.month - noteData.note.created.toLocal().month;
+    final yearDiff = 0.days.ago.year - noteData.note.created.toLocal().year;
+    return daysDiff.between(2, 7) && (monthDiff == 0) && (yearDiff == 0);
+  }).toList();
+  if (notesLastWeek.isNotEmpty) {
+    groupedData['Last Week'] = notesLastWeek;
+    notesData.removeWhere((noteData) => notesLastWeek
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesLastMonth = notesData.where((noteData) {
+    final daysDiff = 0.days.ago.day - noteData.note.created.toLocal().day;
+    final monthDiff = 0.days.ago.month - noteData.note.created.toLocal().month;
+    final yearDiff = 0.days.ago.year - noteData.note.created.toLocal().year;
+    return (daysDiff > 7) && (monthDiff == 0) && (yearDiff == 0);
+  }).toList();
+  if (notesLastMonth.isNotEmpty) {
+    groupedData['Earlier this month'] = notesLastMonth;
+    notesData.removeWhere((noteData) => notesLastMonth
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  final notesEarlierThisYear = notesData.where((noteData) {
+    final monthDiff = 0.days.ago.month - noteData.note.created.toLocal().month;
+    final yearDiff = 0.days.ago.year - noteData.note.created.toLocal().year;
+    return (monthDiff > 0) && (yearDiff == 0);
+  }).toList();
+  if (notesEarlierThisYear.isNotEmpty) {
+    groupedData['Earlier this year'] = notesEarlierThisYear;
+    notesData.removeWhere((noteData) => notesEarlierThisYear
+        .any((element) => element.note.isarId == noteData.note.isarId));
+  }
+
+  int year = 0.days.fromNow.year;
+  while (notesData.isNotEmpty) {
+    final groupYear = --year;
+    final notesOfYear = notesData.where((noteData) {
+      return (groupYear == noteData.note.created.toLocal().year);
+    }).toList();
+    if (notesOfYear.isNotEmpty) {
+      groupedData['In ${groupYear.toString()}'] = notesOfYear;
+      notesData.removeWhere((noteData) => notesOfYear
+          .any((element) => element.note.isarId == noteData.note.isarId));
+    }
+  }
+
+  if (inAscending) {
+    Map<String, List<PresentableNoteData>> groupedDataReversed = {};
+    for (String key in groupedData.keys.reversed) {
+      groupedDataReversed[key] = groupedData[key]!;
+    }
+    return groupedDataReversed;
+  } else {
+    return groupedData;
+  }
+}
+
+Map<String, List<PresentableNoteData>> groupByTag({
+  required List<PresentableNoteData> notesData,
+  required TagGroupLogic tagGroupLogic,
+}) {
+  Map<String, List<PresentableNoteData>> groupedData = {};
+  switch (tagGroupLogic) {
+    case TagGroupLogic.separateCombinations:
+      for (var noteData in notesData) {
+        String groupName = noteData.noteTags.joinToString(
+          transform: (tag) => tag.name,
+          separator: ', ',
+        );
+        if (groupName.isEmpty) groupName = 'No tags';
+        groupedData[groupName] ??= [];
+        groupedData[groupName]!.add(noteData);
+      }
+    case TagGroupLogic.showInAll:
+      for (var noteData in notesData) {
+        if (noteData.noteTags.isEmpty) {
+          groupedData['No tags'] ??= [];
+          groupedData['No tags']!.add(noteData);
+          continue;
+        }
+        for (final tag in noteData.noteTags) {
+          groupedData[tag.name] ??= [];
+          groupedData[tag.name]!.add(noteData);
+        }
+      }
+    case TagGroupLogic.showInOne:
+      for (var noteData in notesData) {
+        if (noteData.noteTags.isEmpty) {
+          groupedData['No tags'] ??= [];
+          groupedData['No tags']!.add(noteData);
+          continue;
+        }
+        groupedData[noteData.noteTags.first.name] ??= [];
+        groupedData[noteData.noteTags.first.name]!.add(noteData);
+      }
+  }
+  return groupedData;
 }
