@@ -59,19 +59,19 @@ class _TonalChipState extends State<TonalChip> {
       child: InkWell(
         onTap: () => widget.onTap(),
         splashColor: widget.splashColor?.withAlpha(100) ??
-            context.themeColors.inversePrimary.withAlpha(150),
+            context.themeColors.surfaceVariant.withAlpha(200),
         highlightColor: widget.splashColor?.withAlpha(70) ??
-            context.themeColors.inversePrimary.withAlpha(200),
+            context.themeColors.surfaceVariant,
         borderRadius: borderRadius,
         child: Ink(
           padding: widget.padding,
           decoration: BoxDecoration(
             color: widget.backgroundColor ??
-                context.themeColors.secondaryContainer.withAlpha(100),
+                context.themeColors.secondaryContainer.withAlpha(70),
             borderRadius: borderRadius,
             border: Border.all(
               strokeAlign: BorderSide.strokeAlignInside,
-              color: context.themeColors.onSecondaryContainer.withAlpha(40),
+              color: context.themeColors.onSecondaryContainer.withAlpha(30),
               width: 1,
             ),
           ),
@@ -82,7 +82,7 @@ class _TonalChipState extends State<TonalChip> {
                   widget.iconData!,
                   size: 22,
                   color: widget.foregroundColor ??
-                      context.themeColors.onSecondaryContainer.withAlpha(225),
+                      context.themeColors.onSecondaryContainer.withAlpha(200),
                 ),
               if (widget.iconData != null) const SizedBox(width: 8.0),
               Text(
@@ -91,7 +91,7 @@ class _TonalChipState extends State<TonalChip> {
                     TextStyle(
                       color: widget.foregroundColor ??
                           context.themeColors.onSecondaryContainer
-                              .withAlpha(225),
+                              .withAlpha(200),
                       fontWeight: FontWeight.w600,
                       fontSize: 14.0,
                     ),

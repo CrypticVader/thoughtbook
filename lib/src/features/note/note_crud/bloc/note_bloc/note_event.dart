@@ -78,12 +78,24 @@ class NoteLongPressEvent extends NoteEvent {
   });
 }
 
+class NoteSelectEvent extends NoteEvent {
+  final Iterable<LocalNote> notes;
+
+  const NoteSelectEvent({required this.notes});
+}
+
+class NoteUnselectEvent extends NoteEvent {
+  final Iterable<LocalNote> notes;
+
+  const NoteUnselectEvent({required this.notes});
+}
+
 class NoteUnselectAllEvent extends NoteEvent {
   const NoteUnselectAllEvent();
 }
 
-class NoteEventSelectAllNotes extends NoteEvent {
-  const NoteEventSelectAllNotes();
+class NoteSelectAllEvent extends NoteEvent {
+  const NoteSelectAllEvent();
 }
 
 class NoteUpdateColorEvent extends NoteEvent {

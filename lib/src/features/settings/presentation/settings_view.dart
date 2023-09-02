@@ -380,30 +380,35 @@ class PreferenceSection extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         if (index == 0) {
-          return InkWell(
-            onTap: item.onTap,
-            splashColor:
-                context.theme.colorScheme.inversePrimary.withAlpha(120),
-            highlightColor:
-                context.theme.colorScheme.inversePrimary.withAlpha(100),
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(24),
-              topLeft: Radius.circular(24),
-              bottomRight: Radius.circular(4),
-              bottomLeft: Radius.circular(4),
-            ),
-            child: Ink(
-              padding: item.padding,
-              decoration: BoxDecoration(
-                color: context.theme.colorScheme.background,
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(24),
-                  topLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(4),
-                  bottomLeft: Radius.circular(4),
-                ),
+          return Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
+            child: InkWell(
+              onTap: item.onTap,
+              splashColor:
+                  context.theme.colorScheme.inversePrimary.withAlpha(120),
+              highlightColor:
+                  context.theme.colorScheme.inversePrimary.withAlpha(100),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(24),
+                topLeft: Radius.circular(24),
+                bottomRight: Radius.circular(4),
+                bottomLeft: Radius.circular(4),
               ),
-              child: item.body,
+              child: Ink(
+                padding: item.padding,
+                decoration: BoxDecoration(
+                  color: context.theme.colorScheme.background,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(24),
+                    topLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(4),
+                    bottomLeft: Radius.circular(4),
+                  ),
+                ),
+                child: item.body,
+              ),
             ),
           );
         } else if (index == (items.length - 1)) {

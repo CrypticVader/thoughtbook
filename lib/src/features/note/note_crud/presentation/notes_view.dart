@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'
     show BlocConsumer, BlocProvider, ReadContext;
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_bloc.dart';
@@ -70,7 +71,6 @@ class _NotesViewState extends State<NotesView> {
         context.themeColors.background,
       ),
       surfaceTintColor: Colors.transparent,
-      key: ValueKey<bool>(state.selectedNotes.isEmpty),
       leadingWidth: kMinInteractiveDimension,
       titleSpacing: 16.0,
       automaticallyImplyLeading: false,
@@ -92,15 +92,15 @@ class _NotesViewState extends State<NotesView> {
           ),
           contentPadding: const EdgeInsets.all(12),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(32.0),
+            borderRadius: BorderRadius.circular(24.0),
             borderSide: BorderSide(
               strokeAlign: BorderSide.strokeAlignInside,
-              width: 1,
-              color: context.themeColors.onBackground.withAlpha(80),
+              width: 0.5,
+              color: context.themeColors.onBackground.withAlpha(90),
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(32.0),
+            borderRadius: BorderRadius.circular(24.0),
             borderSide: BorderSide.none,
           ),
           fillColor: Color.alphaBlend(
@@ -217,7 +217,7 @@ class _NotesViewState extends State<NotesView> {
 
   Widget _getNoteSelectionToolbar(
     BuildContext context,
-    NoteInitializedState state,
+    Set<LocalNote> selectedNotes,
   ) {
     return AnimatedSwitcher(
       switchInCurve: Curves.easeInOutCubic,
@@ -235,7 +235,7 @@ class _NotesViewState extends State<NotesView> {
         );
       },
       duration: const Duration(milliseconds: 250),
-      child: (state.selectedNotes.isNotEmpty)
+      child: (selectedNotes.isNotEmpty)
           ? Column(
               children: [
                 const Spacer(
@@ -282,10 +282,10 @@ class _NotesViewState extends State<NotesView> {
                           },
                           child: Text(
                             context.loc.notes_title(
-                              state.selectedNotes.length,
+                              selectedNotes.length,
                               context.loc.app_title,
                             ),
-                            key: ValueKey<int>(state.selectedNotes.length),
+                            key: ValueKey<int>(selectedNotes.length),
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w500,
@@ -304,116 +304,87 @@ class _NotesViewState extends State<NotesView> {
                           child: Row(
                             children: [
                               AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                switchOutCurve: Curves.easeInOutCubic,
-                                switchInCurve: Curves.easeInOutCubic,
-                                transitionBuilder: (child, animation) {
-                                  return ScaleTransition(
-                                    scale: animation,
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: (state.selectedNotes.length == 1)
-                                    ? IconButton(
-                                        onPressed: () async {
-                                          final note =
-                                              state.selectedNotes.first;
-                                          final currentColor =
-                                              (note.color != null)
-                                                  ? Color(note.color!)
-                                                  : null;
-                                          final noteBloc =
-                                              context.read<NoteBloc>();
-                                          final color =
-                                              await showColorPickerModalBottomSheet(
-                                            context: context,
-                                            currentColor: currentColor,
-                                          );
-                                          noteBloc.add(
-                                            NoteUpdateColorEvent(
-                                              note: note,
-                                              color: (color != null)
-                                                  ? color.value
-                                                  : null,
+                                duration: 200.milliseconds,
+                                switchOutCurve: Curves.easeInOutQuad,
+                                switchInCurve: Curves.easeInOutQuad,
+                                transitionBuilder: (child, animation) =>
+                                    FadeTransition(
+                                  opacity: animation,
+                                  child: SizeTransition(
+                                    axis: Axis.horizontal,
+                                    sizeFactor: animation,
+                                    child: child,
+                                  ),
+                                ),
+                                child: (selectedNotes.length == 1)
+                                    ? Row(
+                                        children: [
+                                          IconButton(
+                                            onPressed: () async {
+                                              final note = selectedNotes.first;
+                                              final currentColor =
+                                                  (note.color != null)
+                                                      ? Color(note.color!)
+                                                      : null;
+                                              final noteBloc =
+                                                  context.read<NoteBloc>();
+                                              final color =
+                                                  await showColorPickerModalBottomSheet(
+                                                context: context,
+                                                currentColor: currentColor,
+                                              );
+                                              noteBloc.add(
+                                                NoteUpdateColorEvent(
+                                                  note: note,
+                                                  color: (color != null)
+                                                      ? color.value
+                                                      : null,
+                                                ),
+                                              );
+                                            },
+                                            icon: Icon(
+                                              FluentIcons.color_24_filled,
+                                              color: context.themeColors
+                                                  .onPrimaryContainer,
                                             ),
-                                          );
-                                        },
-                                        icon: Icon(
-                                          FluentIcons.color_24_filled,
-                                          color: context
-                                              .themeColors.onPrimaryContainer,
-                                        ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () async {
+                                              final note = selectedNotes.first;
+                                              context
+                                                  .read<NoteBloc>()
+                                                  .add(NoteShareEvent(note));
+                                            },
+                                            icon: Icon(
+                                              FluentIcons.share_24_filled,
+                                              color: context.themeColors
+                                                  .onPrimaryContainer,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              final note = selectedNotes.first;
+                                              context
+                                                  .read<NoteBloc>()
+                                                  .add(NoteCopyEvent(note));
+                                            },
+                                            icon: Icon(
+                                              FluentIcons.copy_24_filled,
+                                              color: context.themeColors
+                                                  .onPrimaryContainer,
+                                            ),
+                                          ),
+                                        ],
                                       )
-                                    : null,
-                              ),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                switchOutCurve: Curves.easeInOutCubic,
-                                switchInCurve: Curves.easeInOutCubic,
-                                transitionBuilder: (child, animation) {
-                                  return ScaleTransition(
-                                    scale: animation,
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: (state.selectedNotes.length == 1)
-                                    ? IconButton(
-                                        onPressed: () async {
-                                          final note =
-                                              state.selectedNotes.first;
-                                          context
-                                              .read<NoteBloc>()
-                                              .add(NoteShareEvent(note));
-                                        },
-                                        icon: Icon(
-                                          FluentIcons.share_24_filled,
-                                          color: context
-                                              .themeColors.onPrimaryContainer,
-                                        ),
-                                      )
-                                    : null,
-                              ),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                switchOutCurve: Curves.easeInOutCubic,
-                                switchInCurve: Curves.easeInOutCubic,
-                                transitionBuilder: (child, animation) {
-                                  return ScaleTransition(
-                                    scale: animation,
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: (state.selectedNotes.length == 1)
-                                    ? IconButton(
-                                        onPressed: () {
-                                          final note =
-                                              state.selectedNotes.first;
-                                          context
-                                              .read<NoteBloc>()
-                                              .add(NoteCopyEvent(note));
-                                        },
-                                        icon: Icon(
-                                          FluentIcons.copy_24_filled,
-                                          color: context
-                                              .themeColors.onPrimaryContainer,
-                                        ),
-                                      )
-                                    : null,
+                                    : SizedBox(
+                                        width: 0,
+                                      ),
                               ),
                               IconButton(
                                 onPressed: () {
                                   context.read<NoteBloc>().add(
                                         NoteDeleteEvent(
-                                          notes: state.selectedNotes,
+                                          notes: selectedNotes,
                                         ),
                                       );
                                 },
@@ -425,16 +396,13 @@ class _NotesViewState extends State<NotesView> {
                             ],
                           ),
                         ),
-                        // const Spacer(
-                        //   flex: 1,
-                        // ),
                         const SizedBox(
                           width: 8.0,
                         ),
                         IconButton(
                           tooltip: context.loc.select_all_notes,
                           onPressed: () async => context.read<NoteBloc>().add(
-                                const NoteEventSelectAllNotes(),
+                                const NoteSelectAllEvent(),
                               ),
                           icon: const Icon(
                             FluentIcons.select_all_on_24_filled,
@@ -567,7 +535,7 @@ class _NotesViewState extends State<NotesView> {
         } else if (state is NoteInitializedState) {
           return WillPopScope(
             onWillPop: () async {
-              if (state.selectedNotes.isEmpty) {
+              if (!(state.hasSelectedNotes)) {
                 return true;
               } else {
                 context.read<NoteBloc>().add(const NoteUnselectAllEvent());
@@ -575,7 +543,7 @@ class _NotesViewState extends State<NotesView> {
               }
             },
             child: Scaffold(
-              floatingActionButton: state.selectedNotes.isEmpty
+              floatingActionButton: !(state.hasSelectedNotes)
                   ? AnimatedOpacity(
                       opacity: _showFab ? 1 : 0,
                       duration: const Duration(milliseconds: 150),
@@ -977,15 +945,21 @@ class _NotesViewState extends State<NotesView> {
                     ),
                   ];
                 },
-                body: StreamBuilder<Map<String, List<PresentableNoteData>>>(
-                  stream: state.noteData(),
+                body: StreamBuilder<
+                    (Map<String, List<PresentableNoteData>>, Set<LocalNote>)>(
+                  stream: Rx.combineLatest2(
+                    state.notesData(),
+                    state.selectedNotes(),
+                    (notesData, selectedNotes) => (notesData, selectedNotes),
+                  ).shareValue(),
                   builder: (context, snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.waiting:
                       case ConnectionState.done:
                       case ConnectionState.active:
                         if (snapshot.hasData) {
-                          final allNotesData = snapshot.data!;
+                          final notesData = snapshot.data!.$1;
+                          final selectedNotes = snapshot.data!.$2;
                           return BlocProvider<NoteBloc>.value(
                             value: context.read<NoteBloc>(),
                             child: Stack(
@@ -1013,21 +987,39 @@ class _NotesViewState extends State<NotesView> {
                                   child: SingleChildScrollView(
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      children: allNotesData.keys
+                                      children: notesData.keys
                                           .map((groupHeader) => NoteGroup(
+                                                key: ValueKey<String>(
+                                                    groupHeader),
                                                 state: state,
                                                 groupNotesData:
-                                                    allNotesData[groupHeader]!,
+                                                    notesData[groupHeader]!,
+                                                selectedGroupNotes: selectedNotes
+                                                    .where((note) =>
+                                                        notesData[groupHeader]!
+                                                            .any((noteData) =>
+                                                                noteData.note
+                                                                    .isarId ==
+                                                                note.isarId))
+                                                    .toSet(),
                                                 groupHeader: groupHeader,
-                                                // TODO: notify bloc
-                                                onSelectGroup: () {},
-                                                onUnselectGroup: () {},
+                                                onSelectGroup: (notes) =>
+                                                    context
+                                                        .read<NoteBloc>()
+                                                        .add(NoteSelectEvent(
+                                                            notes: notes)),
+                                                onUnselectGroup: (notes) =>
+                                                    context
+                                                        .read<NoteBloc>()
+                                                        .add(NoteUnselectEvent(
+                                                            notes: notes)),
                                               ))
                                           .toList(),
                                     ),
                                   ),
                                 ),
-                                _getNoteSelectionToolbar(context, state),
+                                _getNoteSelectionToolbar(
+                                    context, selectedNotes),
                               ],
                             ),
                           );
@@ -1136,7 +1128,8 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
           child: Ink(
             padding: const EdgeInsets.fromLTRB(16, 2, 2, 2),
             decoration: BoxDecoration(
-              color: context.themeColors.secondaryContainer.withAlpha(90),
+              color: context.themeColors.secondaryContainer
+                  .withAlpha(widget.isSelected ? 220 : 90),
               borderRadius: widget.isCollapsed
                   ? BorderRadius.circular(26)
                   : const BorderRadius.only(
@@ -1177,12 +1170,12 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
                   ),
                 ),
                 const SizedBox(width: 4),
-                IconButton.filledTonal(
+                IconButton(
                   onPressed: () {
                     if (widget.isSelected) {
-                      widget.onSelectGroup();
-                    } else {
                       widget.onUnselectGroup();
+                    } else {
+                      widget.onSelectGroup();
                     }
                   },
                   icon: const Icon(
@@ -1205,9 +1198,12 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
                               bottomRight: Radius.circular(12),
                             ),
                     ),
-                    backgroundColor: context.themeColors.inversePrimary
-                        .withAlpha(widget.isSelected ? 250 : 150),
-                    foregroundColor: context.themeColors.onSecondaryContainer,
+                    backgroundColor: widget.isSelected
+                        ? context.themeColors.primary
+                        : context.themeColors.inversePrimary.withAlpha(120),
+                    foregroundColor: widget.isSelected
+                        ? context.themeColors.onPrimary
+                        : context.themeColors.onSecondaryContainer,
                   ),
                 ),
               ],
@@ -1225,6 +1221,7 @@ class NoteGroup extends StatefulWidget {
     required this.groupHeader,
     required this.state,
     required this.groupNotesData,
+    required this.selectedGroupNotes,
     required this.onSelectGroup,
     required this.onUnselectGroup,
   });
@@ -1232,8 +1229,9 @@ class NoteGroup extends StatefulWidget {
   final String groupHeader;
   final NoteInitializedState state;
   final List<PresentableNoteData> groupNotesData;
-  final void Function() onSelectGroup;
-  final void Function() onUnselectGroup;
+  final Set<LocalNote> selectedGroupNotes;
+  final void Function(Iterable<LocalNote> notes) onSelectGroup;
+  final void Function(Iterable<LocalNote> notes) onUnselectGroup;
 
   @override
   State<NoteGroup> createState() => _NoteGroupState();
@@ -1241,15 +1239,9 @@ class NoteGroup extends StatefulWidget {
 
 class _NoteGroupState extends State<NoteGroup> {
   bool isCollapsed = false;
-  bool isSelected = false;
 
   @override
   void initState() {
-    Iterable<int> selectedNoteIds =
-        widget.state.selectedNotes.map((note) => note.isarId);
-    isSelected = widget.groupNotesData
-        .map((noteData) => noteData.note.isarId)
-        .every((noteId) => selectedNoteIds.contains(noteId));
     super.initState();
   }
 
@@ -1260,14 +1252,17 @@ class _NoteGroupState extends State<NoteGroup> {
       children: [
         if (widget.groupHeader.isNotEmpty)
           NoteListGroupHeader(
-            isSelected: isSelected,
+            isSelected: (widget.selectedGroupNotes.length ==
+                widget.groupNotesData.length),
             isCollapsed: isCollapsed,
             groupHeader: widget.groupHeader,
             onTapHeader: () => setState(() {
               isCollapsed = !isCollapsed;
             }),
-            onSelectGroup: () => widget.onSelectGroup(),
-            onUnselectGroup: () => widget.onUnselectGroup(),
+            onSelectGroup: () =>
+                widget.onSelectGroup(widget.groupNotesData.map((e) => e.note)),
+            onUnselectGroup: () => widget
+                .onUnselectGroup(widget.groupNotesData.map((e) => e.note)),
           ),
         AnimatedSwitcher(
           duration: 450.milliseconds,
@@ -1287,7 +1282,7 @@ class _NoteGroupState extends State<NoteGroup> {
               ? NotesListView(
                   layoutPreference: widget.state.layoutPreference,
                   notesData: widget.groupNotesData,
-                  selectedNotes: widget.state.selectedNotes,
+                  selectedNotes: widget.selectedGroupNotes,
                   onDeleteNote: (LocalNote note) => context
                       .read<NoteBloc>()
                       .add(NoteDeleteEvent(notes: {note})),
@@ -1295,7 +1290,7 @@ class _NoteGroupState extends State<NoteGroup> {
                     LocalNote note,
                     void Function() openNote,
                   ) {
-                    if (widget.state.selectedNotes.isEmpty) {
+                    if (!(widget.state.hasSelectedNotes)) {
                       openNote();
                     } else {
                       context.read<NoteBloc>().add(NoteTapEvent(note: note));

@@ -25,11 +25,35 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
+  NoteInitializedState _getInitializedState({
+    String? snackBarText,
+    bool hasUser = true,
+    Set<LocalNote>? deletedNotes,
+  }) =>
+      NoteInitializedState(
+        isLoading: false,
+        user: _user,
+        notesData: () => _adaptedNotesData,
+        filterProps: _getFilterProps,
+        sortProps: _sortProps,
+        groupProps: _groupProps,
+        noteTags: () => _allNoteTags,
+        hasSelectedNotes: _selectedNotes.isNotEmpty,
+        selectedNotes: () => _getSelectedNotes,
+        layoutPreference: _layoutPreference,
+        snackBarText: snackBarText,
+        deletedNotes: deletedNotes,
+      );
+
   String _searchParameter = '';
 
-  final Set<LocalNote> _selectedNotes = <LocalNote>{};
+  final Set<int> _selectedNotes = <int>{};
 
-  Set<LocalNote> get _getSelectedNotes => Set.from(_selectedNotes);
+  ValueStream<Set<LocalNote>> get _getSelectedNotes => LocalStore
+      .note.allItemStream
+      .map<Set<LocalNote>>((notes) =>
+          notes.where((note) => _selectedNotes.contains(note.isarId)).toSet())
+      .shareValue();
 
   SortProps _sortProps = const SortProps(
     mode: SortMode.dataCreated,
@@ -203,36 +227,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               // noteTagChange: false,
               );
           log('Isar opened in NoteBloc, no user');
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: null,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-            ),
-          );
+          emit(_getInitializedState(hasUser: false));
         } else {
           CloudStore.open();
           await LocalStore.open();
           log('Isar opened in NoteBloc, user logged in');
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-            ),
-          );
+          emit(_getInitializedState());
 
           // Start local to cloud sync service
           unawaited(Synchronizer.note.startSync());
@@ -246,19 +246,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteSearchEvent>(
       (event, emit) {
         _searchParameter = event.query;
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            layoutPreference: _layoutPreference,
-          ),
-        );
+        emit(_getInitializedState());
       },
     );
 
@@ -273,19 +261,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           _setFilterTagIds.add(event.selectedTagId!);
         }
       }
-      emit(
-        NoteInitializedState(
-          isLoading: false,
-          user: _user,
-          noteData: () => _adaptedNotesData,
-          filterProps: _getFilterProps,
-          sortProps: _sortProps,
-          groupProps: _groupProps,
-          noteTags: () => _allNoteTags,
-          selectedNotes: _getSelectedNotes,
-          layoutPreference: _layoutPreference,
-        ),
-      );
+      emit(_getInitializedState());
     });
 
     // Modify sort type
@@ -294,19 +270,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         mode: event.sortMode,
         order: event.sortOrder,
       );
-      emit(
-        NoteInitializedState(
-          isLoading: false,
-          user: _user,
-          noteData: () => _adaptedNotesData,
-          filterProps: _getFilterProps,
-          sortProps: _sortProps,
-          groupProps: _groupProps,
-          noteTags: () => _allNoteTags,
-          selectedNotes: _getSelectedNotes,
-          layoutPreference: _layoutPreference,
-        ),
-      );
+      emit(_getInitializedState());
     });
 
     // Modify grouping props
@@ -316,19 +280,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         groupOrder: event.groupOrder,
         tagGroupLogic: event.tagGroupLogic,
       );
-      emit(
-        NoteInitializedState(
-          isLoading: false,
-          user: _user,
-          noteData: () => _adaptedNotesData,
-          filterProps: _getFilterProps,
-          sortProps: _sortProps,
-          groupProps: _groupProps,
-          noteTags: () => _allNoteTags,
-          selectedNotes: _getSelectedNotes,
-          layoutPreference: _layoutPreference,
-        ),
-      );
+      emit(_getInitializedState());
     });
 
     // Delete note
@@ -341,12 +293,13 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           NoteInitializedState(
             isLoading: false,
             user: _user,
-            noteData: () => _adaptedNotesData,
+            notesData: () => _adaptedNotesData,
             filterProps: _getFilterProps,
             sortProps: _sortProps,
             groupProps: _groupProps,
             noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
+            hasSelectedNotes: _selectedNotes.isNotEmpty,
+            selectedNotes: () => _getSelectedNotes,
             deletedNotes: event.notes,
             layoutPreference: _layoutPreference,
           ),
@@ -357,74 +310,46 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // Tap on a note
     on<NoteTapEvent>(
       (event, emit) async {
-        if (_selectedNotes.contains(event.note)) {
-          _selectedNotes.remove(event.note);
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-            ),
-          );
+        if (_selectedNotes.contains(event.note.isarId)) {
+          _selectedNotes.remove(event.note.isarId);
         } else {
-          _selectedNotes.add(event.note);
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-            ),
-          );
+          _selectedNotes.add(event.note.isarId);
         }
+        emit(_getInitializedState());
       },
     );
 
     // Long press on a note
     on<NoteLongPressEvent>(
       (event, emit) async {
-        if (_selectedNotes.contains(event.note)) {
-          _selectedNotes.remove(event.note);
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-            ),
-          );
+        if (_selectedNotes.contains(event.note.isarId)) {
+          _selectedNotes.remove(event.note.isarId);
         } else {
-          _selectedNotes.add(event.note);
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-            ),
-          );
+          _selectedNotes.add(event.note.isarId);
         }
+        emit(_getInitializedState());
+      },
+    );
+
+    // Select notes
+    on<NoteSelectEvent>((event, emit) {
+      _selectedNotes.addAll(event.notes.map<int>((e) => e.isarId));
+      emit(_getInitializedState());
+    });
+
+    // Unselect notes
+    on<NoteUnselectEvent>((event, emit) {
+      _selectedNotes.removeAll(event.notes.map<int>((e) => e.isarId));
+      emit(_getInitializedState());
+    });
+
+    // Unselect all notes
+    on<NoteSelectAllEvent>(
+      (event, emit) async {
+        _selectedNotes.clear();
+        _selectedNotes.addAll(
+            (await LocalStore.note.getAllItems).map((note) => note.isarId));
+        emit(_getInitializedState());
       },
     );
 
@@ -432,39 +357,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteUnselectAllEvent>(
       (event, emit) {
         _selectedNotes.clear();
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            layoutPreference: _layoutPreference,
-          ),
-        );
-      },
-    );
-
-    // Select all notes
-    on<NoteEventSelectAllNotes>(
-      (event, emit) async {
-        _selectedNotes.addAll((await LocalStore.note.getAllItems));
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            layoutPreference: _layoutPreference,
-          ),
-        );
+        emit(_getInitializedState());
       },
     );
 
@@ -483,19 +376,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             isSyncedWithCloud: false,
           );
         }
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            layoutPreference: _layoutPreference,
-          ),
-        );
+        emit(_getInitializedState());
       },
     );
 
@@ -505,20 +386,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         await Clipboard.setData(
           ClipboardData(text: '${event.note.title}\n${event.note.content}'),
         );
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            snackBarText: 'Note copied to clipboard',
-            layoutPreference: _layoutPreference,
-          ),
-        );
+        emit(_getInitializedState(snackBarText: 'Note copied to clipboard'));
       },
     );
 
@@ -526,19 +394,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteShareEvent>(
       (event, emit) async {
         await Share.share(event.note.content);
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            layoutPreference: _layoutPreference,
-          ),
-        );
+        emit(_getInitializedState());
       },
     );
 
@@ -559,23 +415,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             value: LayoutPreference.list.value,
           );
         }
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            layoutPreference: _layoutPreference,
-          ),
-        );
+        emit(_getInitializedState());
       },
     );
 
-    // Create New Note, used to restore a deleted note
+    // Restore a deleted note
     on<NoteUndoDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.deletedNotes) {
@@ -591,19 +435,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             modified: note.modified,
           );
         }
-        emit(
-          NoteInitializedState(
-            isLoading: false,
-            user: _user,
-            noteData: () => _adaptedNotesData,
-            filterProps: _getFilterProps,
-            sortProps: _sortProps,
-            groupProps: _groupProps,
-            noteTags: () => _allNoteTags,
-            selectedNotes: _getSelectedNotes,
-            layoutPreference: _layoutPreference,
-          ),
-        );
+        emit(_getInitializedState());
       },
     );
 
@@ -612,20 +444,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       (event, emit) async {
         final String tagName = event.name;
         if (tagName.isEmpty || tagName.replaceAll(' ', '').isEmpty) {
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-              snackBarText: 'Please enter a name for the tag.',
-            ),
-          );
+          emit(_getInitializedState(
+              snackBarText: 'Please enter a name for the tag.'));
         } else {
           final tag = await LocalStore.noteTag.createItem();
           try {
@@ -635,35 +455,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             );
           } on DuplicateNoteTagException {
             await LocalStore.noteTag.deleteItem(id: tag.isarId);
-            emit(
-              NoteInitializedState(
-                isLoading: false,
-                user: _user,
-                noteData: () => _adaptedNotesData,
-                filterProps: _getFilterProps,
-                sortProps: _sortProps,
-                groupProps: _groupProps,
-                noteTags: () => _allNoteTags,
-                selectedNotes: _getSelectedNotes,
-                layoutPreference: _layoutPreference,
-                snackBarText: 'A tag with the given name already exists.',
-              ),
-            );
+            emit(_getInitializedState(
+                snackBarText: 'A tag with the given name already exists.'));
           } on CouldNotUpdateNoteTagException {
-            emit(
-              NoteInitializedState(
-                isLoading: false,
-                user: _user,
-                noteData: () => _adaptedNotesData,
-                filterProps: _getFilterProps,
-                sortProps: _sortProps,
-                groupProps: _groupProps,
-                noteTags: () => _allNoteTags,
-                selectedNotes: _getSelectedNotes,
-                layoutPreference: _layoutPreference,
-                snackBarText: 'Oops. Could not create the tag.',
-              ),
-            );
+            emit(_getInitializedState(
+                snackBarText: 'Oops. Could not create the tag.'));
           }
         }
       },
@@ -674,20 +470,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       (event, emit) async {
         final String tagName = event.newName;
         if (tagName.isEmpty || tagName.replaceAll(' ', '').isEmpty) {
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-              snackBarText: 'Please enter a name for the tag.',
-            ),
-          );
+          emit(_getInitializedState(
+              snackBarText: 'Please enter a name for the tag.'));
         } else {
           try {
             await LocalStore.noteTag.updateItem(
@@ -695,50 +479,14 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
               name: event.newName,
             );
           } on CouldNotFindNoteTagException {
-            emit(
-              NoteInitializedState(
-                isLoading: false,
-                user: _user,
-                noteData: () => _adaptedNotesData,
-                filterProps: _getFilterProps,
-                sortProps: _sortProps,
-                groupProps: _groupProps,
-                noteTags: () => _allNoteTags,
-                selectedNotes: _getSelectedNotes,
-                layoutPreference: _layoutPreference,
-                snackBarText: 'Could not find the tag to update.',
-              ),
-            );
+            emit(_getInitializedState(
+                snackBarText: 'Could not find the tag to update.'));
           } on CouldNotUpdateNoteTagException {
-            emit(
-              NoteInitializedState(
-                isLoading: false,
-                user: _user,
-                noteData: () => _adaptedNotesData,
-                filterProps: _getFilterProps,
-                sortProps: _sortProps,
-                groupProps: _groupProps,
-                noteTags: () => _allNoteTags,
-                selectedNotes: _getSelectedNotes,
-                layoutPreference: _layoutPreference,
-                snackBarText: 'Oops. Could not update tag',
-              ),
-            );
+            emit(_getInitializedState(
+                snackBarText: 'Oops. Could not update tag'));
           } on DuplicateNoteTagException {
-            emit(
-              NoteInitializedState(
-                isLoading: false,
-                user: _user,
-                noteData: () => _adaptedNotesData,
-                filterProps: _getFilterProps,
-                sortProps: _sortProps,
-                groupProps: _groupProps,
-                noteTags: () => _allNoteTags,
-                selectedNotes: _getSelectedNotes,
-                layoutPreference: _layoutPreference,
-                snackBarText: 'A tag with the given name already exists.',
-              ),
-            );
+            emit(_getInitializedState(
+                snackBarText: 'A tag with the given name already exists.'));
           }
         }
       },
@@ -750,35 +498,11 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         try {
           await LocalStore.noteTag.deleteItem(id: event.tag.isarId);
         } on CouldNotFindNoteTagException {
-          emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-              snackBarText: 'Could not find the tag to delete.',
-            ),
-          );
+          emit(_getInitializedState(
+              snackBarText: 'Could not find the tag to delete.'));
         } on CouldNotDeleteNoteTagException {
           emit(
-            NoteInitializedState(
-              isLoading: false,
-              user: _user,
-              noteData: () => _adaptedNotesData,
-              filterProps: _getFilterProps,
-              sortProps: _sortProps,
-              groupProps: _groupProps,
-              noteTags: () => _allNoteTags,
-              selectedNotes: _getSelectedNotes,
-              layoutPreference: _layoutPreference,
-              snackBarText: 'Oops. Could not delete tag',
-            ),
-          );
+              _getInitializedState(snackBarText: 'Oops. Could not delete tag'));
         }
       },
     );
@@ -817,6 +541,7 @@ Map<String, List<PresentableNoteData>> groupByModified({
   required bool inAscending,
 }) {
   Map<String, List<PresentableNoteData>> groupedData = {};
+
   final now = DateTime.now();
 
   final notesToday = notesData
@@ -838,15 +563,13 @@ Map<String, List<PresentableNoteData>> groupByModified({
   }
 
   final notesThisWeek = notesData.where((noteData) {
-    final daysDiff = now.difference(noteData.note.modified.toLocal()).inDays;
-    final isSameWeek = (daysDiff ==
-        (now.weekday - noteData.note.modified.toLocal().weekday - 1));
-    final monthDiff = now.month - noteData.note.modified.toLocal().month;
-    final yearDiff = now.year - noteData.note.modified.toLocal().year;
-    return isSameWeek && (monthDiff <= 1) && (yearDiff == 0);
+    final startOfThisWeek = (now.weekday + 1).days.ago;
+    final isSameWeek =
+        noteData.note.modified.toLocal().between(startOfThisWeek, now);
+    return isSameWeek;
   }).toList();
   if (notesThisWeek.isNotEmpty) {
-    groupedData['This Week'] = notesThisWeek;
+    groupedData['Earlier this Week'] = notesThisWeek;
     notesData.removeWhere((noteData) => notesThisWeek
         .any((element) => element.note.isarId == noteData.note.isarId));
   }
@@ -854,7 +577,9 @@ Map<String, List<PresentableNoteData>> groupByModified({
   final notesLastWeek = notesData.where((noteData) {
     final endOfLastWeek = now.weekday.days.ago;
     final startOfLastWeek = (now.weekday + 6).days.ago;
-    final isSameWeek = (noteData.note.modified.toLocal().between(startOfLastWeek, endOfLastWeek));
+    final isSameWeek = (noteData.note.modified
+        .toLocal()
+        .between(startOfLastWeek, endOfLastWeek));
     return isSameWeek;
   }).toList();
   if (notesLastWeek.isNotEmpty) {
@@ -875,9 +600,10 @@ Map<String, List<PresentableNoteData>> groupByModified({
   }
 
   final notesLastMonth = notesData.where((noteData) {
-    final monthDiff = now.month - noteData.note.modified.toLocal().month;
     final yearDiff = now.year - noteData.note.modified.toLocal().year;
-    return (monthDiff == 1) && (yearDiff == 0);
+    final monthDiff = now.month - noteData.note.modified.toLocal().month;
+    final wasLastMonth = ((yearDiff * 12 + monthDiff) == 1);
+    return wasLastMonth;
   }).toList();
   if (notesLastMonth.isNotEmpty) {
     groupedData['Last month'] = notesLastMonth;
@@ -924,6 +650,7 @@ Map<String, List<PresentableNoteData>> groupByCreated({
   required bool inAscending,
 }) {
   Map<String, List<PresentableNoteData>> groupedData = {};
+
   final now = DateTime.now();
 
   final notesToday = notesData
@@ -945,15 +672,13 @@ Map<String, List<PresentableNoteData>> groupByCreated({
   }
 
   final notesThisWeek = notesData.where((noteData) {
-    final daysDiff = now.difference(noteData.note.created.toLocal()).inDays;
-    final isSameWeek = (daysDiff ==
-        (now.weekday - noteData.note.created.toLocal().weekday - 1));
-    final monthDiff = now.month - noteData.note.created.toLocal().month;
-    final yearDiff = now.year - noteData.note.created.toLocal().year;
-    return isSameWeek && (monthDiff <= 1) && (yearDiff == 0);
+    final startOfThisWeek = (now.weekday + 1).days.ago;
+    final isSameWeek =
+    noteData.note.created.toLocal().between(startOfThisWeek, now);
+    return isSameWeek;
   }).toList();
   if (notesThisWeek.isNotEmpty) {
-    groupedData['This Week'] = notesThisWeek;
+    groupedData['Earlier this Week'] = notesThisWeek;
     notesData.removeWhere((noteData) => notesThisWeek
         .any((element) => element.note.isarId == noteData.note.isarId));
   }
@@ -961,7 +686,9 @@ Map<String, List<PresentableNoteData>> groupByCreated({
   final notesLastWeek = notesData.where((noteData) {
     final endOfLastWeek = now.weekday.days.ago;
     final startOfLastWeek = (now.weekday + 6).days.ago;
-    final isSameWeek = (noteData.note.created.toLocal().between(startOfLastWeek, endOfLastWeek));
+    final isSameWeek = (noteData.note.created
+        .toLocal()
+        .between(startOfLastWeek, endOfLastWeek));
     return isSameWeek;
   }).toList();
   if (notesLastWeek.isNotEmpty) {
@@ -982,9 +709,10 @@ Map<String, List<PresentableNoteData>> groupByCreated({
   }
 
   final notesLastMonth = notesData.where((noteData) {
-    final monthDiff = now.month - noteData.note.created.toLocal().month;
     final yearDiff = now.year - noteData.note.created.toLocal().year;
-    return (monthDiff == 1) && (yearDiff == 0);
+    final monthDiff = now.month - noteData.note.created.toLocal().month;
+    final wasLastMonth = ((yearDiff * 12 + monthDiff) == 1);
+    return wasLastMonth;
   }).toList();
   if (notesLastMonth.isNotEmpty) {
     groupedData['Last month'] = notesLastMonth;
