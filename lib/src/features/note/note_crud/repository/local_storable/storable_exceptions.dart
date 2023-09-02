@@ -1,4 +1,4 @@
-class CollectionAlreadyOpenException implements Exception {}
+class DatabaseAlreadyOpenException implements Exception {}
 
 class UnableToGetDocumentsDirectoryException implements Exception {}
 
@@ -16,4 +16,12 @@ class CouldNotFindNoteException implements Exception {}
 
 class CouldNotUpdateNoteException implements Exception {}
 
-class UserShouldBeSetBeforeReadingAllNotesException implements Exception {}
+class NoteTagAlreadyExistsException implements Exception {}
+
+class CouldNotFindNoteTagException implements Exception {}
+
+class CouldNotUpdateNoteTagException implements Exception {}
+
+class CouldNotDeleteNoteTagException implements Exception {}
+
+class DuplicateNoteTagException implements Exception {}

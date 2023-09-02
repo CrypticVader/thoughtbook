@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_note_service/firestore_notes_constants.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_storable_constants.dart';
 
 /// Data model for notes stored in the Firebase Firestore database.
 @immutable
@@ -13,6 +13,8 @@ class CloudNote {
 
   final String title;
 
+  final List<String> tagDocumentIds;
+
   final int? color;
 
   final Timestamp created;
@@ -24,6 +26,7 @@ class CloudNote {
     required this.ownerUserId,
     required this.title,
     required this.content,
+    required this.tagDocumentIds,
     required this.color,
     required this.created,
     required this.modified,
@@ -34,6 +37,8 @@ class CloudNote {
         ownerUserId = snapshot.data()[ownerUserIdFieldName],
         content = snapshot.data()[contentFieldName] as String,
         title = snapshot.data()[titleFieldName] as String,
+        tagDocumentIds =
+            List<String>.from(snapshot.data()[tagDocumentIdsFieldName] ?? []),
         // do not cast as int as it is nullable
         color = snapshot.data()[colorFieldName] as int?,
         created = snapshot.data()[createdFieldName] as Timestamp,
@@ -47,6 +52,8 @@ class CloudNote {
 
   @override
   String toString() {
-    return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, title: $title, color: $color, content: $content, created: $created, modified: $modified}';
+    return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, '
+        'tagDocumentIds: $tagDocumentIds, title: $title, color: $color, '
+        'content: $content, created: $created, modified: $modified}';
   }
 }

@@ -4,8 +4,9 @@ import 'package:bloc/bloc.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_state.dart';
 import 'package:thoughtbook/src/features/authentication/repository/auth_provider.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_note_service/local_note_service.dart';
-import 'package:thoughtbook/src/features/note/note_sync/repository/note_sync_service/note_sync_service.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
+import 'package:thoughtbook/src/features/note/note_sync/repository/synchronizer.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_keys.dart';
 
@@ -178,12 +179,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             );
 
             // After logging in, retrieve all the notes belonging to the user from
-            // the Firstore collection to the local database
-            final Stream<int> loadProgress = NoteSyncService().initLocalNotes();
-            await for (int progress in loadProgress) {
+            // the Firestore collection to the local database
+            CloudStore.open();
+            await LocalStore.open();
+
+            final Stream<int> noteTagLoadProgress =
+                Synchronizer.noteTag.initLocalFromCloud();
+            await for (int progress in noteTagLoadProgress) {
+              log('CloudNoteTag retrieval progress: ${progress.toString()}%');
+            }
+            log('Successfully retrieved all note tags from Firestore');
+            final Stream<int> noteLoadProgress =
+                Synchronizer.note.initLocalFromCloud();
+            await for (int progress in noteLoadProgress) {
               log('CloudNote retrieval progress: ${progress.toString()}%');
             }
-            log('Successfully retrieved notes from Firestore');
+            log('Successfully retrieved all notes from Firestore');
 
             emit(
               AuthStateLoggedIn(
@@ -206,11 +217,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     // log in as guest
     on<AuthEventLoginAsGuest>(
-      (event, emit) {
-        AppPreferenceService().setPreference(
+      (event, emit) async {
+        await AppPreferenceService().setPreference(
           key: PreferenceKey.isGuest,
           value: true,
         );
+        CloudStore.open();
+        await LocalStore.open(
+            // noteChange: false,
+            // noteTagChange: false,
+            );
         emit(
           const AuthStateLoggedIn(
             isLoading: false,
@@ -244,7 +260,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               isLoading: false,
             ),
           );
-          await LocalNoteService().deleteAllNotes(addToChangeFeed: false);
         } on Exception catch (e) {
           emit(
             AuthStateLoggedOut(
@@ -252,7 +267,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               isLoading: false,
             ),
           );
-          await LocalNoteService().deleteAllNotes(addToChangeFeed: false);
+        } finally {
+          await LocalStore.close(clearData: true);
+          CloudStore.close();
         }
       },
     );

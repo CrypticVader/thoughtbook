@@ -6,4 +6,6 @@ class UserNotLoggedInSyncException extends NoteSyncException {}
 
 class CouldNotDeleteChangeSyncException extends NoteSyncException {}
 
-class InvalidNoteChangeTypeSyncException extends NoteSyncException {}
+class InvalidSyncableTypeSyncException extends NoteSyncException {}
+
+class CouldNotFindChangeException implements Exception {}

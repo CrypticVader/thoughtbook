@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
+import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 
 @immutable
 abstract class NoteEditorEvent {
@@ -22,10 +23,10 @@ class NoteEditorCopyEvent extends NoteEditorEvent {
   const NoteEditorCopyEvent();
 }
 
-class NoteEditorChangeAccessEvent extends NoteEditorEvent {
+class NoteEditorChangeViewTypeEvent extends NoteEditorEvent {
   final bool wasEditable;
 
-  const NoteEditorChangeAccessEvent({required this.wasEditable});
+  const NoteEditorChangeViewTypeEvent({required this.wasEditable});
 }
 
 class NoteEditorUpdateEvent extends NoteEditorEvent {
@@ -38,10 +39,22 @@ class NoteEditorUpdateEvent extends NoteEditorEvent {
   });
 }
 
+class NoteEditorUpdateTagsEvent extends NoteEditorEvent {
+  final List<int> tags;
+
+  const NoteEditorUpdateTagsEvent({required this.tags});
+}
+
 class NoteEditorUpdateColorEvent extends NoteEditorEvent {
   final Color? newColor;
 
   const NoteEditorUpdateColorEvent({required this.newColor});
+}
+
+class NoteEditorUpdateTagEvent extends NoteEditorEvent {
+  final LocalNoteTag selectedTag;
+
+  const NoteEditorUpdateTagEvent({required this.selectedTag});
 }
 
 class NoteEditorDeleteEvent extends NoteEditorEvent {
