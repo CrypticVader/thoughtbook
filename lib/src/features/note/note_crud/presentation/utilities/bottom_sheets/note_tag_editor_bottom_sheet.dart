@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:entry/entry.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
@@ -83,37 +84,45 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
             topRight: Radius.circular(28),
           ),
           child: Scaffold(
-            appBar: PreferredSize(
-              preferredSize: const Size.fromHeight(86),
-              child: AppBar(
-                leading: null,
-                automaticallyImplyLeading: false,
-                toolbarHeight: 80,
-                centerTitle: true,
-                title: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 16.0),
-                      child: Ink(
-                        height: 6.0,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(28),
-                          color: context.theme.colorScheme.onSurfaceVariant
-                              .withAlpha(100),
-                        ),
+            backgroundColor: Color.alphaBlend(
+              context.themeColors.surfaceTint.withAlpha(15),
+              context.themeColors.background,
+            ),
+            appBar: AppBar(
+              backgroundColor: Color.alphaBlend(
+                context.themeColors.surfaceTint.withAlpha(15),
+                context.themeColors.background,
+              ),
+              leading: null,
+              automaticallyImplyLeading: false,
+              toolbarHeight: 72,
+              centerTitle: true,
+              title: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+                    child: Ink(
+                      height: 6.0,
+                      width: 44,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
+                        color:
+                            context.themeColors.onSurfaceVariant.withAlpha(100),
                       ),
                     ),
-                    Text(
-                      'Edit tags',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 22,
-                        color: context.theme.colorScheme.onBackground,
+                  ),
+                  Text(
+                    'Manage your tags',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                      color: Color.alphaBlend(
+                        context.themeColors.surfaceTint.withAlpha(25),
+                        context.themeColors.onBackground,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             body: SingleChildScrollView(
@@ -130,38 +139,49 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                         Flexible(
                           child: TextField(
                             onSubmitted: (_) {
-                              widget.onCreateTag(newTagTextFieldController.text);
+                              widget
+                                  .onCreateTag(newTagTextFieldController.text);
                               newTagTextFieldController.text = '';
                             },
                             textInputAction: TextInputAction.done,
                             controller: newTagTextFieldController,
                             maxLines: 1,
-                            // maxLength: 20,
+                            style: TextStyle(
+                              color:
+                                  context.theme.colorScheme.onSecondaryContainer,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
                             decoration: InputDecoration(
-                              filled: true,
+                              hintStyle: TextStyle(
+                                color: context
+                                    .theme.colorScheme.onSecondaryContainer
+                                    .withAlpha(200),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                              contentPadding: const EdgeInsets.all(20),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(28),
+                                borderSide: BorderSide(
+                                  width: 0.5,
+                                  color: context.theme.colorScheme.secondary,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(28),
+                                borderSide: BorderSide.none,
+                              ),
                               fillColor: context
                                   .theme.colorScheme.secondaryContainer
                                   .withAlpha(200),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(16),
+                              filled: true,
+                              prefixIconColor:
+                                  context.theme.colorScheme.secondary,
+                              prefixIcon: const Icon(
+                                FluentIcons.tag_24_filled,
                               ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              contentPadding: const EdgeInsets.all(16.0),
                               hintText: 'Create a new tag',
-                              prefixIcon: Icon(
-                                Icons.new_label_rounded,
-                                color: context
-                                    .theme.colorScheme.onSecondaryContainer,
-                              ),
-                            ),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: context
-                                  .theme.colorScheme.onSecondaryContainer,
                             ),
                           ),
                         ),
@@ -174,9 +194,12 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                             widget.onCreateTag(newTagTextFieldController.text);
                             newTagTextFieldController.text = '';
                           },
-                          icon: const Icon(
-                            Icons.done_rounded,
-                            size: 32,
+                          icon: const Padding(
+                            padding: EdgeInsets.all(4.0),
+                            child: Icon(
+                              Icons.done_rounded,
+                              size: 32,
+                            ),
                           ),
                           style: IconButton.styleFrom(
                             backgroundColor:
@@ -246,7 +269,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                                 16.0, 0.0, 8.0, 0.0),
                                         tileColor: context
                                             .theme.colorScheme.primaryContainer
-                                            .withAlpha(150),
+                                            .withAlpha(220),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.only(
                                             topLeft: (index == 0)

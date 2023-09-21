@@ -26,6 +26,8 @@ class LocalNote with EquatableMixin {
   /// The color of the note.
   final int? color;
 
+  final bool isTrashed;
+
   /// Whether the note is synced with the cloud database.
   final bool isSyncedWithCloud;
 
@@ -48,15 +50,19 @@ class LocalNote with EquatableMixin {
     required this.color,
     required this.created,
     required this.modified,
+    required this.isTrashed,
     required this.isSyncedWithCloud,
   });
 
-  LocalNote.fromCloudNote({required CloudNote note, required this.isarId, required this.tagIds,})
-      : cloudDocumentId = note.documentId,
+  LocalNote.fromCloudNote({
+    required CloudNote note,
+    required this.isarId,
+    required this.tagIds,
+  })  : cloudDocumentId = note.documentId,
         title = note.title,
         content = note.content,
-        // tagIds = note.tagDocumentIds,
         color = note.color,
+        isTrashed = note.isTrashed,
         isSyncedWithCloud = false,
         created = note.created.toDate(),
         modified = note.modified.toDate();
@@ -65,7 +71,7 @@ class LocalNote with EquatableMixin {
   String toString() {
     return 'LocalNote{localId: $isarId, cloudDocumentId: $cloudDocumentId, '
         'title: $title, color: $color, content: $content, isSyncedWithCloud: '
-        '$isSyncedWithCloud, created: $created, modified: $modified}';
+        '$isSyncedWithCloud, created: $created, modified: $modified}, isTrashed: $isTrashed,';
   }
 
   @ignore
@@ -79,6 +85,7 @@ class LocalNote with EquatableMixin {
         tagIds,
         created,
         modified,
+        isTrashed,
         isSyncedWithCloud,
       ];
 }

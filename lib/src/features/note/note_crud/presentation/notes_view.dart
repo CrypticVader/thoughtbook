@@ -15,10 +15,12 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_bloc.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_trash_bloc/note_trash_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/note_trash_view.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_filter_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_group_mode_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_sort_mode_picker_bottom_sheet.dart';
@@ -56,9 +58,9 @@ class _NotesViewState extends State<NotesView> {
   ) {
     final layoutPreference = state.layoutPreference;
     final groupChipLabel = switch (state.groupProps.groupParameter) {
-      GroupParameter.dateModified => 'Grouped by date modified',
-      GroupParameter.dateCreated => 'Grouped by date created',
-      GroupParameter.tag => 'Grouped by tag',
+      GroupParameter.dateModified => 'Date modified',
+      GroupParameter.dateCreated => 'Date created',
+      GroupParameter.tag => 'Tag',
       GroupParameter.none => 'Ungrouped',
     };
 
@@ -86,7 +88,7 @@ class _NotesViewState extends State<NotesView> {
         ),
         decoration: InputDecoration(
           hintStyle: TextStyle(
-            color: context.themeColors.onSecondaryContainer.withAlpha(150),
+            color: context.themeColors.onSecondaryContainer.withAlpha(170),
             fontWeight: FontWeight.w500,
             fontSize: 16,
           ),
@@ -96,7 +98,7 @@ class _NotesViewState extends State<NotesView> {
             borderSide: BorderSide(
               strokeAlign: BorderSide.strokeAlignInside,
               width: 0.5,
-              color: context.themeColors.onBackground.withAlpha(90),
+              color: context.themeColors.onSurfaceVariant.withAlpha(100),
             ),
           ),
           enabledBorder: OutlineInputBorder(
@@ -104,8 +106,8 @@ class _NotesViewState extends State<NotesView> {
             borderSide: BorderSide.none,
           ),
           fillColor: Color.alphaBlend(
-            context.themeColors.primary.withAlpha(isScrolled ? 40 : 25),
-            context.themeColors.background,
+            context.themeColors.inversePrimary.withAlpha(40),
+            context.themeColors.surfaceVariant.withAlpha(80),
           ),
           filled: true,
           prefixIconColor: context.themeColors.secondary,
@@ -376,7 +378,7 @@ class _NotesViewState extends State<NotesView> {
                                           ),
                                         ],
                                       )
-                                    : SizedBox(
+                                    : const SizedBox(
                                         width: 0,
                                       ),
                               ),
@@ -552,11 +554,14 @@ class _NotesViewState extends State<NotesView> {
                         duration: const Duration(milliseconds: 200),
                         child: OpenContainer(
                           tappable: false,
-                          transitionDuration: const Duration(milliseconds: 300),
-                          transitionType: ContainerTransitionType.fadeThrough,
+                          transitionDuration:
+                              const Duration(milliseconds: 300),
+                          transitionType:
+                              ContainerTransitionType.fadeThrough,
                           // Using the openBuilder's context results in scope error
                           // when accessing the NoteBloc
-                          openBuilder: (_, __) => BlocProvider<NoteEditorBloc>(
+                          openBuilder: (_, __) =>
+                              BlocProvider<NoteEditorBloc>(
                             create: (context) => NoteEditorBloc(),
                             child: NoteEditorView(
                               note: null,
@@ -573,7 +578,8 @@ class _NotesViewState extends State<NotesView> {
                             ),
                           ),
                           closedColor: context.themeColors.primaryContainer,
-                          middleColor: context.themeColors.secondaryContainer,
+                          middleColor:
+                              context.themeColors.secondaryContainer,
                           openColor: context.themeColors.secondaryContainer,
                           closedBuilder: (context, openContainer) {
                             return IconButton(
@@ -615,13 +621,15 @@ class _NotesViewState extends State<NotesView> {
                             Container(
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
-                                color: context.themeColors.tertiaryContainer,
+                                color:
+                                    context.themeColors.tertiaryContainer,
                                 borderRadius: BorderRadius.circular(28.0),
                               ),
                               child: Column(
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.start,
                                     children: [
                                       Icon(
                                         FluentIcons.person_32_filled,
@@ -663,9 +671,10 @@ class _NotesViewState extends State<NotesView> {
                                     style: FilledButton.styleFrom(
                                       backgroundColor:
                                           context.themeColors.tertiary,
-                                      foregroundColor:
-                                          context.theme.colorScheme.onTertiary,
-                                      minimumSize: const Size.fromHeight(40.0),
+                                      foregroundColor: context
+                                          .theme.colorScheme.onTertiary,
+                                      minimumSize:
+                                          const Size.fromHeight(40.0),
                                     ),
                                   ),
                                 ],
@@ -705,12 +714,12 @@ class _NotesViewState extends State<NotesView> {
                       padding: const EdgeInsets.only(bottom: 128),
                       child: ListView(
                         shrinkWrap: true,
-                        padding:
-                            const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 0.0),
+                        padding: const EdgeInsets.fromLTRB(
+                            12.0, 32.0, 12.0, 0.0),
                         children: [
                           Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(8.0, 32.0, 8.0, 32.0),
+                            padding: const EdgeInsets.fromLTRB(
+                                8.0, 32.0, 8.0, 32.0),
                             child: Text(
                               context.loc.app_title,
                               style: TextStyle(
@@ -730,7 +739,8 @@ class _NotesViewState extends State<NotesView> {
                                   tags: () => state.noteTags(),
                                   onCreateTag: (tagName) => context
                                       .read<NoteBloc>()
-                                      .add(NoteCreateTagEvent(name: tagName)),
+                                      .add(NoteCreateTagEvent(
+                                          name: tagName)),
                                   onEditTag: (tag, newName) => context
                                       .read<NoteBloc>()
                                       .add(NoteEditTagEvent(
@@ -743,7 +753,8 @@ class _NotesViewState extends State<NotesView> {
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16.0),
-                                tileColor: context.themeColors.primaryContainer,
+                                tileColor:
+                                    context.themeColors.primaryContainer,
                                 splashColor: context
                                     .theme.colorScheme.inversePrimary
                                     .withAlpha(200),
@@ -764,8 +775,8 @@ class _NotesViewState extends State<NotesView> {
                                   'Tags',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer,
+                                    color: context.theme.colorScheme
+                                        .onPrimaryContainer,
                                   ),
                                 ),
                               ),
@@ -776,7 +787,8 @@ class _NotesViewState extends State<NotesView> {
                                 onTap: () {},
                                 contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16.0),
-                                tileColor: context.themeColors.primaryContainer,
+                                tileColor:
+                                    context.themeColors.primaryContainer,
                                 splashColor: context
                                     .theme.colorScheme.inversePrimary
                                     .withAlpha(150),
@@ -797,8 +809,8 @@ class _NotesViewState extends State<NotesView> {
                                   'Notebooks',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer,
+                                    color: context.theme.colorScheme
+                                        .onPrimaryContainer,
                                   ),
                                 ),
                                 trailing: InkWell(
@@ -810,13 +822,15 @@ class _NotesViewState extends State<NotesView> {
                                   child: Ink(
                                     padding: const EdgeInsets.all(6.0),
                                     decoration: BoxDecoration(
-                                      color: context.themeColors.surfaceTint,
-                                      borderRadius: BorderRadius.circular(32),
+                                      color:
+                                          context.themeColors.surfaceTint,
+                                      borderRadius:
+                                          BorderRadius.circular(32),
                                     ),
                                     child: Icon(
                                       FluentIcons.caret_down_24_filled,
-                                      color: context
-                                          .theme.colorScheme.primaryContainer,
+                                      color: context.theme.colorScheme
+                                          .primaryContainer,
                                       size: 24,
                                     ),
                                   ),
@@ -839,20 +853,20 @@ class _NotesViewState extends State<NotesView> {
                                 onTap: () {},
                                 tileColor: context
                                     .theme.colorScheme.secondaryContainer,
-                                splashColor:
-                                    context.themeColors.secondary.withAlpha(50),
+                                splashColor: context.themeColors.secondary
+                                    .withAlpha(50),
                                 leading: Icon(
                                   FluentIcons.archive_24_filled,
                                   size: 26,
-                                  color: context
-                                      .theme.colorScheme.onSecondaryContainer,
+                                  color: context.theme.colorScheme
+                                      .onSecondaryContainer,
                                 ),
                                 title: Text(
                                   'Archive',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onSecondaryContainer,
+                                    color: context.theme.colorScheme
+                                        .onSecondaryContainer,
                                   ),
                                 ),
                               ),
@@ -863,23 +877,34 @@ class _NotesViewState extends State<NotesView> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                onTap: () {},
+                                onTap: () async {
+                                  Navigator.of(context).pop();
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => BlocProvider(
+                                        create: (context) =>
+                                            NoteTrashBloc(),
+                                        child: const NoteTrashView(),
+                                      ),
+                                    ),
+                                  );
+                                },
                                 tileColor: context
                                     .theme.colorScheme.secondaryContainer,
-                                splashColor:
-                                    context.themeColors.secondary.withAlpha(50),
+                                splashColor: context.themeColors.secondary
+                                    .withAlpha(50),
                                 leading: Icon(
                                   FluentIcons.delete_24_filled,
                                   size: 26,
-                                  color: context
-                                      .theme.colorScheme.onSecondaryContainer,
+                                  color: context.theme.colorScheme
+                                      .onSecondaryContainer,
                                 ),
                                 title: Text(
                                   'Trash',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onSecondaryContainer,
+                                    color: context.theme.colorScheme
+                                        .onSecondaryContainer,
                                   ),
                                 ),
                               ),
@@ -908,20 +933,20 @@ class _NotesViewState extends State<NotesView> {
                                 },
                                 tileColor: context
                                     .theme.colorScheme.secondaryContainer,
-                                splashColor:
-                                    context.themeColors.secondary.withAlpha(50),
+                                splashColor: context.themeColors.secondary
+                                    .withAlpha(50),
                                 leading: Icon(
                                   FluentIcons.settings_24_filled,
                                   size: 26,
-                                  color: context
-                                      .theme.colorScheme.onSecondaryContainer,
+                                  color: context.theme.colorScheme
+                                      .onSecondaryContainer,
                                 ),
                                 title: Text(
                                   'Settings',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onSecondaryContainer,
+                                    color: context.theme.colorScheme
+                                        .onSecondaryContainer,
                                   ),
                                 ),
                               ),
@@ -946,11 +971,15 @@ class _NotesViewState extends State<NotesView> {
                   ];
                 },
                 body: StreamBuilder<
-                    (Map<String, List<PresentableNoteData>>, Set<LocalNote>)>(
+                    (
+                      Map<String, List<PresentableNoteData>>,
+                      Set<LocalNote>
+                    )>(
                   stream: Rx.combineLatest2(
                     state.notesData(),
                     state.selectedNotes(),
-                    (notesData, selectedNotes) => (notesData, selectedNotes),
+                    (notesData, selectedNotes) =>
+                        (notesData, selectedNotes),
                   ).shareValue(),
                   builder: (context, snapshot) {
                     switch (snapshot.connectionState) {
@@ -964,11 +993,13 @@ class _NotesViewState extends State<NotesView> {
                             value: context.read<NoteBloc>(),
                             child: Stack(
                               children: [
-                                NotificationListener<UserScrollNotification>(
+                                NotificationListener<
+                                    UserScrollNotification>(
                                   onNotification: (notification) {
                                     ScrollDirection direction =
                                         notification.direction;
-                                    if (direction == ScrollDirection.forward) {
+                                    if (direction ==
+                                        ScrollDirection.forward) {
                                       if (_showFab != true) {
                                         setState(() {
                                           _showFab = true;
@@ -995,24 +1026,28 @@ class _NotesViewState extends State<NotesView> {
                                                 groupNotesData:
                                                     notesData[groupHeader]!,
                                                 selectedGroupNotes: selectedNotes
-                                                    .where((note) =>
-                                                        notesData[groupHeader]!
-                                                            .any((noteData) =>
-                                                                noteData.note
-                                                                    .isarId ==
-                                                                note.isarId))
+                                                    .where((note) => notesData[
+                                                            groupHeader]!
+                                                        .any((noteData) =>
+                                                            noteData.note
+                                                                .isarId ==
+                                                            note.isarId))
                                                     .toSet(),
                                                 groupHeader: groupHeader,
                                                 onSelectGroup: (notes) =>
                                                     context
                                                         .read<NoteBloc>()
-                                                        .add(NoteSelectEvent(
-                                                            notes: notes)),
+                                                        .add(
+                                                            NoteSelectEvent(
+                                                                notes:
+                                                                    notes)),
                                                 onUnselectGroup: (notes) =>
                                                     context
                                                         .read<NoteBloc>()
-                                                        .add(NoteUnselectEvent(
-                                                            notes: notes)),
+                                                        .add(
+                                                            NoteUnselectEvent(
+                                                                notes:
+                                                                    notes)),
                                               ))
                                           .toList(),
                                     ),
@@ -1026,7 +1061,8 @@ class _NotesViewState extends State<NotesView> {
                         } else {
                           return Center(
                             child: Text(
-                              context.loc.notes_view_create_note_to_see_here,
+                              context
+                                  .loc.notes_view_create_note_to_see_here,
                             ),
                           );
                         }

@@ -59,19 +59,19 @@ class _TonalChipState extends State<TonalChip> {
       child: InkWell(
         onTap: () => widget.onTap(),
         splashColor: widget.splashColor?.withAlpha(100) ??
-            context.themeColors.surfaceVariant.withAlpha(200),
+            context.themeColors.secondary.withAlpha(100),
         highlightColor: widget.splashColor?.withAlpha(70) ??
-            context.themeColors.surfaceVariant,
+            context.themeColors.secondary.withAlpha(120),
         borderRadius: borderRadius,
         child: Ink(
           padding: widget.padding,
           decoration: BoxDecoration(
             color: widget.backgroundColor ??
-                context.themeColors.secondaryContainer.withAlpha(70),
+                context.themeColors.secondaryContainer.withAlpha(150),
             borderRadius: borderRadius,
             border: Border.all(
               strokeAlign: BorderSide.strokeAlignInside,
-              color: context.themeColors.onSecondaryContainer.withAlpha(30),
+              color: context.themeColors.onSecondaryContainer.withAlpha(40),
               width: 1,
             ),
           ),
@@ -82,7 +82,7 @@ class _TonalChipState extends State<TonalChip> {
                   widget.iconData!,
                   size: 22,
                   color: widget.foregroundColor ??
-                      context.themeColors.onSecondaryContainer.withAlpha(200),
+                      context.themeColors.onSecondaryContainer,
                 ),
               if (widget.iconData != null) const SizedBox(width: 8.0),
               Text(
@@ -90,8 +90,7 @@ class _TonalChipState extends State<TonalChip> {
                 style: widget.textStyle ??
                     TextStyle(
                       color: widget.foregroundColor ??
-                          context.themeColors.onSecondaryContainer
-                              .withAlpha(200),
+                          context.themeColors.onSecondaryContainer,
                       fontWeight: FontWeight.w600,
                       fontSize: 14.0,
                     ),

@@ -33,6 +33,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
     int? color = -1,
     DateTime? created,
     DateTime? modified,
+    bool? isTrashed,
   }) async {
     try {
       final currentTime = Timestamp.fromDate(DateTime.now().toUtc());
@@ -44,6 +45,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
           if (color == null || color > 0) colorFieldName: color,
           if (created != null) createdFieldName: created,
           modifiedFieldName: modified ?? currentTime,
+          if (isTrashed != null) isTrashedFieldName: isTrashed,
         },
       );
     } catch (e) {
@@ -79,10 +81,12 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
       ownerUserId: note.data()?[ownerUserIdFieldName] as String,
       content: note.data()?[contentFieldName] as String,
       title: note.data()?[titleFieldName] as String,
-      tagDocumentIds: List<String>.from(note.data()?[tagDocumentIdsFieldName] ?? []),
+      tagDocumentIds:
+          List<String>.from(note.data()?[tagDocumentIdsFieldName] ?? []),
       color: note.data()?[colorFieldName] as int?,
       created: note.data()?[createdFieldName] as Timestamp,
       modified: note.data()?[modifiedFieldName] as Timestamp,
+      isTrashed: note.data()?[isTrashedFieldName] as bool,
     );
   }
 
@@ -98,6 +102,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
         colorFieldName: null,
         createdFieldName: currentTime,
         modifiedFieldName: currentTime,
+        isTrashedFieldName: false,
       },
     );
 
@@ -111,6 +116,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
       color: null,
       created: currentTime,
       modified: currentTime,
+      isTrashed: false,
     );
   }
 }

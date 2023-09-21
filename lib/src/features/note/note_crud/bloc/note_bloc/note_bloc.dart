@@ -91,7 +91,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     late final ValueStream<List<PresentableNoteData>> queriedStream;
     if (_searchParameter.isEmpty) {
       queriedStream = Rx.combineLatest2(
-          LocalStore.note.allItemStream, _allNoteTags, (notes, tags) {
+          LocalStore.note.allItemStream, _allNoteTags, (allNotes, tags) {
+        final notes = allNotes.where((note) => !note.isTrashed);
         List<PresentableNoteData> noteData = [];
         for (final note in notes) {
           final noteTags =
@@ -287,7 +288,9 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.notes) {
-          await LocalStore.note.deleteItem(id: note.isarId);
+          // await LocalStore.note.deleteItem(id: note.isarId);
+          await LocalStore.note.updateItem(id: note.isarId, isTrashed: true);
+          _selectedNotes.remove(note.isarId);
         }
         emit(
           NoteInitializedState(
@@ -343,12 +346,13 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       emit(_getInitializedState());
     });
 
-    // Unselect all notes
+    // Select all notes
     on<NoteSelectAllEvent>(
       (event, emit) async {
         _selectedNotes.clear();
-        _selectedNotes.addAll(
-            (await LocalStore.note.getAllItems).map((note) => note.isarId));
+        _selectedNotes.addAll((await LocalStore.note.getAllItems)
+            .where((note) => !note.isTrashed)
+            .map((note) => note.isarId));
         emit(_getInitializedState());
       },
     );
@@ -369,9 +373,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         if (newColor != currentColor) {
           await LocalStore.note.updateItem(
             id: event.note.isarId,
-            title: event.note.title,
-            content: event.note.content,
-            tags: event.note.tagIds,
             color: newColor,
             isSyncedWithCloud: false,
           );
@@ -423,16 +424,10 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteUndoDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.deletedNotes) {
-          final newNote = await LocalStore.note.createItem();
           await LocalStore.note.updateItem(
-            id: newNote.isarId,
-            title: note.title,
-            content: note.content,
-            tags: note.tagIds,
-            color: note.color,
+            id: note.isarId,
             isSyncedWithCloud: false,
-            created: note.created,
-            modified: note.modified,
+            isTrashed: false,
           );
         }
         emit(_getInitializedState());
@@ -674,7 +669,7 @@ Map<String, List<PresentableNoteData>> groupByCreated({
   final notesThisWeek = notesData.where((noteData) {
     final startOfThisWeek = (now.weekday + 1).days.ago;
     final isSameWeek =
-    noteData.note.created.toLocal().between(startOfThisWeek, now);
+        noteData.note.created.toLocal().between(startOfThisWeek, now);
     return isSameWeek;
   }).toList();
   if (notesThisWeek.isNotEmpty) {

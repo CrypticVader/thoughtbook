@@ -22,7 +22,7 @@ class _SettingsViewState extends State<SettingsView> {
       builder: (context, state) {
         return Scaffold(
           backgroundColor: Color.alphaBlend(
-            context.theme.colorScheme.inversePrimary.withAlpha(50),
+            context.theme.colorScheme.inversePrimary.withAlpha(60),
             context.theme.colorScheme.background,
           ),
           body: NestedScrollView(
@@ -37,7 +37,7 @@ class _SettingsViewState extends State<SettingsView> {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   backgroundColor: Color.alphaBlend(
-                    context.theme.colorScheme.inversePrimary.withAlpha(50),
+                    context.theme.colorScheme.inversePrimary.withAlpha(60),
                     context.theme.colorScheme.background,
                   ),
                   title: Text(
@@ -54,7 +54,7 @@ class _SettingsViewState extends State<SettingsView> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: ListView(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(12.0),
                   children: [
                     // Account Settings
                     const PreferenceSectionHeader(
@@ -384,6 +384,7 @@ class PreferenceSection extends StatelessWidget {
             margin: EdgeInsets.zero,
             elevation: 0,
             surfaceTintColor: Colors.transparent,
+            color: Colors.transparent,
             child: InkWell(
               onTap: item.onTap,
               splashColor:
@@ -412,57 +413,69 @@ class PreferenceSection extends StatelessWidget {
             ),
           );
         } else if (index == (items.length - 1)) {
-          return InkWell(
-            onTap: item.onTap,
-            splashColor:
-                context.theme.colorScheme.inversePrimary.withAlpha(120),
-            highlightColor:
-                context.theme.colorScheme.inversePrimary.withAlpha(100),
-            borderRadius: const BorderRadius.only(
-              bottomRight: Radius.circular(24),
-              bottomLeft: Radius.circular(24),
-              topLeft: Radius.circular(4),
-              topRight: Radius.circular(4),
-            ),
-            child: Ink(
-              padding: item.padding,
-              decoration: BoxDecoration(
-                color: context.theme.colorScheme.background,
-                borderRadius: const BorderRadius.only(
-                  bottomRight: Radius.circular(24),
-                  bottomLeft: Radius.circular(24),
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(4),
-                ),
+          return Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: item.onTap,
+              splashColor:
+                  context.theme.colorScheme.inversePrimary.withAlpha(120),
+              highlightColor:
+                  context.theme.colorScheme.inversePrimary.withAlpha(100),
+              borderRadius: const BorderRadius.only(
+                bottomRight: Radius.circular(24),
+                bottomLeft: Radius.circular(24),
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
               ),
-              child: item.body,
+              child: Ink(
+                padding: item.padding,
+                decoration: BoxDecoration(
+                  color: context.theme.colorScheme.background,
+                  borderRadius: const BorderRadius.only(
+                    bottomRight: Radius.circular(24),
+                    bottomLeft: Radius.circular(24),
+                    topLeft: Radius.circular(4),
+                    topRight: Radius.circular(4),
+                  ),
+                ),
+                child: item.body,
+              ),
             ),
           );
         } else {
-          return InkWell(
-            onTap: item.onTap,
-            splashColor:
-                context.theme.colorScheme.inversePrimary.withAlpha(120),
-            highlightColor:
-                context.theme.colorScheme.inversePrimary.withAlpha(100),
-            borderRadius: const BorderRadius.only(
-              bottomRight: Radius.circular(4),
-              bottomLeft: Radius.circular(4),
-              topLeft: Radius.circular(4),
-              topRight: Radius.circular(4),
-            ),
-            child: Ink(
-              padding: item.padding,
-              decoration: BoxDecoration(
-                color: context.theme.colorScheme.background,
-                borderRadius: const BorderRadius.only(
-                  bottomRight: Radius.circular(4),
-                  bottomLeft: Radius.circular(4),
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(4),
-                ),
+          return Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: item.onTap,
+              splashColor:
+                  context.theme.colorScheme.inversePrimary.withAlpha(120),
+              highlightColor:
+                  context.theme.colorScheme.inversePrimary.withAlpha(100),
+              borderRadius: const BorderRadius.only(
+                bottomRight: Radius.circular(4),
+                bottomLeft: Radius.circular(4),
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
               ),
-              child: item.body,
+              child: Ink(
+                padding: item.padding,
+                decoration: BoxDecoration(
+                  color: context.theme.colorScheme.background,
+                  borderRadius: const BorderRadius.only(
+                    bottomRight: Radius.circular(4),
+                    bottomLeft: Radius.circular(4),
+                    topLeft: Radius.circular(4),
+                    topRight: Radius.circular(4),
+                  ),
+                ),
+                child: item.body,
+              ),
             ),
           );
         }

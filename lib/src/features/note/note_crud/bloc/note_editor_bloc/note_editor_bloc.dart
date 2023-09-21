@@ -60,19 +60,27 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
         if (event.note == null && _noteIsarId == null) {
           LocalNote note = await LocalStore.note.createItem();
           _noteIsarId = note.isarId;
+          emit(
+            NoteEditorInitializedState(
+              noteStream: noteStream,
+              noteData: presentableNote,
+              allNoteTags: allNoteTags,
+              snackBarText: '',
+              isEditable: true,
+            ),
+          );
         } else {
           _noteIsarId = event.note!.isarId;
+          emit(
+            NoteEditorInitializedState(
+              noteStream: noteStream,
+              noteData: presentableNote,
+              allNoteTags: allNoteTags,
+              snackBarText: '',
+              isEditable: false,
+            ),
+          );
         }
-
-        emit(
-          NoteEditorInitializedState(
-            noteStream: noteStream,
-            noteData: presentableNote,
-            allNoteTags: allNoteTags,
-            snackBarText: '',
-            isEditable: false,
-          ),
-        );
       },
     );
 

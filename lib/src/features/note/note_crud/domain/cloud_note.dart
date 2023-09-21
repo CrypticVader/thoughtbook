@@ -21,6 +21,8 @@ class CloudNote {
 
   final Timestamp modified;
 
+  final bool isTrashed;
+
   const CloudNote({
     required this.documentId,
     required this.ownerUserId,
@@ -30,6 +32,7 @@ class CloudNote {
     required this.color,
     required this.created,
     required this.modified,
+    required this.isTrashed,
   });
 
   CloudNote.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
@@ -42,7 +45,8 @@ class CloudNote {
         // do not cast as int as it is nullable
         color = snapshot.data()[colorFieldName] as int?,
         created = snapshot.data()[createdFieldName] as Timestamp,
-        modified = snapshot.data()[modifiedFieldName] as Timestamp;
+        modified = snapshot.data()[modifiedFieldName] as Timestamp,
+        isTrashed = snapshot.data()[isTrashedFieldName] as bool;
 
   @override
   bool operator ==(covariant CloudNote other) => documentId == other.documentId;
@@ -54,6 +58,6 @@ class CloudNote {
   String toString() {
     return 'CloudNote{documentId: $documentId, ownerUserId: $ownerUserId, '
         'tagDocumentIds: $tagDocumentIds, title: $title, color: $color, '
-        'content: $content, created: $created, modified: $modified}';
+        'content: $content, created: $created, modified: $modified, isTrashed: $isTrashed}';
   }
 }
