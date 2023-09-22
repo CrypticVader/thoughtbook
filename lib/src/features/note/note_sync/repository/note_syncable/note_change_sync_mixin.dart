@@ -122,7 +122,6 @@ mixin NoteChangeSyncMixin {
     try {
       final tagDocIds =
           LocalStore.noteTag.getCloudIdsFor(isarIds: change.note.tagIds);
-      log(tagDocIds.toString());
       if (tagDocIds.length != change.note.tagIds.length) {
         final diff = change.note.tagIds.length - tagDocIds.length;
         log(

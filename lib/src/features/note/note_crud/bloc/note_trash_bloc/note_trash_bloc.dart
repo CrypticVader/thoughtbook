@@ -38,7 +38,11 @@ class NoteTrashBloc extends Bloc<NoteTrashEvent, NoteTrashState> {
 
     on<NoteTrashRestoreEvent>((event, emit) async {
       for (final note in event.notes) {
-        await LocalStore.note.updateItem(id: note.isarId, isTrashed: false);
+        await LocalStore.note.updateItem(
+          id: note.isarId,
+          isTrashed: false,
+          modified: note.modified,
+        );
         _selectedNotes.remove(note);
       }
       emit(NoteTrashInitialized(

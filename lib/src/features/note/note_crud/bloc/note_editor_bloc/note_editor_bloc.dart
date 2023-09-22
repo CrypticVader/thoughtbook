@@ -177,9 +177,6 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
         if (newColor != note.color) {
           await LocalStore.note.updateItem(
             id: note.isarId,
-            title: note.title,
-            content: note.content,
-            tags: note.tagIds,
             color: newColor,
             isSyncedWithCloud: false,
           );
@@ -187,7 +184,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
       },
     );
 
-    // Update the color of the note
+    // Update the tags of the note
     on<NoteEditorUpdateTagEvent>(
       (event, emit) async {
         final note = await this.note;

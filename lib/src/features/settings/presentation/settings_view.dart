@@ -266,7 +266,8 @@ class _SettingsViewState extends State<SettingsView> {
                           ),
                         ),
                         PreferenceItem(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 12.0),
                           body: Row(
                             children: [
                               Icon(
@@ -283,7 +284,8 @@ class _SettingsViewState extends State<SettingsView> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: context.theme.colorScheme.onBackground,
+                                    color:
+                                        context.theme.colorScheme.onBackground,
                                   ),
                                 ),
                               ),
