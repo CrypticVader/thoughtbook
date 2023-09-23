@@ -42,6 +42,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
     String? cloudDocumentId,
     bool addToChangeFeed = true,
     bool debounceChangeFeedEvent = false,
+    bool? isTrashed,
     DateTime? created,
     DateTime? modified,
   }) async {
@@ -62,6 +63,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
       created: created ?? note.created,
       modified: modified ?? DateTime.now().toUtc(),
       isSyncedWithCloud: isSyncedWithCloud,
+      isTrashed: isTrashed ?? note.isTrashed,
     );
 
     // Add the updated note to the Isar collection
@@ -182,6 +184,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
       color: null,
       created: currentTime,
       modified: currentTime,
+      isTrashed: false,
     );
 
     //Create a new note in the Isar collection

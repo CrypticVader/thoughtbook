@@ -189,33 +189,39 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                           _isDarkMode ? Brightness.dark : Brightness.light,
                     );
                     return Scaffold(
-                      floatingActionButton: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 150),
-                        opacity: _showFab ? 1 : 0,
-                        child: AnimatedScale(
-                          scale: _showFab ? 1 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: FloatingActionButton.extended(
-                            onPressed: () => context.read<NoteEditorBloc>().add(
-                                  NoteEditorChangeViewTypeEvent(
-                                    wasEditable: isEditable,
+                      floatingActionButton: note.isTrashed
+                          ? null
+                          : AnimatedOpacity(
+                              duration: const Duration(milliseconds: 150),
+                              opacity: _showFab ? 1 : 0,
+                              child: AnimatedScale(
+                                scale: _showFab ? 1 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                child: FloatingActionButton.extended(
+                                  onPressed: () =>
+                                      context.read<NoteEditorBloc>().add(
+                                            NoteEditorChangeViewTypeEvent(
+                                              wasEditable: isEditable,
+                                            ),
+                                          ),
+                                  backgroundColor: noteColors.tertiaryContainer,
+                                  tooltip:
+                                      isEditable ? 'Preview Note' : 'Edit note',
+                                  label: isEditable
+                                      ? const Text('Read')
+                                      : const Text('Edit'),
+                                  foregroundColor:
+                                      noteColors.onTertiaryContainer,
+                                  icon: Icon(
+                                    isEditable
+                                        ? FluentIcons
+                                            .reading_mode_mobile_24_filled
+                                        : FluentIcons.note_edit_24_filled,
+                                    color: noteColors.onTertiaryContainer,
                                   ),
                                 ),
-                            backgroundColor: noteColors.tertiaryContainer,
-                            tooltip: isEditable ? 'Preview Note' : 'Edit note',
-                            label: isEditable
-                                ? const Text('Read')
-                                : const Text('Edit'),
-                            foregroundColor: noteColors.onTertiaryContainer,
-                            icon: Icon(
-                              isEditable
-                                  ? FluentIcons.reading_mode_mobile_24_filled
-                                  : FluentIcons.note_edit_24_filled,
-                              color: noteColors.onTertiaryContainer,
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
                       body: NestedScrollView(
                         floatHeaderSlivers: true,
                         headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -224,19 +230,20 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                               child: AnimatedContainer(
                                 color: innerBoxIsScrolled
                                     ? Color.alphaBlend(
-                                  context
-                                      .theme.colorScheme.onSurfaceVariant
-                                      .withAlpha(20),
-                                  Color.alphaBlend(
-                                    noteColors.primaryContainer
-                                        .withAlpha(50),
-                                    noteColors.secondaryContainer,
-                                  ),
-                                )
+                                        context
+                                            .theme.colorScheme.onSurfaceVariant
+                                            .withAlpha(20),
+                                        Color.alphaBlend(
+                                          noteColors.primaryContainer
+                                              .withAlpha(50),
+                                          noteColors.secondaryContainer,
+                                        ),
+                                      )
                                     : Color.alphaBlend(
-                                  noteColors.primaryContainer.withAlpha(50),
-                                  noteColors.secondaryContainer,
-                                ),
+                                        noteColors.primaryContainer
+                                            .withAlpha(50),
+                                        noteColors.secondaryContainer,
+                                      ),
                                 duration: const Duration(milliseconds: 150),
                                 child: AppBar(
                                   // pinned: true,
@@ -256,13 +263,14 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                   actions: [
                                     Row(
                                       children: [
-                                        IconButton(
-                                          tooltip: context.loc.change_color,
-                                          onPressed: () async =>
-                                              await _updateNoteColor(note),
-                                          icon: const Icon(
-                                              FluentIcons.color_24_regular),
-                                        ),
+                                        if (!(note.isTrashed))
+                                          IconButton(
+                                            tooltip: context.loc.change_color,
+                                            onPressed: () async =>
+                                                await _updateNoteColor(note),
+                                            icon: const Icon(
+                                                FluentIcons.color_24_regular),
+                                          ),
                                         IconButton(
                                           onPressed: () => context
                                               .read<NoteEditorBloc>()
@@ -280,15 +288,16 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                           icon: const Icon(
                                               FluentIcons.copy_24_regular),
                                         ),
-                                        IconButton(
-                                          tooltip: context.loc.delete,
-                                          onPressed: () => context
-                                              .read<NoteEditorBloc>()
-                                              .add(
-                                                  const NoteEditorDeleteEvent()),
-                                          icon: const Icon(
-                                              FluentIcons.delete_24_regular),
-                                        ),
+                                        if (!(note.isTrashed))
+                                          IconButton(
+                                            tooltip: context.loc.delete,
+                                            onPressed: () => context
+                                                .read<NoteEditorBloc>()
+                                                .add(
+                                                    const NoteEditorDeleteEvent()),
+                                            icon: const Icon(
+                                                FluentIcons.delete_24_regular),
+                                          ),
                                       ],
                                     ),
                                     const SizedBox(
@@ -312,9 +321,10 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                         ),
                                       )
                                     : Color.alphaBlend(
-                                  noteColors.primaryContainer.withAlpha(50),
-                                  noteColors.secondaryContainer,
-                                ),
+                                        noteColors.primaryContainer
+                                            .withAlpha(50),
+                                        noteColors.secondaryContainer,
+                                      ),
                                 duration: const Duration(milliseconds: 150),
                                 child: SingleChildScrollView(
                                   padding: const EdgeInsets.fromLTRB(
@@ -336,7 +346,8 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                           optionsBuilder: () => {'OK': null},
                                         ),
                                         label: note.modified.customFormat(),
-                                        iconData: FluentIcons.book_clock_24_filled,
+                                        iconData:
+                                            FluentIcons.book_clock_24_filled,
                                         backgroundColor:
                                             noteColors.tertiaryContainer,
                                         foregroundColor:
@@ -347,17 +358,20 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                       TonalChip(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 16, vertical: 8),
-                                        onTap: () async =>
+                                        onTap: () async {
+                                          if (!(note.isTrashed)) {
                                             await showNoteTagPickerModalBottomSheet(
-                                          context: context,
-                                          noteStream: state.noteStream,
-                                          allNoteTags: state.allNoteTags,
-                                          onTapTag: (tag) => context
-                                              .read<NoteEditorBloc>()
-                                              .add(NoteEditorUpdateTagEvent(
-                                                  selectedTag: tag)),
-                                          colorScheme: noteColors,
-                                        ),
+                                              context: context,
+                                              noteStream: state.noteStream,
+                                              allNoteTags: state.allNoteTags,
+                                              onTapTag: (tag) => context
+                                                  .read<NoteEditorBloc>()
+                                                  .add(NoteEditorUpdateTagEvent(
+                                                      selectedTag: tag)),
+                                              colorScheme: noteColors,
+                                            );
+                                          }
+                                        },
                                         label: tags.isEmpty
                                             ? 'No labels'
                                             : tags

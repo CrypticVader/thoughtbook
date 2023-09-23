@@ -41,6 +41,10 @@ const LocalNoteSchema = IsarGeneratedSchema(
         type: IsarType.long,
       ),
       IsarPropertySchema(
+        name: 'isTrashed',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
         name: 'isSyncedWithCloud',
         type: IsarType.bool,
       ),
@@ -53,7 +57,32 @@ const LocalNoteSchema = IsarGeneratedSchema(
         type: IsarType.dateTime,
       ),
     ],
-    indexes: [],
+    indexes: [
+      IsarIndexSchema(
+        name: 'cloudDocumentId',
+        properties: [
+          "cloudDocumentId",
+        ],
+        unique: true,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'created',
+        properties: [
+          "created",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'modified',
+        properties: [
+          "modified",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
   ),
   converter: IsarObjectConverter<int, LocalNote>(
     serialize: serializeLocalNote,
@@ -84,9 +113,10 @@ int serializeLocalNote(IsarWriter writer, LocalNote object) {
     IsarCore.endList(writer, listWriter);
   }
   IsarCore.writeLong(writer, 5, object.color ?? -9223372036854775808);
-  IsarCore.writeBool(writer, 6, object.isSyncedWithCloud);
-  IsarCore.writeLong(writer, 7, object.created.toUtc().microsecondsSinceEpoch);
-  IsarCore.writeLong(writer, 8, object.modified.toUtc().microsecondsSinceEpoch);
+  IsarCore.writeBool(writer, 6, object.isTrashed);
+  IsarCore.writeBool(writer, 7, object.isSyncedWithCloud);
+  IsarCore.writeLong(writer, 8, object.created.toUtc().microsecondsSinceEpoch);
+  IsarCore.writeLong(writer, 9, object.modified.toUtc().microsecondsSinceEpoch);
   return object.isarId;
 }
 
@@ -127,11 +157,13 @@ LocalNote deserializeLocalNote(IsarReader reader) {
       _color = value;
     }
   }
+  final bool _isTrashed;
+  _isTrashed = IsarCore.readBool(reader, 6);
   final bool _isSyncedWithCloud;
-  _isSyncedWithCloud = IsarCore.readBool(reader, 6);
+  _isSyncedWithCloud = IsarCore.readBool(reader, 7);
   final DateTime _created;
   {
-    final value = IsarCore.readLong(reader, 7);
+    final value = IsarCore.readLong(reader, 8);
     if (value == -9223372036854775808) {
       _created = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
     } else {
@@ -140,7 +172,7 @@ LocalNote deserializeLocalNote(IsarReader reader) {
   }
   final DateTime _modified;
   {
-    final value = IsarCore.readLong(reader, 8);
+    final value = IsarCore.readLong(reader, 9);
     if (value == -9223372036854775808) {
       _modified = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
     } else {
@@ -154,6 +186,7 @@ LocalNote deserializeLocalNote(IsarReader reader) {
     content: _content,
     tagIds: _tagIds,
     color: _color,
+    isTrashed: _isTrashed,
     isSyncedWithCloud: _isSyncedWithCloud,
     created: _created,
     modified: _modified,
@@ -202,17 +235,19 @@ dynamic deserializeLocalNoteProp(IsarReader reader, int property) {
     case 6:
       return IsarCore.readBool(reader, 6);
     case 7:
+      return IsarCore.readBool(reader, 7);
+    case 8:
       {
-        final value = IsarCore.readLong(reader, 7);
+        final value = IsarCore.readLong(reader, 8);
         if (value == -9223372036854775808) {
           return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
         } else {
           return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
         }
       }
-    case 8:
+    case 9:
       {
-        final value = IsarCore.readLong(reader, 8);
+        final value = IsarCore.readLong(reader, 9);
         if (value == -9223372036854775808) {
           return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
         } else {
@@ -231,6 +266,7 @@ sealed class _LocalNoteUpdate {
     String? title,
     String? content,
     int? color,
+    bool? isTrashed,
     bool? isSyncedWithCloud,
     DateTime? created,
     DateTime? modified,
@@ -249,6 +285,7 @@ class _LocalNoteUpdateImpl implements _LocalNoteUpdate {
     Object? title = ignore,
     Object? content = ignore,
     Object? color = ignore,
+    Object? isTrashed = ignore,
     Object? isSyncedWithCloud = ignore,
     Object? created = ignore,
     Object? modified = ignore,
@@ -260,9 +297,10 @@ class _LocalNoteUpdateImpl implements _LocalNoteUpdate {
           if (title != ignore) 2: title as String?,
           if (content != ignore) 3: content as String?,
           if (color != ignore) 5: color as int?,
-          if (isSyncedWithCloud != ignore) 6: isSyncedWithCloud as bool?,
-          if (created != ignore) 7: created as DateTime?,
-          if (modified != ignore) 8: modified as DateTime?,
+          if (isTrashed != ignore) 6: isTrashed as bool?,
+          if (isSyncedWithCloud != ignore) 7: isSyncedWithCloud as bool?,
+          if (created != ignore) 8: created as DateTime?,
+          if (modified != ignore) 9: modified as DateTime?,
         }) >
         0;
   }
@@ -275,6 +313,7 @@ sealed class _LocalNoteUpdateAll {
     String? title,
     String? content,
     int? color,
+    bool? isTrashed,
     bool? isSyncedWithCloud,
     DateTime? created,
     DateTime? modified,
@@ -293,6 +332,7 @@ class _LocalNoteUpdateAllImpl implements _LocalNoteUpdateAll {
     Object? title = ignore,
     Object? content = ignore,
     Object? color = ignore,
+    Object? isTrashed = ignore,
     Object? isSyncedWithCloud = ignore,
     Object? created = ignore,
     Object? modified = ignore,
@@ -302,9 +342,10 @@ class _LocalNoteUpdateAllImpl implements _LocalNoteUpdateAll {
       if (title != ignore) 2: title as String?,
       if (content != ignore) 3: content as String?,
       if (color != ignore) 5: color as int?,
-      if (isSyncedWithCloud != ignore) 6: isSyncedWithCloud as bool?,
-      if (created != ignore) 7: created as DateTime?,
-      if (modified != ignore) 8: modified as DateTime?,
+      if (isTrashed != ignore) 6: isTrashed as bool?,
+      if (isSyncedWithCloud != ignore) 7: isSyncedWithCloud as bool?,
+      if (created != ignore) 8: created as DateTime?,
+      if (modified != ignore) 9: modified as DateTime?,
     });
   }
 }
@@ -321,6 +362,7 @@ sealed class _LocalNoteQueryUpdate {
     String? title,
     String? content,
     int? color,
+    bool? isTrashed,
     bool? isSyncedWithCloud,
     DateTime? created,
     DateTime? modified,
@@ -339,6 +381,7 @@ class _LocalNoteQueryUpdateImpl implements _LocalNoteQueryUpdate {
     Object? title = ignore,
     Object? content = ignore,
     Object? color = ignore,
+    Object? isTrashed = ignore,
     Object? isSyncedWithCloud = ignore,
     Object? created = ignore,
     Object? modified = ignore,
@@ -348,9 +391,10 @@ class _LocalNoteQueryUpdateImpl implements _LocalNoteQueryUpdate {
       if (title != ignore) 2: title as String?,
       if (content != ignore) 3: content as String?,
       if (color != ignore) 5: color as int?,
-      if (isSyncedWithCloud != ignore) 6: isSyncedWithCloud as bool?,
-      if (created != ignore) 7: created as DateTime?,
-      if (modified != ignore) 8: modified as DateTime?,
+      if (isTrashed != ignore) 6: isTrashed as bool?,
+      if (isSyncedWithCloud != ignore) 7: isSyncedWithCloud as bool?,
+      if (created != ignore) 8: created as DateTime?,
+      if (modified != ignore) 9: modified as DateTime?,
     });
   }
 }
@@ -374,6 +418,7 @@ class _LocalNoteQueryBuilderUpdateImpl implements _LocalNoteQueryUpdate {
     Object? title = ignore,
     Object? content = ignore,
     Object? color = ignore,
+    Object? isTrashed = ignore,
     Object? isSyncedWithCloud = ignore,
     Object? created = ignore,
     Object? modified = ignore,
@@ -385,9 +430,10 @@ class _LocalNoteQueryBuilderUpdateImpl implements _LocalNoteQueryUpdate {
         if (title != ignore) 2: title as String?,
         if (content != ignore) 3: content as String?,
         if (color != ignore) 5: color as int?,
-        if (isSyncedWithCloud != ignore) 6: isSyncedWithCloud as bool?,
-        if (created != ignore) 7: created as DateTime?,
-        if (modified != ignore) 8: modified as DateTime?,
+        if (isTrashed != ignore) 6: isTrashed as bool?,
+        if (isSyncedWithCloud != ignore) 7: isSyncedWithCloud as bool?,
+        if (created != ignore) 8: created as DateTime?,
+        if (modified != ignore) 9: modified as DateTime?,
       });
     } finally {
       q.close();
@@ -1222,8 +1268,7 @@ extension LocalNoteQueryFilter
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
-      isSyncedWithCloudEqualTo(
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> isTrashedEqualTo(
     bool value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1236,13 +1281,27 @@ extension LocalNoteQueryFilter
     });
   }
 
+  QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition>
+      isSyncedWithCloudEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 7,
+          value: value,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<LocalNote, LocalNote, QAfterFilterCondition> createdEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 7,
+          property: 8,
           value: value,
         ),
       );
@@ -1255,7 +1314,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 7,
+          property: 8,
           value: value,
         ),
       );
@@ -1269,7 +1328,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 7,
+          property: 8,
           value: value,
         ),
       );
@@ -1282,7 +1341,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 7,
+          property: 8,
           value: value,
         ),
       );
@@ -1296,7 +1355,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 7,
+          property: 8,
           value: value,
         ),
       );
@@ -1310,7 +1369,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 7,
+          property: 8,
           lower: lower,
           upper: upper,
         ),
@@ -1324,7 +1383,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 8,
+          property: 9,
           value: value,
         ),
       );
@@ -1337,7 +1396,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 8,
+          property: 9,
           value: value,
         ),
       );
@@ -1351,7 +1410,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 8,
+          property: 9,
           value: value,
         ),
       );
@@ -1364,7 +1423,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 8,
+          property: 9,
           value: value,
         ),
       );
@@ -1378,7 +1437,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 8,
+          property: 9,
           value: value,
         ),
       );
@@ -1392,7 +1451,7 @@ extension LocalNoteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 8,
+          property: 9,
           lower: lower,
           upper: upper,
         ),
@@ -1492,40 +1551,52 @@ extension LocalNoteQuerySortBy on QueryBuilder<LocalNote, LocalNote, QSortBy> {
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByIsSyncedWithCloud() {
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByIsTrashed() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(6);
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByIsTrashedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByIsSyncedWithCloud() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy>
       sortByIsSyncedWithCloudDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(7, sort: Sort.desc);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByCreated() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7);
+      return query.addSortBy(8);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByCreatedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, sort: Sort.desc);
+      return query.addSortBy(8, sort: Sort.desc);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByModified() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8);
+      return query.addSortBy(9);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> sortByModifiedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8, sort: Sort.desc);
+      return query.addSortBy(9, sort: Sort.desc);
     });
   }
 }
@@ -1598,40 +1669,52 @@ extension LocalNoteQuerySortThenBy
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByIsSyncedWithCloud() {
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByIsTrashed() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(6);
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByIsTrashedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByIsSyncedWithCloud() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy>
       thenByIsSyncedWithCloudDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(7, sort: Sort.desc);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByCreated() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7);
+      return query.addSortBy(8);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByCreatedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, sort: Sort.desc);
+      return query.addSortBy(8, sort: Sort.desc);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByModified() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8);
+      return query.addSortBy(9);
     });
   }
 
   QueryBuilder<LocalNote, LocalNote, QAfterSortBy> thenByModifiedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8, sort: Sort.desc);
+      return query.addSortBy(9, sort: Sort.desc);
     });
   }
 }
@@ -1671,22 +1754,28 @@ extension LocalNoteQueryWhereDistinct
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterDistinct>
-      distinctByIsSyncedWithCloud() {
+  QueryBuilder<LocalNote, LocalNote, QAfterDistinct> distinctByIsTrashed() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(6);
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterDistinct> distinctByCreated() {
+  QueryBuilder<LocalNote, LocalNote, QAfterDistinct>
+      distinctByIsSyncedWithCloud() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(7);
     });
   }
 
-  QueryBuilder<LocalNote, LocalNote, QAfterDistinct> distinctByModified() {
+  QueryBuilder<LocalNote, LocalNote, QAfterDistinct> distinctByCreated() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(8);
+    });
+  }
+
+  QueryBuilder<LocalNote, LocalNote, QAfterDistinct> distinctByModified() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(9);
     });
   }
 }
@@ -1729,21 +1818,27 @@ extension LocalNoteQueryProperty1
     });
   }
 
-  QueryBuilder<LocalNote, bool, QAfterProperty> isSyncedWithCloudProperty() {
+  QueryBuilder<LocalNote, bool, QAfterProperty> isTrashedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<LocalNote, DateTime, QAfterProperty> createdProperty() {
+  QueryBuilder<LocalNote, bool, QAfterProperty> isSyncedWithCloudProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<LocalNote, DateTime, QAfterProperty> modifiedProperty() {
+  QueryBuilder<LocalNote, DateTime, QAfterProperty> createdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
+    });
+  }
+
+  QueryBuilder<LocalNote, DateTime, QAfterProperty> modifiedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(9);
     });
   }
 }
@@ -1787,22 +1882,28 @@ extension LocalNoteQueryProperty2<R>
     });
   }
 
-  QueryBuilder<LocalNote, (R, bool), QAfterProperty>
-      isSyncedWithCloudProperty() {
+  QueryBuilder<LocalNote, (R, bool), QAfterProperty> isTrashedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<LocalNote, (R, DateTime), QAfterProperty> createdProperty() {
+  QueryBuilder<LocalNote, (R, bool), QAfterProperty>
+      isSyncedWithCloudProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<LocalNote, (R, DateTime), QAfterProperty> modifiedProperty() {
+  QueryBuilder<LocalNote, (R, DateTime), QAfterProperty> createdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
+    });
+  }
+
+  QueryBuilder<LocalNote, (R, DateTime), QAfterProperty> modifiedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(9);
     });
   }
 }
@@ -1846,22 +1947,28 @@ extension LocalNoteQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<LocalNote, (R1, R2, bool), QOperations>
-      isSyncedWithCloudProperty() {
+  QueryBuilder<LocalNote, (R1, R2, bool), QOperations> isTrashedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<LocalNote, (R1, R2, DateTime), QOperations> createdProperty() {
+  QueryBuilder<LocalNote, (R1, R2, bool), QOperations>
+      isSyncedWithCloudProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<LocalNote, (R1, R2, DateTime), QOperations> modifiedProperty() {
+  QueryBuilder<LocalNote, (R1, R2, DateTime), QOperations> createdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
+    });
+  }
+
+  QueryBuilder<LocalNote, (R1, R2, DateTime), QOperations> modifiedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(9);
     });
   }
 }

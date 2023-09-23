@@ -38,7 +38,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         sortProps: _sortProps,
         groupProps: _groupProps,
         noteTags: () => _allNoteTags,
-        hasSelectedNotes: _selectedNotes.isNotEmpty,
+        hasSelectedNotes: _selectedNoteIds.isNotEmpty,
         selectedNotes: () => _getSelectedNotes,
         layoutPreference: _layoutPreference,
         snackBarText: snackBarText,
@@ -47,12 +47,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
   String _searchParameter = '';
 
-  final Set<int> _selectedNotes = <int>{};
+  final Set<int> _selectedNoteIds = <int>{};
 
   ValueStream<Set<LocalNote>> get _getSelectedNotes => LocalStore
       .note.allItemStream
-      .map<Set<LocalNote>>((notes) =>
-          notes.where((note) => _selectedNotes.contains(note.isarId)).toSet())
+      .map((notes) =>
+          notes.where((note) => _selectedNoteIds.contains(note.isarId)).toSet())
       .shareValue();
 
   SortProps _sortProps = const SortProps(
@@ -91,7 +91,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     late final ValueStream<List<PresentableNoteData>> queriedStream;
     if (_searchParameter.isEmpty) {
       queriedStream = Rx.combineLatest2(
-          LocalStore.note.allItemStream, _allNoteTags, (notes, tags) {
+          LocalStore.note.allItemStream, _allNoteTags, (allNotes, tags) {
+        final notes = allNotes.where((note) => !note.isTrashed);
         List<PresentableNoteData> noteData = [];
         for (final note in notes) {
           final noteTags =
@@ -102,7 +103,8 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       }).shareValue();
     } else {
       queriedStream = Rx.combineLatest2(
-          LocalStore.note.allItemStream, _allNoteTags, (notes, tags) {
+          LocalStore.note.allItemStream, _allNoteTags, (allNotes, tags) {
+        final notes = allNotes.where((note) => !note.isTrashed);
         List<PresentableNoteData> noteData = [];
         for (final note in notes) {
           final noteTags =
@@ -222,10 +224,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteInitializeEvent>(
       (event, emit) async {
         if (_user == null) {
-          await LocalStore.open(
-              // noteChange: false,
-              // noteTagChange: false,
-              );
+          await LocalStore.open();
           log('Isar opened in NoteBloc, no user');
           emit(_getInitializedState(hasUser: false));
         } else {
@@ -287,7 +286,12 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.notes) {
-          await LocalStore.note.deleteItem(id: note.isarId);
+          await LocalStore.note.updateItem(
+            id: note.isarId,
+            isTrashed: true,
+            modified: note.modified,
+          );
+          _selectedNoteIds.remove(note.isarId);
         }
         emit(
           NoteInitializedState(
@@ -298,7 +302,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             sortProps: _sortProps,
             groupProps: _groupProps,
             noteTags: () => _allNoteTags,
-            hasSelectedNotes: _selectedNotes.isNotEmpty,
+            hasSelectedNotes: _selectedNoteIds.isNotEmpty,
             selectedNotes: () => _getSelectedNotes,
             deletedNotes: event.notes,
             layoutPreference: _layoutPreference,
@@ -310,10 +314,10 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // Tap on a note
     on<NoteTapEvent>(
       (event, emit) async {
-        if (_selectedNotes.contains(event.note.isarId)) {
-          _selectedNotes.remove(event.note.isarId);
+        if (_selectedNoteIds.contains(event.note.isarId)) {
+          _selectedNoteIds.remove(event.note.isarId);
         } else {
-          _selectedNotes.add(event.note.isarId);
+          _selectedNoteIds.add(event.note.isarId);
         }
         emit(_getInitializedState());
       },
@@ -322,10 +326,10 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // Long press on a note
     on<NoteLongPressEvent>(
       (event, emit) async {
-        if (_selectedNotes.contains(event.note.isarId)) {
-          _selectedNotes.remove(event.note.isarId);
+        if (_selectedNoteIds.contains(event.note.isarId)) {
+          _selectedNoteIds.remove(event.note.isarId);
         } else {
-          _selectedNotes.add(event.note.isarId);
+          _selectedNoteIds.add(event.note.isarId);
         }
         emit(_getInitializedState());
       },
@@ -333,22 +337,23 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
     // Select notes
     on<NoteSelectEvent>((event, emit) {
-      _selectedNotes.addAll(event.notes.map<int>((e) => e.isarId));
+      _selectedNoteIds.addAll(event.notes.map<int>((e) => e.isarId));
       emit(_getInitializedState());
     });
 
     // Unselect notes
     on<NoteUnselectEvent>((event, emit) {
-      _selectedNotes.removeAll(event.notes.map<int>((e) => e.isarId));
+      _selectedNoteIds.removeAll(event.notes.map<int>((e) => e.isarId));
       emit(_getInitializedState());
     });
 
-    // Unselect all notes
+    // Select all notes
     on<NoteSelectAllEvent>(
       (event, emit) async {
-        _selectedNotes.clear();
-        _selectedNotes.addAll(
-            (await LocalStore.note.getAllItems).map((note) => note.isarId));
+        _selectedNoteIds.clear();
+        _selectedNoteIds.addAll((await LocalStore.note.getAllItems)
+            .where((note) => !note.isTrashed)
+            .map((note) => note.isarId));
         emit(_getInitializedState());
       },
     );
@@ -356,7 +361,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     // Unselect all notes
     on<NoteUnselectAllEvent>(
       (event, emit) {
-        _selectedNotes.clear();
+        _selectedNoteIds.clear();
         emit(_getInitializedState());
       },
     );
@@ -369,9 +374,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         if (newColor != currentColor) {
           await LocalStore.note.updateItem(
             id: event.note.isarId,
-            title: event.note.title,
-            content: event.note.content,
-            tags: event.note.tagIds,
             color: newColor,
             isSyncedWithCloud: false,
           );
@@ -423,15 +425,10 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     on<NoteUndoDeleteEvent>(
       (event, emit) async {
         for (LocalNote note in event.deletedNotes) {
-          final newNote = await LocalStore.note.createItem();
           await LocalStore.note.updateItem(
-            id: newNote.isarId,
-            title: note.title,
-            content: note.content,
-            tags: note.tagIds,
-            color: note.color,
+            id: note.isarId,
             isSyncedWithCloud: false,
-            created: note.created,
+            isTrashed: false,
             modified: note.modified,
           );
         }
@@ -674,7 +671,7 @@ Map<String, List<PresentableNoteData>> groupByCreated({
   final notesThisWeek = notesData.where((noteData) {
     final startOfThisWeek = (now.weekday + 1).days.ago;
     final isSameWeek =
-    noteData.note.created.toLocal().between(startOfThisWeek, now);
+        noteData.note.created.toLocal().between(startOfThisWeek, now);
     return isSameWeek;
   }).toList();
   if (notesThisWeek.isNotEmpty) {

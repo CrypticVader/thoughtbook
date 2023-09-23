@@ -12,3 +12,4 @@ const tagDocumentIdsFieldName = 'tagDocumentIds';
 const colorFieldName = 'color';
 const createdFieldName = 'created';
 const modifiedFieldName = 'modified';
+const isTrashedFieldName = 'isTrashed';

@@ -58,6 +58,7 @@ class NoteSyncable
         color: note.color,
         created: note.created,
         modified: note.modified,
+        isTrashed: note.isTrashed,
         isSyncedWithCloud: true,
         addToChangeFeed: false,
       );

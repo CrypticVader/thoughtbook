@@ -15,10 +15,12 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_bloc.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_trash_bloc/note_trash_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/note_trash_view.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_filter_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_group_mode_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_sort_mode_picker_bottom_sheet.dart';
@@ -56,9 +58,9 @@ class _NotesViewState extends State<NotesView> {
   ) {
     final layoutPreference = state.layoutPreference;
     final groupChipLabel = switch (state.groupProps.groupParameter) {
-      GroupParameter.dateModified => 'Grouped by date modified',
-      GroupParameter.dateCreated => 'Grouped by date created',
-      GroupParameter.tag => 'Grouped by tag',
+      GroupParameter.dateModified => 'Date modified',
+      GroupParameter.dateCreated => 'Date created',
+      GroupParameter.tag => 'Tag',
       GroupParameter.none => 'Ungrouped',
     };
 
@@ -86,7 +88,7 @@ class _NotesViewState extends State<NotesView> {
         ),
         decoration: InputDecoration(
           hintStyle: TextStyle(
-            color: context.themeColors.onSecondaryContainer.withAlpha(150),
+            color: context.themeColors.onSecondaryContainer.withAlpha(170),
             fontWeight: FontWeight.w500,
             fontSize: 16,
           ),
@@ -96,7 +98,7 @@ class _NotesViewState extends State<NotesView> {
             borderSide: BorderSide(
               strokeAlign: BorderSide.strokeAlignInside,
               width: 0.5,
-              color: context.themeColors.onBackground.withAlpha(90),
+              color: context.themeColors.onSurfaceVariant.withAlpha(100),
             ),
           ),
           enabledBorder: OutlineInputBorder(
@@ -104,8 +106,8 @@ class _NotesViewState extends State<NotesView> {
             borderSide: BorderSide.none,
           ),
           fillColor: Color.alphaBlend(
-            context.themeColors.primary.withAlpha(isScrolled ? 40 : 25),
-            context.themeColors.background,
+            context.themeColors.inversePrimary.withAlpha(40),
+            context.themeColors.surfaceVariant.withAlpha(80),
           ),
           filled: true,
           prefixIconColor: context.themeColors.secondary,
@@ -215,10 +217,11 @@ class _NotesViewState extends State<NotesView> {
     );
   }
 
-  Widget _getNoteSelectionToolbar(
+  Widget _noteSelectionToolbar(
     BuildContext context,
     Set<LocalNote> selectedNotes,
   ) {
+    final noteBloc = context.read<NoteBloc>();
     return AnimatedSwitcher(
       switchInCurve: Curves.easeInOutCubic,
       switchOutCurve: Curves.easeInOutCubic,
@@ -257,9 +260,8 @@ class _NotesViewState extends State<NotesView> {
                       children: [
                         IconButton(
                           tooltip: context.loc.close,
-                          onPressed: () => context
-                              .read<NoteBloc>()
-                              .add(const NoteUnselectAllEvent()),
+                          onPressed: () =>
+                              noteBloc.add(const NoteUnselectAllEvent()),
                           icon: const Icon(
                             FluentIcons.dismiss_24_filled,
                           ),
@@ -326,8 +328,6 @@ class _NotesViewState extends State<NotesView> {
                                                   (note.color != null)
                                                       ? Color(note.color!)
                                                       : null;
-                                              final noteBloc =
-                                                  context.read<NoteBloc>();
                                               final color =
                                                   await showColorPickerModalBottomSheet(
                                                 context: context,
@@ -351,8 +351,7 @@ class _NotesViewState extends State<NotesView> {
                                           IconButton(
                                             onPressed: () async {
                                               final note = selectedNotes.first;
-                                              context
-                                                  .read<NoteBloc>()
+                                              noteBloc
                                                   .add(NoteShareEvent(note));
                                             },
                                             icon: Icon(
@@ -364,9 +363,7 @@ class _NotesViewState extends State<NotesView> {
                                           IconButton(
                                             onPressed: () {
                                               final note = selectedNotes.first;
-                                              context
-                                                  .read<NoteBloc>()
-                                                  .add(NoteCopyEvent(note));
+                                              noteBloc.add(NoteCopyEvent(note));
                                             },
                                             icon: Icon(
                                               FluentIcons.copy_24_filled,
@@ -376,17 +373,17 @@ class _NotesViewState extends State<NotesView> {
                                           ),
                                         ],
                                       )
-                                    : SizedBox(
+                                    : const SizedBox(
                                         width: 0,
                                       ),
                               ),
                               IconButton(
                                 onPressed: () {
-                                  context.read<NoteBloc>().add(
-                                        NoteDeleteEvent(
-                                          notes: selectedNotes,
-                                        ),
-                                      );
+                                  noteBloc.add(
+                                    NoteDeleteEvent(
+                                      notes: selectedNotes,
+                                    ),
+                                  );
                                 },
                                 icon: Icon(
                                   FluentIcons.delete_24_filled,
@@ -401,9 +398,9 @@ class _NotesViewState extends State<NotesView> {
                         ),
                         IconButton(
                           tooltip: context.loc.select_all_notes,
-                          onPressed: () async => context.read<NoteBloc>().add(
-                                const NoteSelectAllEvent(),
-                              ),
+                          onPressed: () async => noteBloc.add(
+                            const NoteSelectAllEvent(),
+                          ),
                           icon: const Icon(
                             FluentIcons.select_all_on_24_filled,
                           ),
@@ -418,6 +415,304 @@ class _NotesViewState extends State<NotesView> {
               ],
             )
           : null,
+    );
+  }
+
+  Widget _getDrawerWidget(
+    BuildContext context,
+    NoteInitializedState state,
+  ) {
+    return Drawer(
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 32.0),
+            child: Column(
+              children: [
+                const Spacer(
+                  flex: 1,
+                ),
+                if (state.user != null)
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      color: context.themeColors.tertiaryContainer,
+                      borderRadius: BorderRadius.circular(28.0),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              FluentIcons.person_32_filled,
+                              color:
+                                  context.theme.colorScheme.onTertiaryContainer,
+                            ),
+                            const SizedBox(
+                              width: 8.0,
+                            ),
+                            Expanded(
+                              child: Text(
+                                state.user?.email ?? '',
+                                maxLines: 1,
+                                style: TextStyle(
+                                  overflow: TextOverflow.ellipsis,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
+                                  color: context
+                                      .theme.colorScheme.onTertiaryContainer,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8.0,
+                        ),
+                        FilledButton.icon(
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await _onLogout(context);
+                          },
+                          icon: const Icon(
+                            FluentIcons.sign_out_24_regular,
+                          ),
+                          label: Text(
+                            context.loc.logout_button,
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: context.themeColors.tertiary,
+                            foregroundColor:
+                                context.theme.colorScheme.onTertiary,
+                            minimumSize: const Size.fromHeight(40.0),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (state.user == null)
+                  FilledButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.read<AuthBloc>().add(const AuthEventLogOut());
+                    },
+                    label: Text(
+                      context.loc.login,
+                    ),
+                    icon: const Icon(
+                      FluentIcons.arrow_enter_20_filled,
+                    ),
+                    style: FilledButton.styleFrom(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Montserrat',
+                        fontSize: 16,
+                      ),
+                      foregroundColor: context.themeColors.onTertiaryContainer,
+                      backgroundColor: context.themeColors.tertiaryContainer,
+                      minimumSize: const Size.fromHeight(48.0),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 128),
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 0.0),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8.0, 32.0, 8.0, 32.0),
+                  child: Text(
+                    context.loc.app_title,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w600,
+                      color: context.themeColors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Column(
+                  children: [
+                    // Primary actions
+                    ListTile(
+                      onTap: () async =>
+                          await showNoteTagEditorModalBottomSheet(
+                        context: context,
+                        tags: () => state.noteTags(),
+                        onCreateTag: (tagName) => context
+                            .read<NoteBloc>()
+                            .add(NoteCreateTagEvent(name: tagName)),
+                        onEditTag: (tag, newName) =>
+                            context.read<NoteBloc>().add(NoteEditTagEvent(
+                                  tag: tag,
+                                  newName: newName,
+                                )),
+                        onDeleteTag: (tag) => context
+                            .read<NoteBloc>()
+                            .add(NoteDeleteTagEvent(tag: tag)),
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16.0),
+                      tileColor: context.themeColors.primaryContainer,
+                      splashColor: context.theme.colorScheme.inversePrimary
+                          .withAlpha(200),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(28),
+                          topRight: Radius.circular(28),
+                          bottomLeft: Radius.circular(4),
+                          bottomRight: Radius.circular(4),
+                        ),
+                      ),
+                      leading: Icon(
+                        FluentIcons.tag_28_filled,
+                        color: context.theme.colorScheme.onPrimaryContainer,
+                      ),
+                      title: Text(
+                        'Tags',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: context.theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 2.0,
+                    ),
+                    ListTile(
+                      onTap: () {},
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16.0),
+                      tileColor: context.themeColors.primaryContainer,
+                      splashColor: context.theme.colorScheme.inversePrimary
+                          .withAlpha(200),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(4),
+                          topRight: Radius.circular(4),
+                          bottomLeft: Radius.circular(28),
+                          bottomRight: Radius.circular(28),
+                        ),
+                      ),
+                      leading: Icon(
+                        FluentIcons.book_20_filled,
+                        color: context.theme.colorScheme.onPrimaryContainer,
+                      ),
+                      title: Text(
+                        'Notebooks',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: context.theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      trailing: InkWell(
+                        onTap: () {},
+                        borderRadius: BorderRadius.circular(32),
+                        splashColor: context.theme.colorScheme.primaryContainer
+                            .withAlpha(200),
+                        child: Ink(
+                          padding: const EdgeInsets.all(6.0),
+                          decoration: BoxDecoration(
+                            color: context.themeColors.surfaceTint,
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          child: Icon(
+                            FluentIcons.caret_down_24_filled,
+                            color: context.theme.colorScheme.primaryContainer,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(
+                      height: 16.0,
+                    ),
+
+                    // Secondary actions
+                    ListTile(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(28),
+                          topRight: Radius.circular(28),
+                          bottomLeft: Radius.circular(4),
+                          bottomRight: Radius.circular(4),
+                        ),
+                      ),
+                      onTap: () async {
+                        Navigator.of(context).pop();
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider(
+                              create: (context) => NoteTrashBloc(),
+                              child: const NoteTrashView(),
+                            ),
+                          ),
+                        );
+                      },
+                      tileColor: context.theme.colorScheme.secondaryContainer,
+                      splashColor: context.themeColors.secondary.withAlpha(50),
+                      leading: Icon(
+                        FluentIcons.delete_24_filled,
+                        size: 26,
+                        color: context.theme.colorScheme.onSecondaryContainer,
+                      ),
+                      title: Text(
+                        'Trash',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: context.theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 2.0,
+                    ),
+                    ListTile(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(4),
+                          topRight: Radius.circular(4),
+                          bottomLeft: Radius.circular(28),
+                          bottomRight: Radius.circular(28),
+                        ),
+                      ),
+                      onTap: () async {
+                        Navigator.of(context).pop();
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<AuthBloc>(),
+                              child: const SettingsView(),
+                            ),
+                          ),
+                        );
+                      },
+                      tileColor: context.theme.colorScheme.secondaryContainer,
+                      splashColor: context.themeColors.secondary.withAlpha(50),
+                      leading: Icon(
+                        FluentIcons.settings_24_filled,
+                        size: 26,
+                        color: context.theme.colorScheme.onSecondaryContainer,
+                      ),
+                      title: Text(
+                        'Settings',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: context.theme.colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -525,8 +820,9 @@ class _NotesViewState extends State<NotesView> {
         }
       },
       builder: (context, state) {
+        final noteBloc = context.read<NoteBloc>();
         if (state is NoteUninitializedState) {
-          context.read<NoteBloc>().add(const NoteInitializeEvent());
+          noteBloc.add(const NoteInitializeEvent());
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
@@ -538,7 +834,7 @@ class _NotesViewState extends State<NotesView> {
               if (!(state.hasSelectedNotes)) {
                 return true;
               } else {
-                context.read<NoteBloc>().add(const NoteUnselectAllEvent());
+                noteBloc.add(const NoteUnselectAllEvent());
                 return false;
               }
             },
@@ -600,353 +896,16 @@ class _NotesViewState extends State<NotesView> {
                       ),
                     )
                   : null,
-              drawer: Drawer(
-                child: Stack(
-                  children: [
-                    Padding(
-                      padding:
-                          const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 32.0),
-                      child: Column(
-                        children: [
-                          const Spacer(
-                            flex: 1,
-                          ),
-                          if (state.user != null)
-                            Container(
-                              padding: const EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                color: context.themeColors.tertiaryContainer,
-                                borderRadius: BorderRadius.circular(28.0),
-                              ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        FluentIcons.person_32_filled,
-                                        color: context.theme.colorScheme
-                                            .onTertiaryContainer,
-                                      ),
-                                      const SizedBox(
-                                        width: 8.0,
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          state.user?.email ?? '',
-                                          maxLines: 1,
-                                          style: TextStyle(
-                                            overflow: TextOverflow.ellipsis,
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.w500,
-                                            color: context.theme.colorScheme
-                                                .onTertiaryContainer,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    height: 8.0,
-                                  ),
-                                  FilledButton.icon(
-                                    onPressed: () async {
-                                      Navigator.pop(context);
-                                      await _onLogout(context);
-                                    },
-                                    icon: const Icon(
-                                      FluentIcons.sign_out_24_regular,
-                                    ),
-                                    label: Text(
-                                      context.loc.logout_button,
-                                    ),
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor:
-                                          context.themeColors.tertiary,
-                                      foregroundColor:
-                                          context.theme.colorScheme.onTertiary,
-                                      minimumSize: const Size.fromHeight(40.0),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          if (state.user == null)
-                            FilledButton.icon(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                context
-                                    .read<AuthBloc>()
-                                    .add(const AuthEventLogOut());
-                              },
-                              label: Text(
-                                context.loc.login,
-                              ),
-                              icon: const Icon(
-                                FluentIcons.arrow_enter_20_filled,
-                              ),
-                              style: FilledButton.styleFrom(
-                                textStyle: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 16,
-                                ),
-                                foregroundColor:
-                                    context.themeColors.onTertiaryContainer,
-                                backgroundColor:
-                                    context.themeColors.tertiaryContainer,
-                                minimumSize: const Size.fromHeight(48.0),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 128),
-                      child: ListView(
-                        shrinkWrap: true,
-                        padding:
-                            const EdgeInsets.fromLTRB(12.0, 32.0, 12.0, 0.0),
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(8.0, 32.0, 8.0, 32.0),
-                            child: Text(
-                              context.loc.app_title,
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w600,
-                                color: context.themeColors.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          Column(
-                            children: [
-                              // Primary actions
-                              ListTile(
-                                onTap: () async =>
-                                    await showNoteTagEditorModalBottomSheet(
-                                  context: context,
-                                  tags: () => state.noteTags(),
-                                  onCreateTag: (tagName) => context
-                                      .read<NoteBloc>()
-                                      .add(NoteCreateTagEvent(name: tagName)),
-                                  onEditTag: (tag, newName) => context
-                                      .read<NoteBloc>()
-                                      .add(NoteEditTagEvent(
-                                        tag: tag,
-                                        newName: newName,
-                                      )),
-                                  onDeleteTag: (tag) => context
-                                      .read<NoteBloc>()
-                                      .add(NoteDeleteTagEvent(tag: tag)),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                tileColor: context.themeColors.primaryContainer,
-                                splashColor: context
-                                    .theme.colorScheme.inversePrimary
-                                    .withAlpha(200),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(28),
-                                    topRight: Radius.circular(28),
-                                    bottomLeft: Radius.circular(4),
-                                    bottomRight: Radius.circular(4),
-                                  ),
-                                ),
-                                leading: Icon(
-                                  FluentIcons.tag_28_filled,
-                                  color: context
-                                      .theme.colorScheme.onPrimaryContainer,
-                                ),
-                                title: Text(
-                                  'Tags',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 2.0,
-                              ),
-                              ListTile(
-                                onTap: () {},
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                tileColor: context.themeColors.primaryContainer,
-                                splashColor: context
-                                    .theme.colorScheme.inversePrimary
-                                    .withAlpha(150),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(4),
-                                    topRight: Radius.circular(4),
-                                    bottomLeft: Radius.circular(28),
-                                    bottomRight: Radius.circular(28),
-                                  ),
-                                ),
-                                leading: Icon(
-                                  FluentIcons.book_20_filled,
-                                  color: context
-                                      .theme.colorScheme.onPrimaryContainer,
-                                ),
-                                title: Text(
-                                  'Notebooks',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                                trailing: InkWell(
-                                  onTap: () {},
-                                  borderRadius: BorderRadius.circular(32),
-                                  splashColor: context
-                                      .theme.colorScheme.primaryContainer
-                                      .withAlpha(200),
-                                  child: Ink(
-                                    padding: const EdgeInsets.all(6.0),
-                                    decoration: BoxDecoration(
-                                      color: context.themeColors.surfaceTint,
-                                      borderRadius: BorderRadius.circular(32),
-                                    ),
-                                    child: Icon(
-                                      FluentIcons.caret_down_24_filled,
-                                      color: context
-                                          .theme.colorScheme.primaryContainer,
-                                      size: 24,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 16.0,
-                              ),
-
-                              // Secondary actions
-                              ListTile(
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(28),
-                                    topRight: Radius.circular(28),
-                                    bottomLeft: Radius.circular(4),
-                                    bottomRight: Radius.circular(4),
-                                  ),
-                                ),
-                                onTap: () {},
-                                tileColor: context
-                                    .theme.colorScheme.secondaryContainer,
-                                splashColor:
-                                    context.themeColors.secondary.withAlpha(50),
-                                leading: Icon(
-                                  FluentIcons.archive_24_filled,
-                                  size: 26,
-                                  color: context
-                                      .theme.colorScheme.onSecondaryContainer,
-                                ),
-                                title: Text(
-                                  'Archive',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 2.0,
-                              ),
-                              ListTile(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                onTap: () {},
-                                tileColor: context
-                                    .theme.colorScheme.secondaryContainer,
-                                splashColor:
-                                    context.themeColors.secondary.withAlpha(50),
-                                leading: Icon(
-                                  FluentIcons.delete_24_filled,
-                                  size: 26,
-                                  color: context
-                                      .theme.colorScheme.onSecondaryContainer,
-                                ),
-                                title: Text(
-                                  'Trash',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 2.0,
-                              ),
-                              ListTile(
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(4),
-                                    topRight: Radius.circular(4),
-                                    bottomLeft: Radius.circular(28),
-                                    bottomRight: Radius.circular(28),
-                                  ),
-                                ),
-                                onTap: () async {
-                                  Navigator.of(context).pop();
-                                  await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => BlocProvider.value(
-                                        value: context.read<AuthBloc>(),
-                                        child: const SettingsView(),
-                                      ),
-                                    ),
-                                  );
-                                },
-                                tileColor: context
-                                    .theme.colorScheme.secondaryContainer,
-                                splashColor:
-                                    context.themeColors.secondary.withAlpha(50),
-                                leading: Icon(
-                                  FluentIcons.settings_24_filled,
-                                  size: 26,
-                                  color: context
-                                      .theme.colorScheme.onSecondaryContainer,
-                                ),
-                                title: Text(
-                                  'Settings',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: context
-                                        .theme.colorScheme.onSecondaryContainer,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
+              drawer: _getDrawerWidget(context, state),
               body: NestedScrollView(
                 floatHeaderSlivers: true,
                 headerSliverBuilder:
                     (BuildContext context, bool innerBoxIsScrolled) {
                   return [
-                    _getDefaultAppBar(
-                      context,
-                      state,
-                      innerBoxIsScrolled,
-                    ),
+                    _getDefaultAppBar(context, state, innerBoxIsScrolled),
                   ];
                 },
-                body: StreamBuilder<
-                    (Map<String, List<PresentableNoteData>>, Set<LocalNote>)>(
+                body: StreamBuilder(
                   stream: Rx.combineLatest2(
                     state.notesData(),
                     state.selectedNotes(),
@@ -958,10 +917,11 @@ class _NotesViewState extends State<NotesView> {
                       case ConnectionState.done:
                       case ConnectionState.active:
                         if (snapshot.hasData) {
-                          final notesData = snapshot.data!.$1;
+                          final notes = snapshot.data!.$1;
                           final selectedNotes = snapshot.data!.$2;
+
                           return BlocProvider<NoteBloc>.value(
-                            value: context.read<NoteBloc>(),
+                            value: noteBloc,
                             child: Stack(
                               children: [
                                 NotificationListener<UserScrollNotification>(
@@ -987,39 +947,31 @@ class _NotesViewState extends State<NotesView> {
                                   child: SingleChildScrollView(
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      children: notesData.keys
-                                          .map((groupHeader) => NoteGroup(
-                                                key: ValueKey<String>(
-                                                    groupHeader),
-                                                state: state,
-                                                groupNotesData:
-                                                    notesData[groupHeader]!,
-                                                selectedGroupNotes: selectedNotes
-                                                    .where((note) =>
-                                                        notesData[groupHeader]!
-                                                            .any((noteData) =>
-                                                                noteData.note
-                                                                    .isarId ==
-                                                                note.isarId))
-                                                    .toSet(),
-                                                groupHeader: groupHeader,
-                                                onSelectGroup: (notes) =>
-                                                    context
-                                                        .read<NoteBloc>()
-                                                        .add(NoteSelectEvent(
-                                                            notes: notes)),
-                                                onUnselectGroup: (notes) =>
-                                                    context
-                                                        .read<NoteBloc>()
-                                                        .add(NoteUnselectEvent(
-                                                            notes: notes)),
-                                              ))
+                                      children: notes.keys
+                                          .map(
+                                            (header) => NoteGroup(
+                                              key: ValueKey(header),
+                                              state: state,
+                                              notes: notes[header]!,
+                                              groupHeader: header,
+                                              selectedNotes: selectedNotes
+                                                  .intersection(notes[header]!
+                                                      .map((e) => e.note)
+                                                      .toSet()),
+                                              onSelectGroup: (notes) =>
+                                                  noteBloc.add(NoteSelectEvent(
+                                                      notes: notes)),
+                                              onUnselectGroup: (notes) =>
+                                                  noteBloc.add(
+                                                      NoteUnselectEvent(
+                                                          notes: notes)),
+                                            ),
+                                          )
                                           .toList(),
                                     ),
                                   ),
                                 ),
-                                _getNoteSelectionToolbar(
-                                    context, selectedNotes),
+                                _noteSelectionToolbar(context, selectedNotes),
                               ],
                             ),
                           );
@@ -1044,7 +996,7 @@ class _NotesViewState extends State<NotesView> {
             ),
           );
         } else {
-          context.read<NoteBloc>().add(const NoteInitializeEvent());
+          noteBloc.add(const NoteInitializeEvent());
           return const Center(
             child: CircularProgressIndicator(),
           );
@@ -1115,13 +1067,13 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
               _controller.reverse();
             }
           },
-          splashColor: context.themeColors.surfaceVariant.withAlpha(120),
-          highlightColor: context.themeColors.surfaceVariant,
+          splashColor: context.themeColors.inversePrimary.withAlpha(170),
+          highlightColor: context.themeColors.inversePrimary,
           borderRadius: widget.isCollapsed
               ? BorderRadius.circular(26)
               : const BorderRadius.only(
-                  topRight: Radius.circular(24),
-                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(26),
+                  topLeft: Radius.circular(26),
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
@@ -1133,8 +1085,8 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
               borderRadius: widget.isCollapsed
                   ? BorderRadius.circular(26)
                   : const BorderRadius.only(
-                      topRight: Radius.circular(24),
-                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(26),
+                      topLeft: Radius.circular(26),
                       bottomLeft: Radius.circular(16),
                       bottomRight: Radius.circular(16),
                     ),
@@ -1186,16 +1138,16 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
                     shape: RoundedRectangleBorder(
                       borderRadius: widget.isCollapsed
                           ? const BorderRadius.only(
-                              topRight: Radius.circular(22),
-                              topLeft: Radius.circular(12),
-                              bottomLeft: Radius.circular(12),
-                              bottomRight: Radius.circular(22),
+                              topRight: Radius.circular(24),
+                              topLeft: Radius.circular(14),
+                              bottomLeft: Radius.circular(14),
+                              bottomRight: Radius.circular(24),
                             )
                           : const BorderRadius.only(
-                              topRight: Radius.circular(22),
-                              topLeft: Radius.circular(12),
-                              bottomLeft: Radius.circular(12),
-                              bottomRight: Radius.circular(12),
+                              topRight: Radius.circular(24),
+                              topLeft: Radius.circular(14),
+                              bottomLeft: Radius.circular(14),
+                              bottomRight: Radius.circular(14),
                             ),
                     ),
                     backgroundColor: widget.isSelected
@@ -1220,16 +1172,16 @@ class NoteGroup extends StatefulWidget {
     super.key,
     required this.groupHeader,
     required this.state,
-    required this.groupNotesData,
-    required this.selectedGroupNotes,
+    required this.notes,
+    required this.selectedNotes,
     required this.onSelectGroup,
     required this.onUnselectGroup,
   });
 
   final String groupHeader;
   final NoteInitializedState state;
-  final List<PresentableNoteData> groupNotesData;
-  final Set<LocalNote> selectedGroupNotes;
+  final List<PresentableNoteData> notes;
+  final Set<LocalNote> selectedNotes;
   final void Function(Iterable<LocalNote> notes) onSelectGroup;
   final void Function(Iterable<LocalNote> notes) onUnselectGroup;
 
@@ -1252,17 +1204,16 @@ class _NoteGroupState extends State<NoteGroup> {
       children: [
         if (widget.groupHeader.isNotEmpty)
           NoteListGroupHeader(
-            isSelected: (widget.selectedGroupNotes.length ==
-                widget.groupNotesData.length),
+            isSelected: (widget.selectedNotes.length == widget.notes.length),
             isCollapsed: isCollapsed,
             groupHeader: widget.groupHeader,
             onTapHeader: () => setState(() {
               isCollapsed = !isCollapsed;
             }),
             onSelectGroup: () =>
-                widget.onSelectGroup(widget.groupNotesData.map((e) => e.note)),
-            onUnselectGroup: () => widget
-                .onUnselectGroup(widget.groupNotesData.map((e) => e.note)),
+                widget.onSelectGroup(widget.notes.map((e) => e.note)),
+            onUnselectGroup: () =>
+                widget.onUnselectGroup(widget.notes.map((e) => e.note)),
           ),
         AnimatedSwitcher(
           duration: 450.milliseconds,
@@ -1281,22 +1232,19 @@ class _NoteGroupState extends State<NoteGroup> {
           child: !isCollapsed
               ? NotesListView(
                   layoutPreference: widget.state.layoutPreference,
-                  notesData: widget.groupNotesData,
-                  selectedNotes: widget.selectedGroupNotes,
+                  notesData: widget.notes,
+                  selectedNotes: widget.selectedNotes,
                   onDeleteNote: (LocalNote note) => context
                       .read<NoteBloc>()
                       .add(NoteDeleteEvent(notes: {note})),
-                  onTap: (
-                    LocalNote note,
-                    void Function() openNote,
-                  ) {
+                  onTap: (note, openNote) {
                     if (!(widget.state.hasSelectedNotes)) {
                       openNote();
                     } else {
                       context.read<NoteBloc>().add(NoteTapEvent(note: note));
                     }
                   },
-                  onLongPress: (LocalNote note) => context
+                  onLongPress: (note) => context
                       .read<NoteBloc>()
                       .add(NoteLongPressEvent(note: note)),
                 )

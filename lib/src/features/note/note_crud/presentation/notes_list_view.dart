@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:animations/animations.dart';
 import 'package:entry/entry.dart';
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -23,6 +24,7 @@ typedef NoteCallback = void Function(LocalNote note);
 typedef NoteDataCallback = void Function(PresentableNoteData noteData);
 
 class NotesListView extends StatefulWidget {
+  final bool isDismissible;
   final String layoutPreference;
 
   final List<PresentableNoteData> notesData;
@@ -33,6 +35,7 @@ class NotesListView extends StatefulWidget {
 
   const NotesListView({
     Key? key,
+    this.isDismissible = true,
     required this.layoutPreference,
     required this.notesData,
     required this.selectedNotes,
@@ -73,7 +76,8 @@ class _NotesListViewState extends State<NotesListView> {
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
             color: context.themeColors.secondaryContainer.withAlpha(120),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius:
+                SmoothBorderRadius(cornerRadius: 40, cornerSmoothing: 1),
           ),
           child: UnconstrainedBox(
             child: Column(
@@ -82,16 +86,20 @@ class _NotesListViewState extends State<NotesListView> {
                 Icon(
                   FluentIcons.note_add_48_filled,
                   size: 150,
-                  color: context.theme.colorScheme.onSecondaryContainer.withAlpha(150),
+                  color: context.theme.colorScheme.onSecondaryContainer
+                      .withAlpha(150),
                 ),
-                const SizedBox(height: 16.0,),
+                const SizedBox(
+                  height: 16.0,
+                ),
                 Center(
                   child: Text(
                     context.loc.notes_view_create_note_to_see_here,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: context.theme.colorScheme.onSecondaryContainer.withAlpha(220),
+                      color: context.theme.colorScheme.onSecondaryContainer
+                          .withAlpha(220),
                     ),
                   ),
                 ),
@@ -125,7 +133,8 @@ class _NotesListViewState extends State<NotesListView> {
               });
               widget.onDeleteNote(noteData.note);
             },
-            enableDismissible: widget.selectedNotes.isEmpty,
+            enableDismissible:
+                widget.selectedNotes.isEmpty && widget.isDismissible,
             index: index,
           );
         },
@@ -258,12 +267,14 @@ class _NoteItemState extends State<NoteItem> {
                       color: context.theme.colorScheme.tertiary,
                     )
                   : BorderSide.none,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius:
+                  SmoothBorderRadius(cornerRadius: 20, cornerSmoothing: 1),
             ),
             closedBuilder: (context, openContainer) {
               _openContainer = openContainer;
               return InkWell(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius:
+                    SmoothBorderRadius(cornerRadius: 20, cornerSmoothing: 1),
                 onLongPress: () => widget.onLongPress(widget.noteData.note),
                 onTap: () => widget.onTap(widget.noteData.note, _openContainer),
                 splashColor: noteColors.inversePrimary.withAlpha(120),
@@ -330,7 +341,8 @@ class _NoteItemState extends State<NoteItem> {
                                     );
                                   case BulletStyle.unorderedList:
                                     return Padding(
-                                      padding: const EdgeInsets.fromLTRB(10, 12, 10, 8),
+                                      padding: const EdgeInsets.fromLTRB(
+                                          10, 12, 10, 8),
                                       child: Container(
                                         width: 4,
                                         height: 4,
@@ -398,7 +410,8 @@ class _NoteItemState extends State<NoteItem> {
                                   decoration: BoxDecoration(
                                     color: noteColors.tertiaryContainer
                                         .withAlpha(200),
-                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderRadius: SmoothBorderRadius(
+                                        cornerRadius: 12, cornerSmoothing: 1),
                                     border: Border.all(
                                       strokeAlign: BorderSide.strokeAlignInside,
                                       color: noteColors.onTertiaryContainer

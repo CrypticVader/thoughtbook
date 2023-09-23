@@ -65,12 +65,12 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
         builder: (context, scrollController) {
           return Scaffold(
             backgroundColor: Color.alphaBlend(
-              context.themeColors.surfaceTint.withAlpha(25),
+              context.themeColors.surfaceTint.withAlpha(15),
               context.themeColors.background,
             ),
             appBar: AppBar(
               backgroundColor: Color.alphaBlend(
-                context.themeColors.surfaceTint.withAlpha(25),
+                context.themeColors.surfaceTint.withAlpha(15),
                 context.themeColors.background,
               ),
               leading: null,
