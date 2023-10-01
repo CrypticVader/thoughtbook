@@ -75,6 +75,7 @@ mixin NoteChangeSyncMixin {
       color: change.note.color,
       created: change.note.created,
       modified: change.note.modified,
+      isTrashed: change.note.isTrashed,
     );
 
     try {
@@ -139,6 +140,7 @@ mixin NoteChangeSyncMixin {
         color: change.note.color,
         created: change.note.created,
         modified: change.note.modified,
+        isTrashed: change.note.isTrashed,
       );
     } on CouldNotUpdateNoteException {
       log(

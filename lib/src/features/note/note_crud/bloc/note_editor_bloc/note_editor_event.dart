@@ -23,12 +23,6 @@ class NoteEditorCopyEvent extends NoteEditorEvent {
   const NoteEditorCopyEvent();
 }
 
-class NoteEditorChangeViewTypeEvent extends NoteEditorEvent {
-  final bool wasEditable;
-
-  const NoteEditorChangeViewTypeEvent({required this.wasEditable});
-}
-
 class NoteEditorUpdateEvent extends NoteEditorEvent {
   final String newTitle;
   final String newContent;
@@ -37,12 +31,6 @@ class NoteEditorUpdateEvent extends NoteEditorEvent {
     required this.newTitle,
     required this.newContent,
   });
-}
-
-class NoteEditorUpdateTagsEvent extends NoteEditorEvent {
-  final List<int> tags;
-
-  const NoteEditorUpdateTagsEvent({required this.tags});
 }
 
 class NoteEditorUpdateColorEvent extends NoteEditorEvent {
@@ -63,4 +51,24 @@ class NoteEditorDeleteEvent extends NoteEditorEvent {
 
 class NoteEditorCloseEvent extends NoteEditorEvent {
   const NoteEditorCloseEvent();
+}
+
+class NoteEditorUndoEvent extends NoteEditorEvent {
+  final String currentTitle;
+  final String currentContent;
+
+  const NoteEditorUndoEvent({
+    required this.currentContent,
+    required this.currentTitle,
+  });
+}
+
+class NoteEditorRedoEvent extends NoteEditorEvent {
+  final String currentTitle;
+  final String currentContent;
+
+  const NoteEditorRedoEvent({
+    required this.currentContent,
+    required this.currentTitle,
+  });
 }

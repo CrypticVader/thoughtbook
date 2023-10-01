@@ -94,6 +94,7 @@ NoteChange deserializeNoteChange(IsarReader reader) {
         color: null,
         created: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
         modified: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
+        isTrashed: false,
         isSyncedWithCloud: false,
       );
     } else {
@@ -150,6 +151,7 @@ dynamic deserializeNoteChangeProp(IsarReader reader, int property) {
                 DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
             modified:
                 DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
+            isTrashed: false,
             isSyncedWithCloud: false,
           );
         } else {
@@ -790,6 +792,10 @@ const ChangedNoteSchema = IsarGeneratedSchema(
         name: 'modified',
         type: IsarType.dateTime,
       ),
+      IsarPropertySchema(
+        name: 'isTrashed',
+        type: IsarType.bool,
+      ),
     ],
     indexes: [],
   ),
@@ -824,6 +830,7 @@ int serializeChangedNote(IsarWriter writer, ChangedNote object) {
   IsarCore.writeBool(writer, 7, object.isSyncedWithCloud);
   IsarCore.writeLong(writer, 8, object.created.toUtc().microsecondsSinceEpoch);
   IsarCore.writeLong(writer, 9, object.modified.toUtc().microsecondsSinceEpoch);
+  IsarCore.writeBool(writer, 10, object.isTrashed);
   return 0;
 }
 
@@ -884,6 +891,8 @@ ChangedNote deserializeChangedNote(IsarReader reader) {
       _modified = DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
     }
   }
+  final bool _isTrashed;
+  _isTrashed = IsarCore.readBool(reader, 10);
   final object = ChangedNote(
     isarId: _isarId,
     cloudDocumentId: _cloudDocumentId,
@@ -894,6 +903,7 @@ ChangedNote deserializeChangedNote(IsarReader reader) {
     isSyncedWithCloud: _isSyncedWithCloud,
     created: _created,
     modified: _modified,
+    isTrashed: _isTrashed,
   );
   return object;
 }
@@ -1903,6 +1913,20 @@ extension ChangedNoteQueryFilter
           property: 9,
           lower: lower,
           upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
+      isTrashedEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 10,
+          value: value,
         ),
       );
     });

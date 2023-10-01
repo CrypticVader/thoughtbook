@@ -22,7 +22,7 @@ class _SettingsViewState extends State<SettingsView> {
       builder: (context, state) {
         return Scaffold(
           backgroundColor: Color.alphaBlend(
-            context.theme.colorScheme.inversePrimary.withAlpha(60),
+            context.theme.colorScheme.inversePrimary.withAlpha(50),
             context.theme.colorScheme.background,
           ),
           body: NestedScrollView(
@@ -37,7 +37,7 @@ class _SettingsViewState extends State<SettingsView> {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   backgroundColor: Color.alphaBlend(
-                    context.theme.colorScheme.inversePrimary.withAlpha(60),
+                    context.theme.colorScheme.inversePrimary.withAlpha(50),
                     context.theme.colorScheme.background,
                   ),
                   title: Text(
@@ -54,7 +54,7 @@ class _SettingsViewState extends State<SettingsView> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: ListView(
-                  padding: const EdgeInsets.all(12.0),
+                  padding: const EdgeInsets.all(16.0),
                   children: [
                     // Account Settings
                     const PreferenceSectionHeader(

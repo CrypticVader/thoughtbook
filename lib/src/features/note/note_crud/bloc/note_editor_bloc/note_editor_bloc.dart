@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -11,24 +13,23 @@ import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.da
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
+import 'package:thoughtbook/src/helpers/debouncer/debouncer.dart';
 
 class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
+  final Debouncer _debouncer = Debouncer(delay: 250.milliseconds);
   int? _noteIsarId;
+  late NoteDataNode _currentNoteNode;
 
   ValueStream<LocalNote> noteStream() =>
       LocalStore.note.itemStream(id: _noteIsarId!);
 
-  ValueStream<PresentableNoteData> presentableNote() =>
-      Rx.combineLatest2<LocalNote, List<LocalNoteTag>, PresentableNoteData>(
+  ValueStream<PresentableNoteData> presentableNote() => Rx.combineLatest2(
         noteStream(),
         allNoteTags(),
         (note, allTags) {
           List<LocalNoteTag> noteTags =
               allTags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
-          return PresentableNoteData(
-            note: note,
-            noteTags: noteTags,
-          );
+          return PresentableNoteData(note: note, noteTags: noteTags);
         },
       ).shareValue();
 
@@ -49,35 +50,49 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     }
   }
 
-  NoteEditorBloc() : super(const NoteEditorUninitializedState()) {
+  NoteEditorBloc() : super(const NoteEditorUninitialized()) {
     // Initialize editor state
     on<NoteEditorInitializeEvent>(
       (event, emit) async {
-        if (state is NoteEditorInitializedState) {
+        if (state is NoteEditorInitialized) {
           throw NoteEditorBlocAlreadyInitializedException();
         }
 
         if (event.note == null && _noteIsarId == null) {
+          _currentNoteNode = NoteDataNode(
+            data: (
+              title: '',
+              content: '',
+            ),
+          );
           LocalNote note = await LocalStore.note.createItem();
           _noteIsarId = note.isarId;
           emit(
-            NoteEditorInitializedState(
+            NoteEditorInitialized(
               noteStream: noteStream,
               noteData: presentableNote,
               allNoteTags: allNoteTags,
               snackBarText: '',
-              isEditable: true,
+              canUndo: !(_currentNoteNode.isFirst),
+              canRedo: !(_currentNoteNode.isLast),
             ),
           );
         } else {
           _noteIsarId = event.note!.isarId;
+          _currentNoteNode = NoteDataNode(
+            data: (
+              title: event.note!.title,
+              content: event.note!.content,
+            ),
+          );
           emit(
-            NoteEditorInitializedState(
+            NoteEditorInitialized(
               noteStream: noteStream,
               noteData: presentableNote,
               allNoteTags: allNoteTags,
               snackBarText: '',
-              isEditable: false,
+              canUndo: !(_currentNoteNode.isFirst),
+              canRedo: !(_currentNoteNode.isLast),
             ),
           );
         }
@@ -87,42 +102,41 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     // Close note editor
     on<NoteEditorCloseEvent>(
       (event, emit) async {
-        if (state is NoteEditorDeletedState) {
+        if (state is NoteEditorDeleted) {
           return;
         }
 
         final note = await this.note;
-        if (note.title.isEmpty && note.content.isEmpty) {
+        if (note.title.isBlank && note.content.isBlank) {
           await LocalStore.note.deleteItem(id: note.isarId);
         }
         await close();
       },
     );
 
-    // Change Editor view type (Preview/Edit)
-    on<NoteEditorChangeViewTypeEvent>(
-      (event, emit) {
-        emit(NoteEditorInitializedState(
-          noteData: presentableNote,
-          snackBarText: '',
-          isEditable: !event.wasEditable,
-          noteStream: noteStream,
-          allNoteTags: allNoteTags,
-        ));
-      },
-    );
-
-    // Update note shown by editor
+    // Update note title & content
     on<NoteEditorUpdateEvent>(
       (event, emit) async {
-        final note = await this.note;
-        if (note.content != event.newContent || note.title != event.newTitle) {
-          await LocalStore.note.updateItem(
-            id: note.isarId,
+        if (_currentNoteNode.data.content != event.newContent ||
+            _currentNoteNode.data.title != event.newTitle) {
+          _currentNoteNode.removeNodesToRight();
+          _currentNoteNode.next = NoteDataNode(data: (
             title: event.newTitle,
             content: event.newContent,
-            tags: note.tagIds,
-            color: note.color,
+          ));
+          _currentNoteNode = _currentNoteNode.next!;
+          emit(NoteEditorInitialized(
+            snackBarText: '',
+            canUndo: !(_currentNoteNode.isFirst),
+            canRedo: !(_currentNoteNode.isLast),
+            noteStream: noteStream,
+            noteData: presentableNote,
+            allNoteTags: allNoteTags,
+          ));
+          await LocalStore.note.updateItem(
+            id: _noteIsarId!,
+            title: event.newTitle,
+            content: event.newContent,
             isSyncedWithCloud: false,
             debounceChangeFeedEvent: true,
           );
@@ -133,39 +147,23 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     // Share note
     on<NoteEditorShareEvent>(
       (event, emit) async {
-        if (state is NoteEditorInitializedState) {
-          final NoteEditorInitializedState currentState =
-              state as NoteEditorInitializedState;
+        if (state is NoteEditorInitialized) {
           final note = await this.note;
           if (note.content.isEmpty && note.title.isEmpty) {
             emit(
-              NoteEditorInitializedState(
+              NoteEditorInitialized(
                 noteData: presentableNote,
                 snackBarText: 'Cannot share empty note',
                 allNoteTags: allNoteTags,
-                isEditable: currentState.isEditable,
-                noteStream: currentState.noteStream,
+                canUndo: !(_currentNoteNode.isFirst),
+                canRedo: !(_currentNoteNode.isLast),
+                noteStream: noteStream,
               ),
             );
           } else {
             await Share.share('${note.title}\n${note.content}');
           }
         }
-      },
-    );
-
-    // Update the tags of the note
-    on<NoteEditorUpdateTagsEvent>(
-      (event, emit) async {
-        final note = await this.note;
-        await LocalStore.note.updateItem(
-          id: note.isarId,
-          title: note.title,
-          content: note.content,
-          tags: event.tags,
-          color: note.color,
-          isSyncedWithCloud: false,
-        );
       },
     );
 
@@ -196,6 +194,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           await LocalStore.note.updateItem(
             id: note.isarId,
             tags: tagIds,
+            modified: note.modified,
           );
         } else {
           tagIds.add(selectedTagId);
@@ -211,9 +210,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     // Copy note
     on<NoteEditorCopyEvent>(
       (event, emit) async {
-        if (state is NoteEditorInitializedState) {
-          final NoteEditorInitializedState currentState =
-              state as NoteEditorInitializedState;
+        if (state is NoteEditorInitialized) {
           final note = await this.note;
           String snackBarText;
           if (note.content.isEmpty && note.title.isEmpty) {
@@ -226,15 +223,14 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             );
             snackBarText = 'Note copied to clipboard.';
           }
-          emit(
-            NoteEditorInitializedState(
-              noteData: presentableNote,
-              snackBarText: snackBarText,
-              isEditable: currentState.isEditable,
-              noteStream: currentState.noteStream,
-              allNoteTags: allNoteTags,
-            ),
-          );
+          emit(NoteEditorInitialized(
+            noteData: presentableNote,
+            snackBarText: snackBarText,
+            canUndo: !(_currentNoteNode.isFirst),
+            canRedo: !(_currentNoteNode.isLast),
+            noteStream: noteStream,
+            allNoteTags: allNoteTags,
+          ));
         }
       },
     );
@@ -245,12 +241,54 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
         final note = await this.note;
         // The actual delete operation is delegated to the NoteBloc by the presentation layer.
         // This facilitates showing a SnackBar to undo the deletion.
-        emit(NoteEditorDeletedState(
+        emit(NoteEditorDeleted(
           deletedNote: note,
           snackBarText: '',
         ));
       },
     );
+
+    // Undo edit
+    on<NoteEditorUndoEvent>((event, emit) async {
+      if (!(_currentNoteNode.isFirst)) {
+        _currentNoteNode = _currentNoteNode.previous!;
+        emit(NoteEditorInitialized(
+          snackBarText: '',
+          textFieldValues: _currentNoteNode.data,
+          canUndo: !(_currentNoteNode.isFirst),
+          canRedo: !(_currentNoteNode.isLast),
+          noteStream: noteStream,
+          noteData: presentableNote,
+          allNoteTags: allNoteTags,
+        ));
+        await LocalStore.note.updateItem(
+          id: _noteIsarId!,
+          title: _currentNoteNode.data.title,
+          content: _currentNoteNode.data.content,
+        );
+      }
+    });
+
+    // Redo edit
+    on<NoteEditorRedoEvent>((event, emit) async {
+      if (!(_currentNoteNode.isLast)) {
+        _currentNoteNode = _currentNoteNode.next!;
+        emit(NoteEditorInitialized(
+          snackBarText: '',
+          textFieldValues: _currentNoteNode.data,
+          canUndo: !(_currentNoteNode.isFirst),
+          canRedo: !(_currentNoteNode.isLast),
+          noteStream: noteStream,
+          noteData: presentableNote,
+          allNoteTags: allNoteTags,
+        ));
+        await LocalStore.note.updateItem(
+          id: _noteIsarId!,
+          title: _currentNoteNode.data.title,
+          content: _currentNoteNode.data.content,
+        );
+      }
+    });
   }
 
   @override
@@ -261,3 +299,39 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
 }
 
 class NoteEditorBlocAlreadyInitializedException implements Exception {}
+
+class NoteDataNode {
+  NoteDataNode? _previous;
+  NoteDataNode? _next;
+  ({String title, String content}) data;
+
+  NoteDataNode({
+    required this.data,
+    NoteDataNode? next,
+    NoteDataNode? previous,
+  })  : _previous = previous,
+        _next = next;
+
+  NoteDataNode? get previous => _previous;
+
+  set previous(NoteDataNode? node) {
+    node?._next = this;
+    _previous = node;
+  }
+
+  NoteDataNode? get next => _next;
+
+  set next(NoteDataNode? newNode) {
+    newNode?._previous = this;
+    _next = newNode;
+  }
+
+  bool get isFirst => _previous == null;
+
+  bool get isLast => _next == null;
+
+  void removeNodesToRight() {
+    _next?.removeNodesToRight();
+    _next = null;
+  }
+}

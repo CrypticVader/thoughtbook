@@ -11,29 +11,33 @@ abstract class NoteEditorState {
   const NoteEditorState(this.snackBarText);
 }
 
-class NoteEditorUninitializedState extends NoteEditorState {
-  const NoteEditorUninitializedState() : super('');
+class NoteEditorUninitialized extends NoteEditorState {
+  const NoteEditorUninitialized() : super('');
 }
 
-class NoteEditorInitializedState extends NoteEditorState {
+class NoteEditorInitialized extends NoteEditorState {
   final ValueStream<LocalNote> Function() noteStream;
   final ValueStream<PresentableNoteData> Function() noteData;
   final ValueStream<List<LocalNoteTag>> Function() allNoteTags;
-  final bool isEditable;
+  final bool canUndo;
+  final bool canRedo;
+  final ({String content, String title})? textFieldValues;
 
-  const NoteEditorInitializedState({
+  const NoteEditorInitialized({
     required String snackBarText,
-    required this.isEditable,
+    this.textFieldValues,
+    required this.canUndo,
+    required this.canRedo,
     required this.noteStream,
     required this.noteData,
     required this.allNoteTags,
   }) : super(snackBarText);
 }
 
-class NoteEditorDeletedState extends NoteEditorState {
+class NoteEditorDeleted extends NoteEditorState {
   final LocalNote deletedNote;
 
-  const NoteEditorDeletedState({
+  const NoteEditorDeleted({
     required this.deletedNote,
     required String snackBarText,
   }) : super(snackBarText);
