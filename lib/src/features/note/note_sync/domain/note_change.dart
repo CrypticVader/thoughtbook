@@ -61,6 +61,8 @@ class ChangedNote {
   @utc
   final DateTime modified;
 
+  final bool isTrashed;
+
   ChangedNote({
     required this.isarId,
     required this.cloudDocumentId,
@@ -70,6 +72,7 @@ class ChangedNote {
     required this.color,
     required this.created,
     required this.modified,
+    required this.isTrashed,
     required this.isSyncedWithCloud,
   });
 
@@ -81,6 +84,7 @@ class ChangedNote {
         tagIds = note.tagIds,
         created = note.created,
         modified = note.modified,
+        isTrashed = note.isTrashed,
         isSyncedWithCloud = note.isSyncedWithCloud,
         cloudDocumentId = note.cloudDocumentId;
 
@@ -95,6 +99,6 @@ class ChangedNote {
     return 'ChangedNote{localId: $isarId, cloudDocumentId: $cloudDocumentId, '
         'tagIds: $tagIds ,title: $title, color: $color, content: $content, '
         'isSyncedWithCloud: $isSyncedWithCloud, created: $created, '
-        'modified: $modified}';
+        'modified: $modified, isTrashed: $isTrashed}';
   }
 }

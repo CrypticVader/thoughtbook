@@ -1,3 +1,4 @@
+import 'package:dartx/dartx.dart';
 import 'package:entry/entry.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
@@ -8,9 +9,11 @@ Future<T?> showGenericDialog<T>({
   required BuildContext context,
   required String? title,
   required Icon? icon,
-  required String content,
+  String? content,
+  Widget? body,
   required DialogOptionBuilder optionsBuilder,
 }) {
+  if (body == null && content == null) throw Exception();
   final options = optionsBuilder();
   return showDialog(
     barrierColor: context.themeColors.scrim.withAlpha(120),
@@ -19,28 +22,33 @@ Future<T?> showGenericDialog<T>({
       var optionIndex = -1;
       final optionsCount = options.length;
       return Entry.all(
+        duration: 330.milliseconds,
         yOffset: 0,
         scale: 0.8,
         opacity: 0,
-        curve: Curves.easeOutQuad,
+        curve: Curves.easeInOutCubic,
         child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
           icon: icon,
-          title: title!=null?Text(
-            title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-            ),
-          ):null,
-          content: Text(
-            content,
-            // textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          title: title != null
+              ? Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              : null,
+          content: (content != null)
+              ? Text(
+                  content,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                )
+              : body,
           actionsAlignment: MainAxisAlignment.center,
           actions: options.keys.toList().map<Widget>(
             (optionTitle) {

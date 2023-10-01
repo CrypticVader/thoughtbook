@@ -90,7 +90,7 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                       onDeleteNote: (note) => context
                                           .read<NoteTrashBloc>()
                                           .add(NoteTrashDeleteEvent(
-                                              notes: {note})),
+                                          notes: {note})),
                                       onTap: (note, openContainer) {
                                         context.read<NoteTrashBloc>().add(
                                             NoteTrashTapEvent(
@@ -100,27 +100,25 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                       onLongPress: (note) => context
                                           .read<NoteTrashBloc>()
                                           .add(NoteTrashLongPressEvent(
-                                              note: note)),
+                                          note: note)),
                                     ),
                                     const SizedBox(
-                                      height: 96,
+                                      height: 128,
                                     ),
                                   ],
                                 ),
                               ),
                               Column(
                                 children: [
-                                  const Spacer(
-                                    flex: 1,
-                                  ),
+                                  const Spacer(flex: 1),
                                   Container(
                                     padding: const EdgeInsets.fromLTRB(
-                                        16, 16, 16, 32),
+                                        16, 24, 16, 32),
                                     decoration: BoxDecoration(
                                       color: context.themeColors.surfaceVariant,
                                       borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(28),
-                                        topRight: Radius.circular(28),
+                                        topLeft: Radius.circular(40),
+                                        topRight: Radius.circular(40),
                                       ),
                                     ),
                                     child: AbsorbPointer(
@@ -129,10 +127,10 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                         opacity: state.selectedNotes.isEmpty
                                             ? 0.25
                                             : 1,
-                                        duration: 150.milliseconds,
+                                        duration: 200.milliseconds,
                                         child: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                           mainAxisSize: MainAxisSize.max,
                                           children: [
                                             Flexible(
@@ -141,8 +139,8 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                                 onPressed: () => context
                                                     .read<NoteTrashBloc>()
                                                     .add(NoteTrashRestoreEvent(
-                                                        notes: state
-                                                            .selectedNotes)),
+                                                    notes: state
+                                                        .selectedNotes)),
                                                 icon: const Icon(FluentIcons
                                                     .arrow_reset_24_filled),
                                                 label: const Text(
@@ -150,16 +148,30 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w500,
                                                     fontFamily: 'Montserrat',
-                                                    fontSize: 15,
+                                                    fontSize: 16,
                                                   ),
                                                 ),
                                                 style: FilledButton.styleFrom(
+                                                  shape:
+                                                  const RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius.only(
+                                                      topLeft:
+                                                      Radius.circular(32),
+                                                      bottomLeft:
+                                                      Radius.circular(32),
+                                                      topRight:
+                                                      Radius.circular(4),
+                                                      bottomRight:
+                                                      Radius.circular(4),
+                                                    ),
+                                                  ),
                                                   padding: const EdgeInsets
                                                       .symmetric(
-                                                      horizontal: 18,
-                                                      vertical: 12),
+                                                      horizontal: 20,
+                                                      vertical: 20),
                                                   minimumSize:
-                                                      Size(buttonWidth, 44),
+                                                  Size(buttonWidth, 44),
                                                   backgroundColor: context
                                                       .themeColors.secondary,
                                                   foregroundColor: context
@@ -167,25 +179,23 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(
-                                              width: 16,
-                                            ),
+                                            const SizedBox(width: 4),
                                             Flexible(
                                               flex: 1,
                                               child: FilledButton.icon(
                                                 onPressed: () async {
                                                   final shouldDelete =
-                                                      await showDeleteDialog(
+                                                  await showDeleteDialog(
                                                     context: context,
                                                     content:
-                                                        'Are you sure you want to delete the selected notes forever?',
+                                                    'Are you sure you want to delete the selected notes forever?',
                                                   );
                                                   if (shouldDelete) {
                                                     context
                                                         .read<NoteTrashBloc>()
                                                         .add(NoteTrashDeleteEvent(
-                                                            notes: state
-                                                                .selectedNotes));
+                                                        notes: state
+                                                            .selectedNotes));
                                                   }
                                                 },
                                                 icon: const Icon(FluentIcons
@@ -195,16 +205,30 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w500,
                                                     fontFamily: 'Montserrat',
-                                                    fontSize: 15,
+                                                    fontSize: 16,
                                                   ),
                                                 ),
                                                 style: FilledButton.styleFrom(
+                                                  shape:
+                                                  const RoundedRectangleBorder(
+                                                    borderRadius:
+                                                    BorderRadius.only(
+                                                      topLeft:
+                                                      Radius.circular(4),
+                                                      bottomLeft:
+                                                      Radius.circular(4),
+                                                      topRight:
+                                                      Radius.circular(32),
+                                                      bottomRight:
+                                                      Radius.circular(32),
+                                                    ),
+                                                  ),
                                                   padding: const EdgeInsets
                                                       .symmetric(
-                                                      horizontal: 18,
-                                                      vertical: 12),
+                                                      horizontal: 20,
+                                                      vertical: 20),
                                                   minimumSize:
-                                                      Size(buttonWidth, 44),
+                                                  Size(buttonWidth, 44),
                                                   backgroundColor: context
                                                       .themeColors.primary,
                                                   foregroundColor: context

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:after_layout/after_layout.dart';
 import 'package:animations/animations.dart';
 import 'package:entry/entry.dart';
 import 'package:figma_squircle/figma_squircle.dart';
@@ -167,7 +168,7 @@ class NoteItem extends StatefulWidget {
   State<NoteItem> createState() => _NoteItemState();
 }
 
-class _NoteItemState extends State<NoteItem> {
+class _NoteItemState extends State<NoteItem> with AfterLayoutMixin<NoteItem> {
   bool get _isDarkMode =>
       SchedulerBinding.instance.platformDispatcher.platformBrightness ==
       Brightness.dark;
@@ -183,6 +184,8 @@ class _NoteItemState extends State<NoteItem> {
             : Brightness.light,
   );
   bool isVisible = true;
+  GlobalKey mdKey = GlobalKey();
+  bool _renderFade = false;
 
   Color getNoteColor(BuildContext context, LocalNote? note) {
     if (note != null) {
@@ -194,6 +197,16 @@ class _NoteItemState extends State<NoteItem> {
     } else {
       return Theme.of(context).colorScheme.primary;
     }
+  }
+
+  @override
+  FutureOr<void> afterFirstLayout(BuildContext context) {
+    debugPrint((mdKey.currentContext?.size?.height).toString());
+    final renderFade =
+        (((mdKey.currentContext?.size?.height) ?? 0) >= 240) ? true : false;
+    setState(() {
+      _renderFade = renderFade;
+    });
   }
 
   @override
@@ -215,17 +228,15 @@ class _NoteItemState extends State<NoteItem> {
       child: Dismissible(
         key: ValueKey<int>(widget.noteData.note.isarId),
         onUpdate: (details) async {
+          setState(() {
+            _noteOpacity = 1.0 - details.progress;
+          });
           if (!hasVibrated && details.progress >= 0.4) {
-            setState(() {
-              _noteOpacity = 0.4;
-            });
             unawaited(HapticFeedback.mediumImpact());
             hasVibrated = true;
           } else if (hasVibrated && details.progress < 0.4) {
+            unawaited(HapticFeedback.mediumImpact());
             hasVibrated = false;
-            setState(() {
-              _noteOpacity = 1;
-            });
           }
         },
         direction: widget.enableDismissible
@@ -243,7 +254,7 @@ class _NoteItemState extends State<NoteItem> {
         },
         child: AnimatedOpacity(
           opacity: _noteOpacity,
-          duration: const Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 15),
           child: OpenContainer(
             tappable: false,
             transitionDuration: const Duration(milliseconds: 250),
@@ -268,17 +279,17 @@ class _NoteItemState extends State<NoteItem> {
                     )
                   : BorderSide.none,
               borderRadius:
-                  SmoothBorderRadius(cornerRadius: 20, cornerSmoothing: 1),
+                  BorderRadius.circular(24),
             ),
             closedBuilder: (context, openContainer) {
               _openContainer = openContainer;
               return InkWell(
                 borderRadius:
-                    SmoothBorderRadius(cornerRadius: 20, cornerSmoothing: 1),
+                BorderRadius.circular(24),
                 onLongPress: () => widget.onLongPress(widget.noteData.note),
                 onTap: () => widget.onTap(widget.noteData.note, _openContainer),
-                splashColor: noteColors.inversePrimary.withAlpha(120),
-                highlightColor: Colors.transparent,
+                splashColor: noteColors.inversePrimary.withAlpha(135),
+                highlightColor: noteColors.inversePrimary.withAlpha(170),
                 child: Ink(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -305,18 +316,18 @@ class _NoteItemState extends State<NoteItem> {
                         ),
                       if (widget.noteData.note.content.isNotEmpty)
                         CustomPaint(
-                          foregroundPainter:
-                              widget.noteData.note.content.length > 300
-                                  ? FadingEffect(
-                                      color: Color.alphaBlend(
-                                          noteColors.primaryContainer
-                                              .withAlpha(135),
-                                          noteColors.background),
-                                    )
-                                  : null,
+                          foregroundPainter: _renderFade
+                              ? FadingEffect(
+                                  color: Color.alphaBlend(
+                                      noteColors.primaryContainer
+                                          .withAlpha(135),
+                                      noteColors.background),
+                                )
+                              : null,
                           child: LimitedBox(
                             maxHeight: 240,
                             child: Markdown(
+                              key: mdKey,
                               padding: EdgeInsets.zero,
                               controller: null,
                               physics: const NeverScrollableScrollPhysics(),
@@ -330,7 +341,7 @@ class _NoteItemState extends State<NoteItem> {
                                 switch (style) {
                                   case BulletStyle.orderedList:
                                     return Text(
-                                      '${index.toString()}.',
+                                      '${(index + 1).toString()}.',
                                       style: TextStyle(
                                         color: noteColors.onPrimaryContainer,
                                         fontWeight: FontWeight.w500,
@@ -482,8 +493,8 @@ class FadingEffect extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Rect rect = Rect.fromPoints(
-      Offset(-16, size.height - 20.0),
-      Offset(size.width + 16, size.height + 1),
+      Offset(-16, size.height - 32.0),
+      Offset(size.width + 16, size.height + 0.5),
     );
     LinearGradient lg = LinearGradient(
       begin: Alignment.topCenter,
@@ -492,7 +503,6 @@ class FadingEffect extends CustomPainter {
         color.withAlpha(0),
         color,
       ],
-      stops: const [0.4, 1.0],
     );
     Paint paint = Paint()..shader = lg.createShader(rect);
     canvas.drawRect(rect, paint);

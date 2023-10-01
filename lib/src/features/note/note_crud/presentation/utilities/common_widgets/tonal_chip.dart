@@ -71,7 +71,8 @@ class _TonalChipState extends State<TonalChip> {
             borderRadius: borderRadius,
             border: Border.all(
               strokeAlign: BorderSide.strokeAlignInside,
-              color: context.themeColors.onSecondaryContainer.withAlpha(40),
+              color: widget.foregroundColor?.withAlpha(40) ??
+                  context.themeColors.onSecondaryContainer.withAlpha(40),
               width: 1,
             ),
           ),

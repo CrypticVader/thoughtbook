@@ -120,10 +120,25 @@ class _NotesViewState extends State<NotesView> {
           suffixIcon: IconButton(
             onPressed: () =>
                 context.read<NoteBloc>().add(const NoteToggleLayoutEvent()),
-            icon: Icon(
-              (layoutPreference == LayoutPreference.list.value)
-                  ? FluentIcons.grid_28_filled
-                  : FluentIcons.list_28_filled,
+            icon: AnimatedSwitcher(
+              switchOutCurve: Curves.easeInQuad,
+              switchInCurve: Curves.easeOutQuad,
+              duration: 300.milliseconds,
+              transitionBuilder:
+                  (child, animation) =>
+                  ScaleTransition(
+                    scale: animation,
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                  ),
+              child: Icon(
+                (layoutPreference == LayoutPreference.list.value)
+                    ? FluentIcons.grid_28_filled
+                    : FluentIcons.list_28_filled,
+                key: ValueKey<String>(layoutPreference),
+              ),
             ),
             tooltip: (layoutPreference == LayoutPreference.list.value)
                 ? context.loc.notes_view_grid_layout
@@ -971,6 +986,17 @@ class _NotesViewState extends State<NotesView> {
                                     ),
                                   ),
                                 ),
+                                const Column(
+                                  children: [
+                                    Spacer(flex: 1),
+                                    AbsorbPointer(
+                                      child: SizedBox(
+                                        height: 32,
+                                        width: double.infinity,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 _noteSelectionToolbar(context, selectedNotes),
                               ],
                             ),
@@ -1077,7 +1103,9 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
-          child: Ink(
+          child: AnimatedContainer(
+            duration: 250.milliseconds,
+            curve: Curves.ease,
             padding: const EdgeInsets.fromLTRB(16, 2, 2, 2),
             decoration: BoxDecoration(
               color: context.themeColors.secondaryContainer
@@ -1224,9 +1252,19 @@ class _NoteGroupState extends State<NoteGroup> {
               opacity: animation,
               child: SizeTransition(
                 axis: Axis.vertical,
+                axisAlignment: -1.0,
                 sizeFactor: animation,
                 child: child,
               ),
+            );
+          },
+          layoutBuilder: (currentChild, previousChildren) {
+            return Stack(
+              alignment: Alignment.topCenter,
+              children: <Widget>[
+                ...previousChildren,
+                if (currentChild != null) currentChild,
+              ],
             );
           },
           child: !isCollapsed

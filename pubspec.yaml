@@ -71,6 +71,7 @@ dependencies:
   dartx: ^1.2.0
   auto_size_text: ^3.0.0
   figma_squircle: ^0.5.3
+  after_layout: ^1.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
