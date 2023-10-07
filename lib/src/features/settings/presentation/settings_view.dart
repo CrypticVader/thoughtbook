@@ -26,8 +26,7 @@ class _SettingsViewState extends State<SettingsView> {
             context.theme.colorScheme.background,
           ),
           body: NestedScrollView(
-            headerSliverBuilder:
-                (BuildContext context, bool innerBoxIsScrolled) {
+            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
               return [
                 SliverAppBar.large(
                   pinned: true,
@@ -75,10 +74,8 @@ class _SettingsViewState extends State<SettingsView> {
                             children: [
                               CircleAvatar(
                                 radius: 32,
-                                backgroundColor:
-                                    context.theme.colorScheme.primary,
-                                foregroundColor:
-                                    context.theme.colorScheme.onPrimary,
+                                backgroundColor: context.theme.colorScheme.primary,
+                                foregroundColor: context.theme.colorScheme.onPrimary,
                                 child: const Icon(
                                   FluentIcons.person_24_filled,
                                   size: 36,
@@ -95,14 +92,10 @@ class _SettingsViewState extends State<SettingsView> {
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w600,
-                                      color: context
-                                          .theme.colorScheme.onBackground,
+                                      color: context.theme.colorScheme.onBackground,
                                     ),
                                   ),
-                                  Text(AuthService.firebase()
-                                          .currentUser
-                                          ?.email ??
-                                      ''),
+                                  Text(AuthService.firebase().currentUser?.email ?? ''),
                                 ],
                               ),
                             ],
@@ -135,11 +128,11 @@ class _SettingsViewState extends State<SettingsView> {
                         PreferenceItem(
                           onTap: () async {
                             final authBloc = context.read<AuthBloc>();
-                            final shouldLogout =
-                                await showLogoutDialog(context);
+                            final navigator = Navigator.of(context);
+                            final shouldLogout = await showLogoutDialog(context);
                             if (shouldLogout) {
                               authBloc.add(const AuthEventLogOut());
-                              Navigator.of(context).pop();
+                              navigator.pop();
                             }
                           },
                           body: Row(
@@ -266,8 +259,7 @@ class _SettingsViewState extends State<SettingsView> {
                           ),
                         ),
                         PreferenceItem(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 12.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                           body: Row(
                             children: [
                               Icon(
@@ -284,8 +276,7 @@ class _SettingsViewState extends State<SettingsView> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color:
-                                        context.theme.colorScheme.onBackground,
+                                    color: context.theme.colorScheme.onBackground,
                                   ),
                                 ),
                               ),
@@ -389,10 +380,8 @@ class PreferenceSection extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: item.onTap,
-              splashColor:
-                  context.theme.colorScheme.inversePrimary.withAlpha(120),
-              highlightColor:
-                  context.theme.colorScheme.inversePrimary.withAlpha(100),
+              splashColor: context.theme.colorScheme.inversePrimary.withAlpha(120),
+              highlightColor: context.theme.colorScheme.inversePrimary.withAlpha(100),
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(24),
                 topLeft: Radius.circular(24),
@@ -409,6 +398,11 @@ class PreferenceSection extends StatelessWidget {
                     bottomRight: Radius.circular(4),
                     bottomLeft: Radius.circular(4),
                   ),
+                  border: Border.all(
+                    color: context.themeColors.surfaceVariant,
+                    strokeAlign: BorderSide.strokeAlignInside,
+                    width: 0.25,
+                  ),
                 ),
                 child: item.body,
               ),
@@ -422,10 +416,8 @@ class PreferenceSection extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: item.onTap,
-              splashColor:
-                  context.theme.colorScheme.inversePrimary.withAlpha(120),
-              highlightColor:
-                  context.theme.colorScheme.inversePrimary.withAlpha(100),
+              splashColor: context.theme.colorScheme.inversePrimary.withAlpha(120),
+              highlightColor: context.theme.colorScheme.inversePrimary.withAlpha(100),
               borderRadius: const BorderRadius.only(
                 bottomRight: Radius.circular(24),
                 bottomLeft: Radius.circular(24),
@@ -442,6 +434,11 @@ class PreferenceSection extends StatelessWidget {
                     topLeft: Radius.circular(4),
                     topRight: Radius.circular(4),
                   ),
+                  border: Border.all(
+                    color: context.themeColors.surfaceVariant,
+                    strokeAlign: BorderSide.strokeAlignInside,
+                    width: 0.25,
+                  ),
                 ),
                 child: item.body,
               ),
@@ -455,10 +452,8 @@ class PreferenceSection extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: item.onTap,
-              splashColor:
-                  context.theme.colorScheme.inversePrimary.withAlpha(120),
-              highlightColor:
-                  context.theme.colorScheme.inversePrimary.withAlpha(100),
+              splashColor: context.theme.colorScheme.inversePrimary.withAlpha(120),
+              highlightColor: context.theme.colorScheme.inversePrimary.withAlpha(100),
               borderRadius: const BorderRadius.only(
                 bottomRight: Radius.circular(4),
                 bottomLeft: Radius.circular(4),
@@ -469,11 +464,11 @@ class PreferenceSection extends StatelessWidget {
                 padding: item.padding,
                 decoration: BoxDecoration(
                   color: context.theme.colorScheme.background,
-                  borderRadius: const BorderRadius.only(
-                    bottomRight: Radius.circular(4),
-                    bottomLeft: Radius.circular(4),
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: context.themeColors.surfaceVariant,
+                    strokeAlign: BorderSide.strokeAlignInside,
+                    width: 0.25,
                   ),
                 ),
                 child: item.body,
@@ -482,9 +477,8 @@ class PreferenceSection extends StatelessWidget {
           );
         }
       },
-      separatorBuilder: (context, index) => items[index].dividerAfterItem
-          ? const SizedBox(height: 2.0)
-          : const SizedBox(height: 0),
+      separatorBuilder: (context, index) =>
+          items[index].dividerAfterItem ? const SizedBox(height: 2.0) : const SizedBox(height: 0),
       itemCount: items.length,
     );
   }

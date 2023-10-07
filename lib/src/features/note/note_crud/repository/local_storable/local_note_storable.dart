@@ -4,9 +4,9 @@ import 'dart:developer';
 import 'package:isar/isar.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storable.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_storable.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
@@ -24,12 +24,10 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
   late final BehaviorSubject<List<LocalNote>> _notesStreamController;
 
   @override
-  IsarCollection<int, LocalNote> get storableCollection =>
-      LocalStorable.isar!.localNotes;
+  IsarCollection<int, LocalNote> get storableCollection => LocalStorable.isar!.localNotes;
 
   @override
-  ValueStream<List<LocalNote>> get allItemStream =>
-      _notesStreamController.stream;
+  ValueStream<List<LocalNote>> get allItemStream => _notesStreamController.stream;
 
   @override
   Future<void> updateItem({
@@ -67,7 +65,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
     );
 
     // Add the updated note to the Isar collection
-    await LocalStorable.isar!.writeAsync<void>(
+    LocalStorable.isar!.write<void>(
       (isar) {
         isar.localNotes.put(newNote);
       },
@@ -133,10 +131,8 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
         throw CouldNotFindNoteException();
       }
       try {
-        final note = storableCollection
-            .where()
-            .cloudDocumentIdEqualTo(cloudDocumentId)
-            .findAll(limit: 1)[0];
+        final note =
+            storableCollection.where().cloudDocumentIdEqualTo(cloudDocumentId).findAll(limit: 1)[0];
         return note;
       } on StateError {
         throw CouldNotFindNoteException();
@@ -188,7 +184,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
     );
 
     //Create a new note in the Isar collection
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         isar.localNotes.put(note);
       },
@@ -223,7 +219,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
   @override
   Future<void> deleteAllItems({bool addToChangeFeed = false}) async {
     await _ensureCollectionIsOpen();
-    await LocalStorable.isar!.writeAsync((isar) {
+    LocalStorable.isar!.write((isar) {
       isar.localNotes.clear();
     });
 
@@ -251,17 +247,14 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
   }) async {
     await _ensureCollectionIsOpen();
     final note = await getItem(id: id);
-    await LocalStorable.isar!.writeAsync<bool>(
+    final couldDelete = LocalStorable.isar!.write<bool>(
       (isar) {
         return isar.localNotes.delete(id);
       },
-    ).then(
-      (bool couldDelete) {
-        if (!couldDelete) {
-          throw CouldNotDeleteNoteException();
-        }
-      },
     );
+    if (!couldDelete) {
+      throw CouldNotDeleteNoteException();
+    }
 
     log('LocalNote with id=$id deleted');
 

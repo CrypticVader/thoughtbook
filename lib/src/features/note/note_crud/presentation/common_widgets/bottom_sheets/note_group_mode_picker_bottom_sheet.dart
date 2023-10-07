@@ -2,7 +2,7 @@ import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/group_props.dart';
 
 Future<void> showNoteGroupModePickerBottomSheet({
   required BuildContext context,
@@ -23,8 +23,7 @@ Future<void> showNoteGroupModePickerBottomSheet({
       groupParameter: groupParameter,
       groupOrder: groupOrder,
       tagGroupLogic: tagGroupLogic,
-      onChangeProps: (groupParameter, groupOrder, tagGroupLogic) =>
-          onChangeProps(
+      onChangeProps: (groupParameter, groupOrder, tagGroupLogic) => onChangeProps(
         groupParameter,
         groupOrder,
         tagGroupLogic,
@@ -52,8 +51,7 @@ class NoteGroupModePickerView extends StatefulWidget {
   });
 
   @override
-  State<NoteGroupModePickerView> createState() =>
-      _NoteGroupModePickerViewState();
+  State<NoteGroupModePickerView> createState() => _NoteGroupModePickerViewState();
 }
 
 class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
@@ -77,6 +75,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
   Widget build(BuildContext context) {
     final themeColors = context.themeColors;
 
+    final targetPlatform = ScrollConfiguration.of(context).getPlatform(context);
+    final isDesktop = {
+      TargetPlatform.windows,
+      TargetPlatform.macOS,
+      TargetPlatform.linux,
+    }.contains(targetPlatform);
+
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topRight: Radius.circular(28),
@@ -84,6 +89,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
       ),
       child: DraggableScrollableSheet(
         expand: false,
+        initialChildSize: isDesktop?0.85:0.5,
         builder: (context, scrollController) {
           return Scaffold(
             backgroundColor: Color.alphaBlend(
@@ -102,8 +108,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
               title: Column(
                 children: [
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
                     child: Ink(
                       height: 6.0,
                       width: 44,
@@ -160,8 +165,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                           segments: const [
                             ButtonSegment(
                               value: GroupOrder.ascending,
-                              icon: Icon(
-                                  FluentIcons.text_sort_ascending_24_filled),
+                              icon: Icon(FluentIcons.text_sort_ascending_24_filled),
                               label: Text(
                                 'Ascending',
                                 style: TextStyle(
@@ -172,8 +176,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                             ),
                             ButtonSegment(
                               value: GroupOrder.descending,
-                              icon: Icon(
-                                  FluentIcons.text_sort_descending_24_filled),
+                              icon: Icon(FluentIcons.text_sort_descending_24_filled),
                               label: Text(
                                 'Descending',
                                 style: TextStyle(
@@ -186,9 +189,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 24.0,
-                    ),
+                    const SizedBox(height: 24.0),
                     Ink(
                       padding: const EdgeInsets.all(12.0),
                       decoration: BoxDecoration(
@@ -233,16 +234,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: 8.0,
-                          ),
+                          const SizedBox(height: 8.0),
                           ListTile(
                             onTap: () {
                               setState(() {
                                 groupParameter = GroupParameter.dateCreated;
                               });
-                              widget.onChangeProps(
-                                  groupParameter, groupOrder, tagGroupLogic);
+                              widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                             },
                             horizontalTitleGap: 8,
                             title: Text(
@@ -253,8 +251,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 fontSize: 15,
                               ),
                             ),
-                            contentPadding:
-                                const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
+                            contentPadding: const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
                             shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(28),
@@ -271,16 +268,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 setState(() {
                                   groupParameter = GroupParameter.dateCreated;
                                 });
-                                widget.onChangeProps(
-                                    groupParameter, groupOrder, tagGroupLogic);
+                                widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                               },
                               activeColor: themeColors.primary,
-                              fillColor:
-                                  MaterialStateProperty.resolveWith((states) {
+                              fillColor: MaterialStateProperty.resolveWith((states) {
                                 if (states.contains(MaterialState.disabled)) {
                                   return themeColors.secondary.withAlpha(100);
-                                } else if (states
-                                    .contains(MaterialState.selected)) {
+                                } else if (states.contains(MaterialState.selected)) {
                                   return themeColors.primary;
                                 } else {
                                   return themeColors.secondary;
@@ -296,8 +290,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                               setState(() {
                                 groupParameter = GroupParameter.dateModified;
                               });
-                              widget.onChangeProps(
-                                  groupParameter, groupOrder, tagGroupLogic);
+                              widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                             },
                             horizontalTitleGap: 8,
                             title: Text(
@@ -308,8 +301,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 fontSize: 15,
                               ),
                             ),
-                            contentPadding:
-                                const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
+                            contentPadding: const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
                             shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(4),
@@ -326,16 +318,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 setState(() {
                                   groupParameter = GroupParameter.dateModified;
                                 });
-                                widget.onChangeProps(
-                                    groupParameter, groupOrder, tagGroupLogic);
+                                widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                               },
                               activeColor: themeColors.primary,
-                              fillColor:
-                                  MaterialStateProperty.resolveWith((states) {
+                              fillColor: MaterialStateProperty.resolveWith((states) {
                                 if (states.contains(MaterialState.disabled)) {
                                   return themeColors.secondary.withAlpha(100);
-                                } else if (states
-                                    .contains(MaterialState.selected)) {
+                                } else if (states.contains(MaterialState.selected)) {
                                   return themeColors.primary;
                                 } else {
                                   return themeColors.secondary;
@@ -351,8 +340,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                               setState(() {
                                 groupParameter = GroupParameter.tag;
                               });
-                              widget.onChangeProps(
-                                  groupParameter, groupOrder, tagGroupLogic);
+                              widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                             },
                             horizontalTitleGap: 8,
                             title: Text(
@@ -363,8 +351,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 fontSize: 15,
                               ),
                             ),
-                            contentPadding:
-                                const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
+                            contentPadding: const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
                             shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(4),
@@ -381,16 +368,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 setState(() {
                                   groupParameter = GroupParameter.tag;
                                 });
-                                widget.onChangeProps(
-                                    groupParameter, groupOrder, tagGroupLogic);
+                                widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                               },
                               activeColor: themeColors.primary,
-                              fillColor:
-                                  MaterialStateProperty.resolveWith((states) {
+                              fillColor: MaterialStateProperty.resolveWith((states) {
                                 if (states.contains(MaterialState.disabled)) {
                                   return themeColors.secondary.withAlpha(100);
-                                } else if (states
-                                    .contains(MaterialState.selected)) {
+                                } else if (states.contains(MaterialState.selected)) {
                                   return themeColors.primary;
                                 } else {
                                   return themeColors.secondary;
@@ -406,8 +390,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                               setState(() {
                                 groupParameter = GroupParameter.none;
                               });
-                              widget.onChangeProps(
-                                  groupParameter, groupOrder, tagGroupLogic);
+                              widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                             },
                             horizontalTitleGap: 8,
                             title: Text(
@@ -418,8 +401,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 fontSize: 15,
                               ),
                             ),
-                            contentPadding:
-                                const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
+                            contentPadding: const EdgeInsets.fromLTRB(8.0, 0.0, 12.0, 0.0),
                             shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(4),
@@ -436,16 +418,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                 setState(() {
                                   groupParameter = GroupParameter.none;
                                 });
-                                widget.onChangeProps(
-                                    groupParameter, groupOrder, tagGroupLogic);
+                                widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                               },
                               activeColor: themeColors.primary,
-                              fillColor:
-                                  MaterialStateProperty.resolveWith((states) {
+                              fillColor: MaterialStateProperty.resolveWith((states) {
                                 if (states.contains(MaterialState.disabled)) {
                                   return themeColors.secondary.withAlpha(100);
-                                } else if (states
-                                    .contains(MaterialState.selected)) {
+                                } else if (states.contains(MaterialState.selected)) {
                                   return themeColors.primary;
                                 } else {
                                   return themeColors.secondary;
@@ -462,8 +441,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                       child: AnimatedOpacity(
                         duration: 150.milliseconds,
                         curve: Curves.ease,
-                        opacity:
-                            (groupParameter != GroupParameter.tag) ? 0.25 : 1,
+                        opacity: (groupParameter != GroupParameter.tag) ? 0.25 : 1,
                         child: Ink(
                           padding: const EdgeInsets.all(12.0),
                           decoration: BoxDecoration(
@@ -498,8 +476,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                         'Choose the grouping preference for notes with multiple tags',
                                         style: TextStyle(
                                           color: Color.alphaBlend(
-                                            themeColors.surfaceTint
-                                                .withAlpha(70),
+                                            themeColors.surfaceTint.withAlpha(70),
                                             themeColors.onBackground,
                                           ),
                                           fontWeight: FontWeight.w500,
@@ -516,11 +493,9 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                               ListTile(
                                 onTap: () {
                                   setState(() {
-                                    tagGroupLogic =
-                                        TagGroupLogic.separateCombinations;
+                                    tagGroupLogic = TagGroupLogic.separateCombinations;
                                   });
-                                  widget.onChangeProps(groupParameter,
-                                      groupOrder, tagGroupLogic);
+                                  widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                                 },
                                 horizontalTitleGap: 8,
                                 title: Text(
@@ -531,8 +506,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                     fontSize: 15,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.fromLTRB(
-                                    8.0, 4.0, 12.0, 4.0),
+                                contentPadding: const EdgeInsets.fromLTRB(8.0, 4.0, 12.0, 4.0),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.only(
                                   topLeft: Radius.circular(24),
@@ -541,28 +515,21 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                   bottomRight: Radius.circular(4),
                                 )),
                                 tileColor: themeColors.secondaryContainer,
-                                splashColor:
-                                    themeColors.secondary.withAlpha(70),
+                                splashColor: themeColors.secondary.withAlpha(70),
                                 leading: Radio(
                                   value: TagGroupLogic.separateCombinations,
                                   groupValue: tagGroupLogic,
                                   onChanged: (_) {
                                     setState(() {
-                                      tagGroupLogic =
-                                          TagGroupLogic.separateCombinations;
+                                      tagGroupLogic = TagGroupLogic.separateCombinations;
                                     });
-                                    widget.onChangeProps(groupParameter,
-                                        groupOrder, tagGroupLogic);
+                                    widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                                   },
                                   activeColor: themeColors.primary,
-                                  fillColor: MaterialStateProperty.resolveWith(
-                                      (states) {
-                                    if (states
-                                        .contains(MaterialState.disabled)) {
-                                      return themeColors.secondary
-                                          .withAlpha(100);
-                                    } else if (states
-                                        .contains(MaterialState.selected)) {
+                                  fillColor: MaterialStateProperty.resolveWith((states) {
+                                    if (states.contains(MaterialState.disabled)) {
+                                      return themeColors.secondary.withAlpha(100);
+                                    } else if (states.contains(MaterialState.selected)) {
                                       return themeColors.primary;
                                     } else {
                                       return themeColors.secondary;
@@ -578,8 +545,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                   setState(() {
                                     tagGroupLogic = TagGroupLogic.showInAll;
                                   });
-                                  widget.onChangeProps(groupParameter,
-                                      groupOrder, tagGroupLogic);
+                                  widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                                 },
                                 horizontalTitleGap: 8,
                                 title: Text(
@@ -590,8 +556,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                     fontSize: 15,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.fromLTRB(
-                                    8.0, 4.0, 12.0, 4.0),
+                                contentPadding: const EdgeInsets.fromLTRB(8.0, 4.0, 12.0, 4.0),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.only(
                                   topLeft: Radius.circular(4),
@@ -600,8 +565,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                   bottomRight: Radius.circular(4),
                                 )),
                                 tileColor: themeColors.secondaryContainer,
-                                splashColor:
-                                    themeColors.secondary.withAlpha(70),
+                                splashColor: themeColors.secondary.withAlpha(70),
                                 leading: Radio(
                                   value: TagGroupLogic.showInAll,
                                   groupValue: tagGroupLogic,
@@ -609,18 +573,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                     setState(() {
                                       tagGroupLogic = TagGroupLogic.showInAll;
                                     });
-                                    widget.onChangeProps(groupParameter,
-                                        groupOrder, tagGroupLogic);
+                                    widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                                   },
                                   activeColor: themeColors.primary,
-                                  fillColor: MaterialStateProperty.resolveWith(
-                                      (states) {
-                                    if (states
-                                        .contains(MaterialState.disabled)) {
-                                      return themeColors.secondary
-                                          .withAlpha(100);
-                                    } else if (states
-                                        .contains(MaterialState.selected)) {
+                                  fillColor: MaterialStateProperty.resolveWith((states) {
+                                    if (states.contains(MaterialState.disabled)) {
+                                      return themeColors.secondary.withAlpha(100);
+                                    } else if (states.contains(MaterialState.selected)) {
                                       return themeColors.primary;
                                     } else {
                                       return themeColors.secondary;
@@ -636,8 +595,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                   setState(() {
                                     tagGroupLogic = TagGroupLogic.showInOne;
                                   });
-                                  widget.onChangeProps(groupParameter,
-                                      groupOrder, tagGroupLogic);
+                                  widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                                 },
                                 horizontalTitleGap: 8,
                                 title: Text(
@@ -648,8 +606,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                     fontSize: 15,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.fromLTRB(
-                                    8.0, 4.0, 12.0, 4.0),
+                                contentPadding: const EdgeInsets.fromLTRB(8.0, 4.0, 12.0, 4.0),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.only(
                                   topLeft: Radius.circular(4),
@@ -658,8 +615,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                   bottomRight: Radius.circular(24),
                                 )),
                                 tileColor: themeColors.secondaryContainer,
-                                splashColor:
-                                    themeColors.secondary.withAlpha(70),
+                                splashColor: themeColors.secondary.withAlpha(70),
                                 leading: Radio(
                                   value: TagGroupLogic.showInOne,
                                   groupValue: tagGroupLogic,
@@ -667,18 +623,13 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                     setState(() {
                                       tagGroupLogic = TagGroupLogic.showInOne;
                                     });
-                                    widget.onChangeProps(groupParameter,
-                                        groupOrder, tagGroupLogic);
+                                    widget.onChangeProps(groupParameter, groupOrder, tagGroupLogic);
                                   },
                                   activeColor: themeColors.primary,
-                                  fillColor: MaterialStateProperty.resolveWith(
-                                      (states) {
-                                    if (states
-                                        .contains(MaterialState.disabled)) {
-                                      return themeColors.secondary
-                                          .withAlpha(100);
-                                    } else if (states
-                                        .contains(MaterialState.selected)) {
+                                  fillColor: MaterialStateProperty.resolveWith((states) {
+                                    if (states.contains(MaterialState.disabled)) {
+                                      return themeColors.secondary.withAlpha(100);
+                                    } else if (states.contains(MaterialState.selected)) {
                                       return themeColors.primary;
                                     } else {
                                       return themeColors.secondary;

@@ -63,8 +63,7 @@ int serializeNoteChange(IsarWriter writer, NoteChange object) {
     serializeChangedNote(objectWriter, value);
     IsarCore.endObject(writer, objectWriter);
   }
-  IsarCore.writeLong(
-      writer, 3, object.timestamp.toUtc().microsecondsSinceEpoch);
+  IsarCore.writeLong(writer, 3, object.timestamp.toUtc().microsecondsSinceEpoch);
   return object.isarId;
 }
 
@@ -77,8 +76,7 @@ NoteChange deserializeNoteChange(IsarReader reader) {
     if (IsarCore.readNull(reader, 1)) {
       _type = SyncableChangeType.create;
     } else {
-      _type = _noteChangeType[IsarCore.readByte(reader, 1)] ??
-          SyncableChangeType.create;
+      _type = _noteChangeType[IsarCore.readByte(reader, 1)] ?? SyncableChangeType.create;
     }
   }
   final ChangedNote _note;
@@ -107,8 +105,7 @@ NoteChange deserializeNoteChange(IsarReader reader) {
   {
     final value = IsarCore.readLong(reader, 3);
     if (value == -9223372036854775808) {
-      _timestamp =
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+      _timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
     } else {
       _timestamp = DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
     }
@@ -132,8 +129,7 @@ dynamic deserializeNoteChangeProp(IsarReader reader, int property) {
         if (IsarCore.readNull(reader, 1)) {
           return SyncableChangeType.create;
         } else {
-          return _noteChangeType[IsarCore.readByte(reader, 1)] ??
-              SyncableChangeType.create;
+          return _noteChangeType[IsarCore.readByte(reader, 1)] ?? SyncableChangeType.create;
         }
       }
     case 2:
@@ -147,10 +143,8 @@ dynamic deserializeNoteChangeProp(IsarReader reader, int property) {
             content: '',
             tagIds: const <int>[],
             color: null,
-            created:
-                DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
-            modified:
-                DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
+            created: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
+            modified: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
             isTrashed: false,
             isSyncedWithCloud: false,
           );
@@ -261,8 +255,7 @@ class _NoteChangeQueryUpdateImpl implements _NoteChangeQueryUpdate {
 }
 
 extension NoteChangeQueryUpdate on IsarQuery<NoteChange> {
-  _NoteChangeQueryUpdate get updateFirst =>
-      _NoteChangeQueryUpdateImpl(this, limit: 1);
+  _NoteChangeQueryUpdate get updateFirst => _NoteChangeQueryUpdateImpl(this, limit: 1);
 
   _NoteChangeQueryUpdate get updateAll => _NoteChangeQueryUpdateImpl(this);
 }
@@ -290,13 +283,10 @@ class _NoteChangeQueryBuilderUpdateImpl implements _NoteChangeQueryUpdate {
   }
 }
 
-extension NoteChangeQueryBuilderUpdate
-    on QueryBuilder<NoteChange, NoteChange, QOperations> {
-  _NoteChangeQueryUpdate get updateFirst =>
-      _NoteChangeQueryBuilderUpdateImpl(this, limit: 1);
+extension NoteChangeQueryBuilderUpdate on QueryBuilder<NoteChange, NoteChange, QOperations> {
+  _NoteChangeQueryUpdate get updateFirst => _NoteChangeQueryBuilderUpdateImpl(this, limit: 1);
 
-  _NoteChangeQueryUpdate get updateAll =>
-      _NoteChangeQueryBuilderUpdateImpl(this);
+  _NoteChangeQueryUpdate get updateAll => _NoteChangeQueryBuilderUpdateImpl(this);
 }
 
 const _noteChangeType = {
@@ -306,8 +296,7 @@ const _noteChangeType = {
   3: SyncableChangeType.deleteAll,
 };
 
-extension NoteChangeQueryFilter
-    on QueryBuilder<NoteChange, NoteChange, QFilterCondition> {
+extension NoteChangeQueryFilter on QueryBuilder<NoteChange, NoteChange, QFilterCondition> {
   QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> isarIdEqualTo(
     int value,
   ) {
@@ -334,8 +323,7 @@ extension NoteChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
-      isarIdGreaterThanOrEqualTo(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> isarIdGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -361,8 +349,7 @@ extension NoteChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
-      isarIdLessThanOrEqualTo(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> isarIdLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -416,8 +403,7 @@ extension NoteChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
-      typeGreaterThanOrEqualTo(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> typeGreaterThanOrEqualTo(
     SyncableChangeType value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -443,8 +429,7 @@ extension NoteChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
-      typeLessThanOrEqualTo(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> typeLessThanOrEqualTo(
     SyncableChangeType value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -485,8 +470,7 @@ extension NoteChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
-      timestampGreaterThan(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> timestampGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -499,8 +483,7 @@ extension NoteChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
-      timestampGreaterThanOrEqualTo(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> timestampGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -526,8 +509,7 @@ extension NoteChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition>
-      timestampLessThanOrEqualTo(
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> timestampLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -556,18 +538,15 @@ extension NoteChangeQueryFilter
   }
 }
 
-extension NoteChangeQueryObject
-    on QueryBuilder<NoteChange, NoteChange, QFilterCondition> {
-  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> note(
-      FilterQuery<ChangedNote> q) {
+extension NoteChangeQueryObject on QueryBuilder<NoteChange, NoteChange, QFilterCondition> {
+  QueryBuilder<NoteChange, NoteChange, QAfterFilterCondition> note(FilterQuery<ChangedNote> q) {
     return QueryBuilder.apply(this, (query) {
       return query.object(q, 2);
     });
   }
 }
 
-extension NoteChangeQuerySortBy
-    on QueryBuilder<NoteChange, NoteChange, QSortBy> {
+extension NoteChangeQuerySortBy on QueryBuilder<NoteChange, NoteChange, QSortBy> {
   QueryBuilder<NoteChange, NoteChange, QAfterSortBy> sortByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0);
@@ -605,8 +584,7 @@ extension NoteChangeQuerySortBy
   }
 }
 
-extension NoteChangeQuerySortThenBy
-    on QueryBuilder<NoteChange, NoteChange, QSortThenBy> {
+extension NoteChangeQuerySortThenBy on QueryBuilder<NoteChange, NoteChange, QSortThenBy> {
   QueryBuilder<NoteChange, NoteChange, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0);
@@ -644,8 +622,7 @@ extension NoteChangeQuerySortThenBy
   }
 }
 
-extension NoteChangeQueryWhereDistinct
-    on QueryBuilder<NoteChange, NoteChange, QDistinct> {
+extension NoteChangeQueryWhereDistinct on QueryBuilder<NoteChange, NoteChange, QDistinct> {
   QueryBuilder<NoteChange, NoteChange, QAfterDistinct> distinctByType() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(1);
@@ -659,8 +636,7 @@ extension NoteChangeQueryWhereDistinct
   }
 }
 
-extension NoteChangeQueryProperty1
-    on QueryBuilder<NoteChange, NoteChange, QProperty> {
+extension NoteChangeQueryProperty1 on QueryBuilder<NoteChange, NoteChange, QProperty> {
   QueryBuilder<NoteChange, int, QAfterProperty> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
@@ -686,16 +662,14 @@ extension NoteChangeQueryProperty1
   }
 }
 
-extension NoteChangeQueryProperty2<R>
-    on QueryBuilder<NoteChange, R, QAfterProperty> {
+extension NoteChangeQueryProperty2<R> on QueryBuilder<NoteChange, R, QAfterProperty> {
   QueryBuilder<NoteChange, (R, int), QAfterProperty> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
     });
   }
 
-  QueryBuilder<NoteChange, (R, SyncableChangeType), QAfterProperty>
-      typeProperty() {
+  QueryBuilder<NoteChange, (R, SyncableChangeType), QAfterProperty> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
@@ -714,16 +688,14 @@ extension NoteChangeQueryProperty2<R>
   }
 }
 
-extension NoteChangeQueryProperty3<R1, R2>
-    on QueryBuilder<NoteChange, (R1, R2), QAfterProperty> {
+extension NoteChangeQueryProperty3<R1, R2> on QueryBuilder<NoteChange, (R1, R2), QAfterProperty> {
   QueryBuilder<NoteChange, (R1, R2, int), QOperations> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
     });
   }
 
-  QueryBuilder<NoteChange, (R1, R2, SyncableChangeType), QOperations>
-      typeProperty() {
+  QueryBuilder<NoteChange, (R1, R2, SyncableChangeType), QOperations> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
@@ -735,8 +707,7 @@ extension NoteChangeQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<NoteChange, (R1, R2, DateTime), QOperations>
-      timestampProperty() {
+  QueryBuilder<NoteChange, (R1, R2, DateTime), QOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
@@ -852,8 +823,7 @@ ChangedNote deserializeChangedNote(IsarReader reader) {
       if (reader.isNull) {
         _tagIds = const <int>[];
       } else {
-        final list =
-            List<int>.filled(length, -9223372036854775808, growable: true);
+        final list = List<int>.filled(length, -9223372036854775808, growable: true);
         for (var i = 0; i < length; i++) {
           list[i] = IsarCore.readLong(reader, i);
         }
@@ -908,8 +878,7 @@ ChangedNote deserializeChangedNote(IsarReader reader) {
   return object;
 }
 
-extension ChangedNoteQueryFilter
-    on QueryBuilder<ChangedNote, ChangedNote, QFilterCondition> {
+extension ChangedNoteQueryFilter on QueryBuilder<ChangedNote, ChangedNote, QFilterCondition> {
   QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> isarIdEqualTo(
     int value,
   ) {
@@ -923,8 +892,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      isarIdGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> isarIdGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -937,8 +905,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      isarIdGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> isarIdGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -964,8 +931,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      isarIdLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> isarIdLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -993,22 +959,19 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdIsNull() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 2));
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdIsNotNull() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 2));
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1023,8 +986,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdGreaterThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1039,8 +1001,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1055,8 +1016,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdLessThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdLessThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1071,8 +1031,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1087,8 +1046,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdBetween(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -1105,8 +1063,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdStartsWith(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1121,8 +1078,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdEndsWith(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1137,8 +1093,9 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdContains(
+      String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
@@ -1150,8 +1107,9 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
@@ -1163,8 +1121,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdIsEmpty() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -1175,8 +1132,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      cloudDocumentIdIsNotEmpty() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> cloudDocumentIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -1202,8 +1158,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      titleGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleGreaterThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1218,8 +1173,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      titleGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1249,8 +1203,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      titleLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1312,8 +1265,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleContains(
-      String value,
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1326,8 +1278,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleMatches(
-      String pattern,
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1351,8 +1302,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      titleIsNotEmpty() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> titleIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -1378,8 +1328,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      contentGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentGreaterThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1394,8 +1343,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      contentGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1425,8 +1373,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      contentLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1458,8 +1405,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      contentStartsWith(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1489,8 +1435,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentContains(
-      String value,
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1503,8 +1448,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentMatches(
-      String pattern,
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1517,8 +1461,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      contentIsEmpty() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -1529,8 +1472,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      contentIsNotEmpty() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> contentIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -1541,8 +1483,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsElementEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsElementEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1555,8 +1496,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsElementGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsElementGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1569,8 +1509,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsElementGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsElementGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1583,8 +1522,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsElementLessThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsElementLessThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1597,8 +1535,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsElementLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsElementLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1611,8 +1548,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsElementBetween(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsElementBetween(
     int lower,
     int upper,
   ) {
@@ -1627,13 +1563,11 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsIsEmpty() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsIsEmpty() {
     return not().tagIdsIsNotEmpty();
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      tagIdsIsNotEmpty() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> tagIdsIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterOrEqualCondition(property: 5, value: null),
@@ -1647,8 +1581,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      colorIsNotNull() {
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> colorIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 6));
     });
@@ -1667,8 +1600,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      colorGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> colorGreaterThan(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1681,8 +1613,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      colorGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> colorGreaterThanOrEqualTo(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1708,8 +1639,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      colorLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> colorLessThanOrEqualTo(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1737,8 +1667,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      isSyncedWithCloudEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> isSyncedWithCloudEqualTo(
     bool value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1764,8 +1693,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      createdGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> createdGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1778,8 +1706,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      createdGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> createdGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1805,8 +1732,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      createdLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> createdLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1847,8 +1773,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      modifiedGreaterThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> modifiedGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1861,8 +1786,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      modifiedGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> modifiedGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1875,8 +1799,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      modifiedLessThan(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> modifiedLessThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1889,8 +1812,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      modifiedLessThanOrEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> modifiedLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1918,8 +1840,7 @@ extension ChangedNoteQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition>
-      isTrashedEqualTo(
+  QueryBuilder<ChangedNote, ChangedNote, QAfterFilterCondition> isTrashedEqualTo(
     bool value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1933,5 +1854,4 @@ extension ChangedNoteQueryFilter
   }
 }
 
-extension ChangedNoteQueryObject
-    on QueryBuilder<ChangedNote, ChangedNote, QFilterCondition> {}
+extension ChangedNoteQueryObject on QueryBuilder<ChangedNote, ChangedNote, QFilterCondition> {}

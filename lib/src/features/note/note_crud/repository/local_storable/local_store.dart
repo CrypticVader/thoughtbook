@@ -64,7 +64,7 @@ abstract class LocalStore {
   /// `LocalStore.open()` is called.
   static Future<void> close({bool clearData = false}) async {
     if (clearData) {
-      await LocalStorable.isar?.writeAsync((isar) => isar.clear());
+      LocalStorable.isar?.write((isar) => isar.clear());
     }
     await LocalStorable.close();
     _note = null;

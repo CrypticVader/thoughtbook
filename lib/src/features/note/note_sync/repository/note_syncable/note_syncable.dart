@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+// import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_note_storable.dart';
@@ -40,10 +41,8 @@ class NoteSyncable
     int loadedCount = 0;
     // Load all notes from Firestore belonging to the user to Isar database locally
     for (CloudNote cloudNote in notes) {
-      LocalNote newNote =
-      await LocalStore.note.createItem(addToChangeFeed: false);
-      final tagIds = LocalStore.noteTag.getLocalIdsFor(
-          documentIds: cloudNote.tagDocumentIds);
+      LocalNote newNote = await LocalStore.note.createItem(addToChangeFeed: false);
+      final tagIds = LocalStore.noteTag.getLocalIdsFor(documentIds: cloudNote.tagDocumentIds);
       final note = LocalNote.fromCloudNote(
         note: cloudNote,
         isarId: newNote.isarId,
@@ -93,15 +92,13 @@ class NoteSyncable
   Future<void> syncLocalChangeFeed() async {
     ensureUserIsSignedInOrThrow();
 
-    Stream<void> changeCollectionEvent =
-    await NoteChangeStorable().newChangeNotifier;
+    Stream<void> changeCollectionEvent = await NoteChangeStorable().newChangeNotifier;
     while (true) {
       bool changesPending = !(await NoteChangeStorable().hasNoPendingChanges);
       if (changesPending) {
-        if (await InternetConnectionChecker().hasConnection) {
+        if (await InternetConnection().hasInternetAccess) {
           try {
-            NoteChange change =
-            await NoteChangeStorable().getOldestChangeAndDelete();
+            NoteChange change = await NoteChangeStorable().getOldestChangeAndDelete();
             await syncLocalChange(
               change: change,
               ownerUserId: currentUser.id,
@@ -119,10 +116,10 @@ class NoteSyncable
             'Internet connection not detected. Pausing sync.',
             name: 'NoteSyncService',
           );
-          Stream<InternetConnectionStatus> connectionStream =
-          InternetConnectionChecker().onStatusChange.asBroadcastStream();
-          await for (InternetConnectionStatus status in connectionStream) {
-            if (status == InternetConnectionStatus.connected) {
+          Stream<InternetStatus> connectionStream =
+              InternetConnection().onStatusChange.asBroadcastStream();
+          await for (InternetStatus status in connectionStream) {
+            if (status == InternetStatus.connected) {
               await connectionStream.listen((event) {}).cancel();
               break;
             }

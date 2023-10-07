@@ -109,8 +109,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 28,
-                                        color: context
-                                            .theme.colorScheme.onBackground,
+                                        color: context.theme.colorScheme.onBackground,
                                       ),
                                     ),
                                     Text(
@@ -118,14 +117,11 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 32,
-                                        color:
-                                            context.theme.colorScheme.primary,
+                                        color: context.theme.colorScheme.primary,
                                       ),
                                     ),
                                     SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.15,
+                                      height: MediaQuery.of(context).size.height * 0.15,
                                     ),
                                   ],
                           ),
@@ -148,15 +144,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                 enableSuggestions: false,
                                 keyboardType: TextInputType.emailAddress,
                                 style: TextStyle(
-                                  color: context
-                                      .theme.colorScheme.onPrimaryContainer,
+                                  color: context.theme.colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
                                 ),
                                 decoration: InputDecoration(
                                   hintStyle: TextStyle(
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer.withAlpha(200),
+                                    color:
+                                        context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                                     fontWeight: FontWeight.w500,
                                     fontSize: 16,
                                   ),
@@ -165,8 +160,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                     borderRadius: BorderRadius.circular(28.0),
                                     borderSide: BorderSide(
                                       width: 0.5,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                   ),
                                   enabledBorder: const OutlineInputBorder(
@@ -178,18 +172,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                     ),
                                     borderSide: BorderSide.none,
                                   ),
-                                  fillColor: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer
-                                      .withAlpha(200),
+                                  fillColor:
+                                      Theme.of(context).colorScheme.primaryContainer.withAlpha(200),
                                   filled: true,
-                                  prefixIconColor:
-                                      Theme.of(context).colorScheme.primary,
+                                  prefixIconColor: Theme.of(context).colorScheme.primary,
                                   prefixIcon: const Icon(
                                     Icons.email_rounded,
                                   ),
-                                  hintText:
-                                      context.loc.email_text_field_placeholder,
+                                  hintText: context.loc.email_text_field_placeholder,
                                 ),
                               ),
                               const SizedBox(
@@ -212,15 +202,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                 autocorrect: false,
                                 enableSuggestions: false,
                                 style: TextStyle(
-                                  color: context
-                                      .theme.colorScheme.onPrimaryContainer,
+                                  color: context.theme.colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
                                 ),
                                 decoration: InputDecoration(
                                   hintStyle: TextStyle(
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer.withAlpha(200),
+                                    color:
+                                        context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                                     fontWeight: FontWeight.w500,
                                     fontSize: 16,
                                   ),
@@ -241,17 +230,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                     ),
                                     borderSide: BorderSide.none,
                                   ),
-                                  fillColor: context
-                                      .theme.colorScheme.primaryContainer
-                                      .withAlpha(200),
+                                  fillColor:
+                                      context.theme.colorScheme.primaryContainer.withAlpha(200),
                                   filled: true,
-                                  prefixIconColor:
-                                      context.theme.colorScheme.primary,
+                                  prefixIconColor: context.theme.colorScheme.primary,
                                   prefixIcon: const Icon(
                                     Icons.password_rounded,
                                   ),
-                                  hintText: context
-                                      .loc.password_text_field_placeholder,
+                                  hintText: context.loc.password_text_field_placeholder,
                                 ),
                               ),
                             ],
@@ -259,14 +245,11 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         ),
                         TextButton.icon(
                           style: TextButton.styleFrom(
-                            backgroundColor: context.theme.colorScheme.surface
-                                .withOpacity(0.5),
+                            backgroundColor: context.theme.colorScheme.surface.withOpacity(0.5),
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                           ),
                           onPressed: () {
-                            context
-                                .read<AuthBloc>()
-                                .add(const AuthEventForgotPassword());
+                            context.read<AuthBloc>().add(const AuthEventForgotPassword());
                           },
                           icon: const Icon(Icons.lightbulb_outline_rounded),
                           label: Text(context.loc.login_view_forgot_password),
@@ -300,22 +283,17 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         AnimatedContainer(
                           curve: Curves.ease,
                           duration: const Duration(milliseconds: 250),
-                          height: isKeyboardVisible
-                              ? 32
-                              : MediaQuery.of(context).size.height * 0.15,
+                          height:
+                              isKeyboardVisible ? 32 : MediaQuery.of(context).size.height * 0.15,
                         ),
                         OutlinedButton.icon(
                           onPressed: () {
-                            context
-                                .read<AuthBloc>()
-                                .add(const AuthEventShouldRegister());
+                            context.read<AuthBloc>().add(const AuthEventShouldRegister());
                           },
-                          label:
-                              Text(context.loc.login_view_not_registered_yet),
+                          label: Text(context.loc.login_view_not_registered_yet),
                           icon: const Icon(Icons.app_registration_rounded),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: context.theme.colorScheme.surface
-                                .withOpacity(0.5),
+                            backgroundColor: context.theme.colorScheme.surface.withOpacity(0.5),
                           ),
                         ),
                         AnimatedSize(
@@ -332,19 +310,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                     Divider(
                                       height: 32,
                                       thickness: 1.5,
-                                      color: context.theme.colorScheme.secondary
-                                          .withAlpha(100),
+                                      color: context.theme.colorScheme.secondary.withAlpha(100),
                                     ),
                                     FilledButton.tonalIcon(
                                       onPressed: () {
-                                        context
-                                            .read<AuthBloc>()
-                                            .add(const AuthEventLoginAsGuest());
+                                        context.read<AuthBloc>().add(const AuthEventLoginAsGuest());
                                       },
-                                      label: const Text(
-                                          'Continue without an account'),
-                                      icon:
-                                          const Icon(Icons.no_accounts_rounded),
+                                      label: const Text('Continue without an account'),
+                                      icon: const Icon(Icons.no_accounts_rounded),
                                     ),
                                   ],
                           ),

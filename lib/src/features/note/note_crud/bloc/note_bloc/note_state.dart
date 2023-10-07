@@ -2,13 +2,12 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/authentication/domain/auth_user.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/filter_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/filter_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
 
 @immutable
 abstract class NoteState {
@@ -34,8 +33,7 @@ class NoteUninitializedState extends NoteState {
 }
 
 class NoteInitializedState extends NoteState with EquatableMixin {
-  final ValueStream<Map<String, List<PresentableNoteData>>> Function()
-      notesData;
+  final ValueStream<Map<String, List<PresentableNoteData>>> Function() notesData;
 
   final ValueStream<List<LocalNoteTag>> Function() noteTags;
 

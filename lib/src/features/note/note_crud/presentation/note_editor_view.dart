@@ -17,9 +17,9 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/no
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/color_picker_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_tag_picker_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/common_widgets/tonal_chip.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/color_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/tag_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/utilities/common_widgets/tonal_chip.dart';
 import 'package:thoughtbook/src/utilities/dialogs/generic_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -55,25 +55,20 @@ class _NoteEditorViewState extends State<NoteEditorView> {
   bool _showBottomBar = true;
   ColorScheme noteColors = ColorScheme.fromSeed(
     seedColor: Colors.grey,
-    brightness:
-        SchedulerBinding.instance.platformDispatcher.platformBrightness ==
-                Brightness.dark
-            ? Brightness.dark
-            : Brightness.light,
+    brightness: SchedulerBinding.instance.platformDispatcher.platformBrightness == Brightness.dark
+        ? Brightness.dark
+        : Brightness.light,
   );
 
   bool get _isDarkMode =>
-      SchedulerBinding.instance.platformDispatcher.platformBrightness ==
-      Brightness.dark;
+      SchedulerBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
 
   @override
   void initState() {
     super.initState();
     _isEditable = widget.shouldAutoFocusContent;
-    _noteContentController =
-        TextEditingController(text: widget.note?.content ?? '');
-    _noteTitleController =
-        TextEditingController(text: widget.note?.title ?? '');
+    _noteContentController = TextEditingController(text: widget.note?.content ?? '');
+    _noteTitleController = TextEditingController(text: widget.note?.title ?? '');
     _setupTextControllerListener();
   }
 
@@ -91,18 +86,6 @@ class _NoteEditorViewState extends State<NoteEditorView> {
     _noteContentController.addListener(() => _noteControllerListener());
     _noteTitleController.removeListener(() => _noteControllerListener());
     _noteTitleController.addListener(() => _noteControllerListener());
-  }
-
-  Color _getNoteColor(BuildContext context, LocalNote? note) {
-    if (note != null) {
-      if (note.color != null) {
-        return Color(note.color!);
-      } else {
-        return Theme.of(context).colorScheme.primary;
-      }
-    } else {
-      return Theme.of(context).colorScheme.primary;
-    }
   }
 
   Future<void> _updateNoteColor(LocalNote note) async {
@@ -152,8 +135,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
             dismissDirection: DismissDirection.startToEnd,
             behavior: SnackBarBehavior.floating,
             margin: const EdgeInsets.all(8.0),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
           );
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
         } else if (state is NoteEditorDeleted) {
@@ -162,8 +144,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
         }
       },
       buildWhen: (previousState, currentState) {
-        if ((currentState is NoteEditorInitialized) ||
-            (currentState is NoteEditorUninitialized)) {
+        if ((currentState is NoteEditorInitialized) || (currentState is NoteEditorUninitialized)) {
           return true;
         } else {
           return false;
@@ -171,9 +152,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
       },
       builder: (BuildContext context, state) {
         if (state is NoteEditorUninitialized) {
-          context
-              .read<NoteEditorBloc>()
-              .add(NoteEditorInitializeEvent(note: widget.note));
+          context.read<NoteEditorBloc>().add(NoteEditorInitializeEvent(note: widget.note));
 
           return const Center(
             child: CircularProgressIndicator(),
@@ -191,11 +170,24 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                     final PresentableNoteData noteData = snapshot.data!;
                     final note = noteData.note;
                     final tags = noteData.noteTags;
-                    noteColors = ColorScheme.fromSeed(
-                      seedColor: _getNoteColor(context, note),
-                      brightness:
-                          _isDarkMode ? Brightness.dark : Brightness.light,
-                    );
+                    if (note.color != null) {
+                      noteColors = ColorScheme.fromSeed(
+                        seedColor: Color(note.color!),
+                        brightness: _isDarkMode ? Brightness.dark : Brightness.light,
+                      );
+                    } else {
+                      if (_isDarkMode) {
+                        noteColors = ColorScheme.fromSeed(
+                          seedColor: Colors.grey,
+                          brightness: Brightness.dark,
+                        );
+                      } else {
+                        noteColors = ColorScheme.fromSeed(
+                          seedColor: Colors.grey,
+                          brightness: Brightness.light,
+                        );
+                      }
+                    }
                     return Scaffold(
                       bottomNavigationBar: AnimatedSwitcher(
                         duration: 350.milliseconds,
@@ -227,8 +219,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                     strokeAlign: BorderSide.strokeAlignInside,
                                   ))),
                                   child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        16, 12, 16, 8),
+                                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                                     child: Row(
                                       children: [
                                         IconButton(
@@ -236,16 +227,11 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                               ? () => context
                                                   .read<NoteEditorBloc>()
                                                   .add(NoteEditorUndoEvent(
-                                                    currentTitle:
-                                                        _noteTitleController
-                                                            .text,
-                                                    currentContent:
-                                                        _noteContentController
-                                                            .text,
+                                                    currentTitle: _noteTitleController.text,
+                                                    currentContent: _noteContentController.text,
                                                   ))
                                               : null,
-                                          icon: const Icon(
-                                              FluentIcons.arrow_undo_24_filled),
+                                          icon: const Icon(FluentIcons.arrow_undo_24_filled),
                                           style: IconButton.styleFrom(
                                             padding: const EdgeInsets.all(12),
                                             shape: const RoundedRectangleBorder(
@@ -255,13 +241,10 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                               topLeft: Radius.circular(24),
                                               bottomLeft: Radius.circular(24),
                                             )),
-                                            disabledBackgroundColor: noteColors
-                                                .secondary
-                                                .withAlpha(40),
-                                            backgroundColor:
-                                                noteColors.inversePrimary,
-                                            foregroundColor:
-                                                noteColors.onPrimaryContainer,
+                                            disabledBackgroundColor:
+                                                noteColors.secondary.withAlpha(40),
+                                            backgroundColor: noteColors.inversePrimary,
+                                            foregroundColor: noteColors.onPrimaryContainer,
                                           ),
                                         ),
                                         const SizedBox(width: 4),
@@ -270,16 +253,11 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                               ? () => context
                                                   .read<NoteEditorBloc>()
                                                   .add(NoteEditorRedoEvent(
-                                                    currentTitle:
-                                                        _noteTitleController
-                                                            .text,
-                                                    currentContent:
-                                                        _noteContentController
-                                                            .text,
+                                                    currentTitle: _noteTitleController.text,
+                                                    currentContent: _noteContentController.text,
                                                   ))
                                               : null,
-                                          icon: const Icon(
-                                              FluentIcons.arrow_redo_24_filled),
+                                          icon: const Icon(FluentIcons.arrow_redo_24_filled),
                                           style: IconButton.styleFrom(
                                             padding: const EdgeInsets.all(12),
                                             shape: const RoundedRectangleBorder(
@@ -289,13 +267,10 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                               topLeft: Radius.circular(4),
                                               bottomLeft: Radius.circular(4),
                                             )),
-                                            disabledBackgroundColor: noteColors
-                                                .secondary
-                                                .withAlpha(40),
-                                            backgroundColor:
-                                                noteColors.inversePrimary,
-                                            foregroundColor:
-                                                noteColors.onPrimaryContainer,
+                                            disabledBackgroundColor:
+                                                noteColors.secondary.withAlpha(40),
+                                            backgroundColor: noteColors.inversePrimary,
+                                            foregroundColor: noteColors.onPrimaryContainer,
                                           ),
                                         ),
                                         const SizedBox(width: 16),
@@ -304,16 +279,12 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                           tooltip: context.loc.change_color,
                                           onPressed: note.isTrashed
                                               ? null
-                                              : () async =>
-                                                  await _updateNoteColor(note),
-                                          icon: const Icon(
-                                              FluentIcons.color_24_regular),
+                                              : () async => await _updateNoteColor(note),
+                                          icon: const Icon(FluentIcons.color_24_regular),
                                           style: IconButton.styleFrom(
                                             padding: const EdgeInsets.all(12),
-                                            foregroundColor:
-                                                noteColors.onSecondary,
-                                            backgroundColor:
-                                                noteColors.secondary,
+                                            foregroundColor: noteColors.onSecondary,
+                                            backgroundColor: noteColors.secondary,
                                           ),
                                         ),
                                         const Spacer(flex: 1),
@@ -323,22 +294,16 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                             onPressed: note.isTrashed
                                                 ? null
                                                 : () => setState(() {
-                                                      _isEditable =
-                                                          !_isEditable;
+                                                      _isEditable = !_isEditable;
                                                     }),
-                                            tooltip: _isEditable
-                                                ? 'Read Note'
-                                                : 'Edit note',
-                                            splashColor: noteColors
-                                                .inversePrimary
-                                                .withAlpha(100),
+                                            tooltip: _isEditable ? 'Read Note' : 'Edit note',
+                                            splashColor: noteColors.inversePrimary.withAlpha(100),
                                             icon: AnimatedSwitcher(
                                               switchOutCurve: Curves.easeInQuad,
                                               switchInCurve: Curves.easeOutQuad,
                                               duration: 350.milliseconds,
-                                              transitionBuilder:
-                                                  (child, animation) =>
-                                                      ScaleTransition(
+                                              transitionBuilder: (child, animation) =>
+                                                  ScaleTransition(
                                                 scale: animation,
                                                 child: FadeTransition(
                                                   opacity: animation,
@@ -347,25 +312,18 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                               ),
                                               child: Icon(
                                                 _isEditable
-                                                    ? FluentIcons
-                                                        .notepad_28_filled
-                                                    : FluentIcons
-                                                        .notepad_edit_20_filled,
-                                                key:
-                                                    ValueKey<bool>(_isEditable),
+                                                    ? FluentIcons.notepad_28_filled
+                                                    : FluentIcons.notepad_edit_20_filled,
+                                                key: ValueKey<bool>(_isEditable),
                                                 size: 32,
                                               ),
                                             ),
                                             style: IconButton.styleFrom(
                                               shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          18)),
+                                                  borderRadius: BorderRadius.circular(18)),
                                               padding: const EdgeInsets.all(12),
-                                              backgroundColor:
-                                                  noteColors.primary,
-                                              foregroundColor:
-                                                  noteColors.onPrimary,
+                                              backgroundColor: noteColors.primary,
+                                              foregroundColor: noteColors.onPrimary,
                                             ),
                                           ),
                                         ),
@@ -384,18 +342,14 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                               child: AnimatedContainer(
                                 color: innerBoxIsScrolled
                                     ? Color.alphaBlend(
-                                        context
-                                            .theme.colorScheme.onSurfaceVariant
-                                            .withAlpha(30),
+                                        context.theme.colorScheme.onSurfaceVariant.withAlpha(30),
                                         Color.alphaBlend(
-                                          noteColors.inversePrimary
-                                              .withAlpha(100),
+                                          noteColors.inversePrimary.withAlpha(100),
                                           noteColors.surface,
                                         ),
                                       )
                                     : Color.alphaBlend(
-                                        noteColors.inversePrimary
-                                            .withAlpha(100),
+                                        noteColors.inversePrimary.withAlpha(100),
                                         noteColors.surface,
                                       ),
                                 duration: const Duration(milliseconds: 500),
@@ -407,8 +361,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                   backgroundColor: Colors.transparent,
                                   leading: IconButton(
                                     tooltip: 'Go back',
-                                    icon: const Icon(
-                                        FluentIcons.chevron_left_28_filled),
+                                    icon: const Icon(FluentIcons.chevron_left_28_filled),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
@@ -419,10 +372,8 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                         IconButton(
                                           onPressed: () => context
                                               .read<NoteEditorBloc>()
-                                              .add(
-                                                  const NoteEditorShareEvent()),
-                                          icon: const Icon(
-                                              FluentIcons.share_24_regular),
+                                              .add(const NoteEditorShareEvent()),
+                                          icon: const Icon(FluentIcons.share_24_regular),
                                           tooltip: context.loc.share_note,
                                         ),
                                         IconButton(
@@ -430,18 +381,15 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                           onPressed: () => context
                                               .read<NoteEditorBloc>()
                                               .add(const NoteEditorCopyEvent()),
-                                          icon: const Icon(
-                                              FluentIcons.copy_24_regular),
+                                          icon: const Icon(FluentIcons.copy_24_regular),
                                         ),
                                         if (!(note.isTrashed))
                                           IconButton(
                                             tooltip: context.loc.delete,
                                             onPressed: () => context
                                                 .read<NoteEditorBloc>()
-                                                .add(
-                                                    const NoteEditorDeleteEvent()),
-                                            icon: const Icon(
-                                                FluentIcons.delete_24_regular),
+                                                .add(const NoteEditorDeleteEvent()),
+                                            icon: const Icon(FluentIcons.delete_24_regular),
                                           ),
                                       ],
                                     ),
@@ -463,10 +411,8 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                           duration: const Duration(milliseconds: 500),
                           child: NotificationListener<UserScrollNotification>(
                             onNotification: (notification) {
-                              ScrollDirection direction =
-                                  notification.direction;
-                              if (notification.metrics.axis ==
-                                  Axis.horizontal) {
+                              ScrollDirection direction = notification.direction;
+                              if (notification.metrics.axis == Axis.horizontal) {
                                 return true;
                               }
                               if (direction == ScrollDirection.forward) {
@@ -491,8 +437,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
                                     child: SingleChildScrollView(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          16.0, 0.0, 16.0, 8.0),
+                                      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
                                       scrollDirection: Axis.horizontal,
                                       child: Row(
                                         children: [
@@ -504,40 +449,31 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                                 await showNoteTagPickerModalBottomSheet(
                                                   context: context,
                                                   noteStream: state.noteStream,
-                                                  allNoteTags:
-                                                      state.allNoteTags,
+                                                  allNoteTags: state.allNoteTags,
                                                   onTapTag: (tag) => context
                                                       .read<NoteEditorBloc>()
-                                                      .add(
-                                                          NoteEditorUpdateTagEvent(
-                                                              selectedTag:
-                                                                  tag)),
+                                                      .add(NoteEditorUpdateTagEvent(
+                                                          selectedTag: tag)),
                                                   colorScheme: noteColors,
                                                 );
                                               }
                                             },
                                             label: tags.isEmpty
                                                 ? 'No labels'
-                                                : tags
-                                                    .map((tag) => tag.name)
-                                                    .join(', '),
+                                                : tags.map((tag) => tag.name).join(', '),
                                             textStyle: TextStyle(
-                                              color: noteColors
-                                                  .onTertiaryContainer,
+                                              color: noteColors.onSecondaryContainer,
                                               fontStyle: tags.isEmpty
                                                   ? FontStyle.italic
                                                   : FontStyle.normal,
                                               fontWeight: FontWeight.w600,
                                             ),
                                             iconData: tags.isEmpty
-                                                ? FluentIcons
-                                                    .tag_dismiss_24_filled
+                                                ? FluentIcons.tag_dismiss_24_filled
                                                 : FluentIcons.tag_24_filled,
-                                            backgroundColor:
-                                                noteColors.tertiaryContainer,
-                                            foregroundColor:
-                                                noteColors.onTertiaryContainer,
-                                            splashColor: noteColors.tertiary,
+                                            backgroundColor: noteColors.secondaryContainer,
+                                            foregroundColor: noteColors.onSecondaryContainer,
+                                            splashColor: noteColors.secondary,
                                           ),
                                           const SizedBox(width: 8.0),
                                           TonalChip(
@@ -547,63 +483,46 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                               context: context,
                                               title: 'Info',
                                               icon: const Icon(
-                                                FluentIcons
-                                                    .book_clock_24_filled,
+                                                FluentIcons.book_clock_24_filled,
                                                 size: 40,
                                               ),
                                               body: Column(
                                                 mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.stretch,
+                                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                                 children: [
                                                   Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            12),
+                                                    padding: const EdgeInsets.all(12),
                                                     decoration: BoxDecoration(
-                                                      color: context.themeColors
-                                                          .inversePrimary.withAlpha(100),
-                                                      borderRadius:
-                                                          const BorderRadius
-                                                              .only(
-                                                        topLeft:
-                                                            Radius.circular(20),
-                                                        topRight:
-                                                            Radius.circular(20),
-                                                        bottomLeft:
-                                                            Radius.circular(4),
-                                                        bottomRight:
-                                                            Radius.circular(4),
+                                                      color: context.themeColors.inversePrimary
+                                                          .withAlpha(100),
+                                                      borderRadius: const BorderRadius.only(
+                                                        topLeft: Radius.circular(20),
+                                                        topRight: Radius.circular(20),
+                                                        bottomLeft: Radius.circular(4),
+                                                        bottomRight: Radius.circular(4),
                                                       ),
                                                     ),
                                                     child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
+                                                      mainAxisSize: MainAxisSize.min,
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .stretch,
+                                                          CrossAxisAlignment.stretch,
                                                       children: [
                                                         Text(
                                                           'Last edited',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w500,
+                                                            fontWeight: FontWeight.w500,
                                                             color: context
-                                                                .themeColors
-                                                                .onPrimaryContainer
+                                                                .themeColors.onPrimaryContainer
                                                                 .withAlpha(220),
                                                             fontSize: 14,
                                                           ),
                                                         ),
                                                         Text(
-                                                          note.modified
-                                                              .customFormat(),
+                                                          note.modified.customFormat(),
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w600,
+                                                            fontWeight: FontWeight.w600,
                                                             color: context
-                                                                .themeColors
-                                                                .onPrimaryContainer,
+                                                                .themeColors.onPrimaryContainer,
                                                             fontSize: 15,
                                                           ),
                                                         ),
@@ -612,53 +531,38 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                                   ),
                                                   const SizedBox(height: 2),
                                                   Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            12),
+                                                    padding: const EdgeInsets.all(12),
                                                     decoration: BoxDecoration(
-                                                      color: context.themeColors
-                                                          .inversePrimary.withAlpha(100),
-                                                      borderRadius:
-                                                          const BorderRadius
-                                                              .only(
-                                                        topLeft:
-                                                            Radius.circular(4),
-                                                        topRight:
-                                                            Radius.circular(4),
-                                                        bottomLeft:
-                                                            Radius.circular(20),
-                                                        bottomRight:
-                                                            Radius.circular(20),
+                                                      color: context.themeColors.inversePrimary
+                                                          .withAlpha(100),
+                                                      borderRadius: const BorderRadius.only(
+                                                        topLeft: Radius.circular(4),
+                                                        topRight: Radius.circular(4),
+                                                        bottomLeft: Radius.circular(20),
+                                                        bottomRight: Radius.circular(20),
                                                       ),
                                                     ),
                                                     child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
+                                                      mainAxisSize: MainAxisSize.min,
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .stretch,
+                                                          CrossAxisAlignment.stretch,
                                                       children: [
                                                         Text(
                                                           'Created on',
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w500,
+                                                            fontWeight: FontWeight.w500,
                                                             color: context
-                                                                .themeColors
-                                                                .onPrimaryContainer
+                                                                .themeColors.onPrimaryContainer
                                                                 .withAlpha(220),
                                                             fontSize: 14,
                                                           ),
                                                         ),
                                                         Text(
-                                                          note.created
-                                                              .customFormat(),
+                                                          note.created.customFormat(),
                                                           style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w600,
+                                                            fontWeight: FontWeight.w600,
                                                             color: context
-                                                                .themeColors
-                                                                .onPrimaryContainer,
+                                                                .themeColors.onPrimaryContainer,
                                                             fontSize: 15,
                                                           ),
                                                         ),
@@ -667,17 +571,13 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                                   ),
                                                 ],
                                               ),
-                                              optionsBuilder: () =>
-                                                  {'OK': null},
+                                              optionsBuilder: () => {'OK': null},
                                             ),
                                             label: note.modified.customFormat(),
-                                            iconData: FluentIcons
-                                                .book_clock_24_filled,
-                                            backgroundColor:
-                                                noteColors.tertiaryContainer,
-                                            foregroundColor:
-                                                noteColors.onTertiaryContainer,
-                                            splashColor: noteColors.tertiary,
+                                            iconData: FluentIcons.book_clock_24_filled,
+                                            backgroundColor: noteColors.secondaryContainer,
+                                            foregroundColor: noteColors.onSecondaryContainer,
+                                            splashColor: noteColors.secondary,
                                           ),
                                           const SizedBox(width: 8.0),
                                           TonalChip(
@@ -694,12 +594,10 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                                       size: 40,
                                                     )
                                                   : const Icon(
-                                                      Icons
-                                                          .cloud_upload_rounded,
+                                                      Icons.cloud_upload_rounded,
                                                       size: 40,
                                                     ),
-                                              content: noteData
-                                                      .note.isSyncedWithCloud
+                                              content: noteData.note.isSyncedWithCloud
                                                   ? 'This note is saved to the the '
                                                       'cloud & can be accessed'
                                                       ' by using your account.'
@@ -708,44 +606,35 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                                       'but are safe on your device.'
                                                       ' We will save the changes when your '
                                                       'device is online.',
-                                              optionsBuilder: () =>
-                                                  {'OK': null},
+                                              optionsBuilder: () => {'OK': null},
                                             ),
                                             label: note.isSyncedWithCloud
                                                 ? 'Changes saved'
                                                 : 'Changes unsaved',
                                             iconData: note.isSyncedWithCloud
-                                                ? FluentIcons
-                                                    .cloud_checkmark_24_filled
-                                                : FluentIcons
-                                                    .cloud_arrow_up_24_filled,
-                                            backgroundColor:
-                                                noteColors.tertiaryContainer,
-                                            foregroundColor:
-                                                noteColors.onTertiaryContainer,
-                                            splashColor: noteColors.tertiary,
+                                                ? FluentIcons.cloud_checkmark_24_filled
+                                                : FluentIcons.cloud_arrow_up_24_filled,
+                                            backgroundColor: noteColors.secondaryContainer,
+                                            foregroundColor: noteColors.onSecondaryContainer,
+                                            splashColor: noteColors.secondary,
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
                                   Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        16.0, 0.0, 16.0, 48.0),
+                                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 48.0),
                                     child: AnimatedSwitcher(
-                                      duration: 500.milliseconds,
-                                      reverseDuration: 350.milliseconds,
+                                      duration: 400.milliseconds,
+                                      reverseDuration: 500.milliseconds,
                                       switchInCurve: Curves.fastOutSlowIn,
-                                      switchOutCurve:
-                                          Curves.fastOutSlowIn.flipped,
-                                      layoutBuilder:
-                                          (currentChild, previousChildren) {
+                                      switchOutCurve: Curves.fastOutSlowIn.flipped,
+                                      layoutBuilder: (currentChild, previousChildren) {
                                         return Stack(
                                           alignment: Alignment.topLeft,
                                           children: <Widget>[
                                             ...previousChildren,
-                                            if (currentChild != null)
-                                              currentChild,
+                                            if (currentChild != null) currentChild,
                                           ],
                                         );
                                       },
@@ -767,14 +656,10 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                                               noteColors: noteColors,
                                             )
                                           : NoteEditableView(
-                                              textColor: noteColors
-                                                  .onSecondaryContainer,
-                                              titleController:
-                                                  _noteTitleController,
-                                              contentController:
-                                                  _noteContentController,
-                                              shouldAutofocusContent:
-                                                  widget.shouldAutoFocusContent,
+                                              textColor: noteColors.onSecondaryContainer,
+                                              titleController: _noteTitleController,
+                                              contentController: _noteContentController,
+                                              shouldAutofocusContent: widget.shouldAutoFocusContent,
                                             ),
                                     ),
                                   ),
@@ -1070,8 +955,7 @@ class NoteReadableView extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
-              blockquotePadding:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              blockquotePadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
               p: TextStyle(
                 color: noteColors.onSecondaryContainer,
                 fontWeight: FontWeight.w400,

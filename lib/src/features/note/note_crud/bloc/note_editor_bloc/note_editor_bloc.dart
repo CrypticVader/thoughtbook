@@ -11,17 +11,14 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/no
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
-import 'package:thoughtbook/src/helpers/debouncer/debouncer.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 
 class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
-  final Debouncer _debouncer = Debouncer(delay: 250.milliseconds);
   int? _noteIsarId;
   late NoteDataNode _currentNoteNode;
 
-  ValueStream<LocalNote> noteStream() =>
-      LocalStore.note.itemStream(id: _noteIsarId!);
+  ValueStream<LocalNote> noteStream() => LocalStore.note.itemStream(id: _noteIsarId!);
 
   ValueStream<PresentableNoteData> presentableNote() => Rx.combineLatest2(
         noteStream(),
@@ -33,8 +30,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
         },
       ).shareValue();
 
-  ValueStream<List<LocalNoteTag>> allNoteTags() =>
-      LocalStore.noteTag.allItemStream;
+  ValueStream<List<LocalNoteTag>> allNoteTags() => LocalStore.noteTag.allItemStream;
 
   Future<LocalNote> get note async {
     LocalNote note;

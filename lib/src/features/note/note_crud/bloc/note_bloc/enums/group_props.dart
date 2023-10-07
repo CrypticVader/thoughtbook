@@ -10,7 +10,7 @@ enum GroupOrder { descending, ascending }
 class GroupProps {
   final GroupParameter groupParameter;
   final TagGroupLogic tagGroupLogic;
-  final GroupOrder  groupOrder;
+  final GroupOrder groupOrder;
 
   const GroupProps({
     required this.groupParameter,

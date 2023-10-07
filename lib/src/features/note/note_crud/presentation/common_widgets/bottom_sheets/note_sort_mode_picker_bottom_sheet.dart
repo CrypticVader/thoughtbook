@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/sort_props.dart';
 
 Future<void> showNoteSortModePickerBottomSheet({
   required BuildContext context,
@@ -55,6 +55,12 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
 
   @override
   Widget build(BuildContext context) {
+    final targetPlatform = ScrollConfiguration.of(context).getPlatform(context);
+    final isDesktop = {
+      TargetPlatform.windows,
+      TargetPlatform.macOS,
+      TargetPlatform.linux,
+    }.contains(targetPlatform);
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         topRight: Radius.circular(28),
@@ -62,6 +68,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
       ),
       child: DraggableScrollableSheet(
         expand: false,
+        initialChildSize: isDesktop ? 0.85 : 0.5,
         builder: (context, scrollController) {
           return Scaffold(
             backgroundColor: Color.alphaBlend(
@@ -86,8 +93,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                       width: 44,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
-                        color:
-                            context.themeColors.onSurfaceVariant.withAlpha(100),
+                        color: context.themeColors.onSurfaceVariant.withAlpha(100),
                       ),
                     ),
                   ),
@@ -129,8 +135,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                         segments: const [
                           ButtonSegment(
                             value: SortOrder.ascending,
-                            icon:
-                                Icon(FluentIcons.text_sort_ascending_24_filled),
+                            icon: Icon(FluentIcons.text_sort_ascending_24_filled),
                             label: Text(
                               'Ascending',
                               style: TextStyle(
@@ -141,8 +146,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                           ),
                           ButtonSegment(
                             value: SortOrder.descending,
-                            icon: Icon(
-                                FluentIcons.text_sort_descending_24_filled),
+                            icon: Icon(FluentIcons.text_sort_descending_24_filled),
                             label: Text(
                               'Descending',
                               style: TextStyle(
@@ -189,7 +193,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                     ListTile(
                       onTap: () {
                         setState(() {
-                          sortMode = SortMode.dataCreated;
+                          sortMode = SortMode.dateCreated;
                           widget.onSelect(sortOrder, sortMode);
                         });
                       },
@@ -201,8 +205,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                           fontSize: 16,
                         ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 4.0),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                       shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(28),
@@ -213,11 +216,11 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                       tileColor: context.themeColors.primaryContainer,
                       splashColor: context.themeColors.inversePrimary,
                       leading: Radio(
-                        value: SortMode.dataCreated,
+                        value: SortMode.dateCreated,
                         groupValue: sortMode,
                         onChanged: (_) {
                           setState(() {
-                            sortMode = SortMode.dataCreated;
+                            sortMode = SortMode.dateCreated;
                             widget.onSelect(sortOrder, sortMode);
                           });
                         },
@@ -251,8 +254,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                           fontSize: 16,
                         ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 4.0),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                       shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),

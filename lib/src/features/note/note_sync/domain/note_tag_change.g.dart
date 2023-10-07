@@ -57,8 +57,7 @@ const NoteTagChangeSchema = IsarGeneratedSchema(
 @isarProtected
 int serializeNoteTagChange(IsarWriter writer, NoteTagChange object) {
   IsarCore.writeByte(writer, 1, object.type.index);
-  IsarCore.writeLong(
-      writer, 2, object.timestamp.toUtc().microsecondsSinceEpoch);
+  IsarCore.writeLong(writer, 2, object.timestamp.toUtc().microsecondsSinceEpoch);
   {
     final value = object.noteTag;
     final objectWriter = IsarCore.beginObject(writer, 3);
@@ -77,16 +76,14 @@ NoteTagChange deserializeNoteTagChange(IsarReader reader) {
     if (IsarCore.readNull(reader, 1)) {
       _type = SyncableChangeType.create;
     } else {
-      _type = _noteTagChangeType[IsarCore.readByte(reader, 1)] ??
-          SyncableChangeType.create;
+      _type = _noteTagChangeType[IsarCore.readByte(reader, 1)] ?? SyncableChangeType.create;
     }
   }
   final DateTime _timestamp;
   {
     final value = IsarCore.readLong(reader, 2);
     if (value == -9223372036854775808) {
-      _timestamp =
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+      _timestamp = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
     } else {
       _timestamp = DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true);
     }
@@ -127,8 +124,7 @@ dynamic deserializeNoteTagChangeProp(IsarReader reader, int property) {
         if (IsarCore.readNull(reader, 1)) {
           return SyncableChangeType.create;
         } else {
-          return _noteTagChangeType[IsarCore.readByte(reader, 1)] ??
-              SyncableChangeType.create;
+          return _noteTagChangeType[IsarCore.readByte(reader, 1)] ?? SyncableChangeType.create;
         }
       }
     case 2:
@@ -148,10 +144,8 @@ dynamic deserializeNoteTagChangeProp(IsarReader reader, int property) {
             isarId: -9223372036854775808,
             name: '',
             cloudDocumentId: null,
-            created:
-                DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
-            modified:
-                DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
+            created: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
+            modified: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal(),
           );
         } else {
           final embedded = deserializeChangedNoteTag(objectReader);
@@ -251,15 +245,12 @@ class _NoteTagChangeQueryUpdateImpl implements _NoteTagChangeQueryUpdate {
 }
 
 extension NoteTagChangeQueryUpdate on IsarQuery<NoteTagChange> {
-  _NoteTagChangeQueryUpdate get updateFirst =>
-      _NoteTagChangeQueryUpdateImpl(this, limit: 1);
+  _NoteTagChangeQueryUpdate get updateFirst => _NoteTagChangeQueryUpdateImpl(this, limit: 1);
 
-  _NoteTagChangeQueryUpdate get updateAll =>
-      _NoteTagChangeQueryUpdateImpl(this);
+  _NoteTagChangeQueryUpdate get updateAll => _NoteTagChangeQueryUpdateImpl(this);
 }
 
-class _NoteTagChangeQueryBuilderUpdateImpl
-    implements _NoteTagChangeQueryUpdate {
+class _NoteTagChangeQueryBuilderUpdateImpl implements _NoteTagChangeQueryUpdate {
   const _NoteTagChangeQueryBuilderUpdateImpl(this.query, {this.limit});
 
   final QueryBuilder<NoteTagChange, NoteTagChange, QOperations> query;
@@ -284,11 +275,9 @@ class _NoteTagChangeQueryBuilderUpdateImpl
 
 extension NoteTagChangeQueryBuilderUpdate
     on QueryBuilder<NoteTagChange, NoteTagChange, QOperations> {
-  _NoteTagChangeQueryUpdate get updateFirst =>
-      _NoteTagChangeQueryBuilderUpdateImpl(this, limit: 1);
+  _NoteTagChangeQueryUpdate get updateFirst => _NoteTagChangeQueryBuilderUpdateImpl(this, limit: 1);
 
-  _NoteTagChangeQueryUpdate get updateAll =>
-      _NoteTagChangeQueryBuilderUpdateImpl(this);
+  _NoteTagChangeQueryUpdate get updateAll => _NoteTagChangeQueryBuilderUpdateImpl(this);
 }
 
 const _noteTagChangeType = {
@@ -298,10 +287,8 @@ const _noteTagChangeType = {
   3: SyncableChangeType.deleteAll,
 };
 
-extension NoteTagChangeQueryFilter
-    on QueryBuilder<NoteTagChange, NoteTagChange, QFilterCondition> {
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      isarIdEqualTo(
+extension NoteTagChangeQueryFilter on QueryBuilder<NoteTagChange, NoteTagChange, QFilterCondition> {
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> isarIdEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -314,8 +301,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      isarIdGreaterThan(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> isarIdGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -328,8 +314,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      isarIdGreaterThanOrEqualTo(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> isarIdGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -342,8 +327,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      isarIdLessThan(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> isarIdLessThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -356,8 +340,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      isarIdLessThanOrEqualTo(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> isarIdLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -370,8 +353,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      isarIdBetween(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> isarIdBetween(
     int lower,
     int upper,
   ) {
@@ -399,8 +381,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      typeGreaterThan(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> typeGreaterThan(
     SyncableChangeType value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -413,8 +394,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      typeGreaterThanOrEqualTo(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> typeGreaterThanOrEqualTo(
     SyncableChangeType value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -427,8 +407,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      typeLessThan(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> typeLessThan(
     SyncableChangeType value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -441,8 +420,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      typeLessThanOrEqualTo(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> typeLessThanOrEqualTo(
     SyncableChangeType value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -470,8 +448,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      timestampEqualTo(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> timestampEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -484,8 +461,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      timestampGreaterThan(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> timestampGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -498,8 +474,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      timestampGreaterThanOrEqualTo(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> timestampGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -512,8 +487,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      timestampLessThan(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> timestampLessThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -526,8 +500,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      timestampLessThanOrEqualTo(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> timestampLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -540,8 +513,7 @@ extension NoteTagChangeQueryFilter
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition>
-      timestampBetween(
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> timestampBetween(
     DateTime lower,
     DateTime upper,
   ) {
@@ -557,8 +529,7 @@ extension NoteTagChangeQueryFilter
   }
 }
 
-extension NoteTagChangeQueryObject
-    on QueryBuilder<NoteTagChange, NoteTagChange, QFilterCondition> {
+extension NoteTagChangeQueryObject on QueryBuilder<NoteTagChange, NoteTagChange, QFilterCondition> {
   QueryBuilder<NoteTagChange, NoteTagChange, QAfterFilterCondition> noteTag(
       FilterQuery<ChangedNoteTag> q) {
     return QueryBuilder.apply(this, (query) {
@@ -567,8 +538,7 @@ extension NoteTagChangeQueryObject
   }
 }
 
-extension NoteTagChangeQuerySortBy
-    on QueryBuilder<NoteTagChange, NoteTagChange, QSortBy> {
+extension NoteTagChangeQuerySortBy on QueryBuilder<NoteTagChange, NoteTagChange, QSortBy> {
   QueryBuilder<NoteTagChange, NoteTagChange, QAfterSortBy> sortByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0);
@@ -599,16 +569,14 @@ extension NoteTagChangeQuerySortBy
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterSortBy>
-      sortByTimestampDesc() {
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterSortBy> sortByTimestampDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(2, sort: Sort.desc);
     });
   }
 }
 
-extension NoteTagChangeQuerySortThenBy
-    on QueryBuilder<NoteTagChange, NoteTagChange, QSortThenBy> {
+extension NoteTagChangeQuerySortThenBy on QueryBuilder<NoteTagChange, NoteTagChange, QSortThenBy> {
   QueryBuilder<NoteTagChange, NoteTagChange, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0);
@@ -639,40 +607,35 @@ extension NoteTagChangeQuerySortThenBy
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterSortBy>
-      thenByTimestampDesc() {
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterSortBy> thenByTimestampDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(2, sort: Sort.desc);
     });
   }
 }
 
-extension NoteTagChangeQueryWhereDistinct
-    on QueryBuilder<NoteTagChange, NoteTagChange, QDistinct> {
+extension NoteTagChangeQueryWhereDistinct on QueryBuilder<NoteTagChange, NoteTagChange, QDistinct> {
   QueryBuilder<NoteTagChange, NoteTagChange, QAfterDistinct> distinctByType() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(1);
     });
   }
 
-  QueryBuilder<NoteTagChange, NoteTagChange, QAfterDistinct>
-      distinctByTimestamp() {
+  QueryBuilder<NoteTagChange, NoteTagChange, QAfterDistinct> distinctByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(2);
     });
   }
 }
 
-extension NoteTagChangeQueryProperty1
-    on QueryBuilder<NoteTagChange, NoteTagChange, QProperty> {
+extension NoteTagChangeQueryProperty1 on QueryBuilder<NoteTagChange, NoteTagChange, QProperty> {
   QueryBuilder<NoteTagChange, int, QAfterProperty> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
     });
   }
 
-  QueryBuilder<NoteTagChange, SyncableChangeType, QAfterProperty>
-      typeProperty() {
+  QueryBuilder<NoteTagChange, SyncableChangeType, QAfterProperty> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
@@ -684,38 +647,33 @@ extension NoteTagChangeQueryProperty1
     });
   }
 
-  QueryBuilder<NoteTagChange, ChangedNoteTag, QAfterProperty>
-      noteTagProperty() {
+  QueryBuilder<NoteTagChange, ChangedNoteTag, QAfterProperty> noteTagProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 }
 
-extension NoteTagChangeQueryProperty2<R>
-    on QueryBuilder<NoteTagChange, R, QAfterProperty> {
+extension NoteTagChangeQueryProperty2<R> on QueryBuilder<NoteTagChange, R, QAfterProperty> {
   QueryBuilder<NoteTagChange, (R, int), QAfterProperty> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
     });
   }
 
-  QueryBuilder<NoteTagChange, (R, SyncableChangeType), QAfterProperty>
-      typeProperty() {
+  QueryBuilder<NoteTagChange, (R, SyncableChangeType), QAfterProperty> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<NoteTagChange, (R, DateTime), QAfterProperty>
-      timestampProperty() {
+  QueryBuilder<NoteTagChange, (R, DateTime), QAfterProperty> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<NoteTagChange, (R, ChangedNoteTag), QAfterProperty>
-      noteTagProperty() {
+  QueryBuilder<NoteTagChange, (R, ChangedNoteTag), QAfterProperty> noteTagProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
@@ -730,22 +688,19 @@ extension NoteTagChangeQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<NoteTagChange, (R1, R2, SyncableChangeType), QOperations>
-      typeProperty() {
+  QueryBuilder<NoteTagChange, (R1, R2, SyncableChangeType), QOperations> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<NoteTagChange, (R1, R2, DateTime), QOperations>
-      timestampProperty() {
+  QueryBuilder<NoteTagChange, (R1, R2, DateTime), QOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<NoteTagChange, (R1, R2, ChangedNoteTag), QOperations>
-      noteTagProperty() {
+  QueryBuilder<NoteTagChange, (R1, R2, ChangedNoteTag), QOperations> noteTagProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
@@ -849,8 +804,7 @@ ChangedNoteTag deserializeChangedNoteTag(IsarReader reader) {
 
 extension ChangedNoteTagQueryFilter
     on QueryBuilder<ChangedNoteTag, ChangedNoteTag, QFilterCondition> {
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      isarIdEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> isarIdEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -863,8 +817,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      isarIdGreaterThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> isarIdGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -877,8 +830,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      isarIdGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> isarIdGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -891,8 +843,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      isarIdLessThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> isarIdLessThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -905,8 +856,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      isarIdLessThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> isarIdLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -919,8 +869,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      isarIdBetween(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> isarIdBetween(
     int lower,
     int upper,
   ) {
@@ -935,22 +884,19 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsNull() {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 2));
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsNotNull() {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 2));
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -965,8 +911,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdGreaterThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdGreaterThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -997,8 +942,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdLessThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdLessThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1029,8 +973,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdBetween(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -1047,8 +990,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdStartsWith(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1063,8 +1005,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdEndsWith(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1079,8 +1020,9 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdContains(
+      String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
@@ -1092,8 +1034,9 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
@@ -1105,8 +1048,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsEmpty() {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -1117,8 +1059,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsNotEmpty() {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> cloudDocumentIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -1129,8 +1070,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1145,8 +1085,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameGreaterThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1161,8 +1100,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1177,8 +1115,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameLessThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameLessThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1193,8 +1130,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameLessThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1209,8 +1145,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameBetween(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1227,8 +1162,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameStartsWith(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1243,8 +1177,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameEndsWith(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1259,8 +1192,8 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameContains(String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
@@ -1272,8 +1205,8 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameMatches(String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
@@ -1285,8 +1218,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameIsEmpty() {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -1297,8 +1229,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      nameIsNotEmpty() {
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -1309,8 +1240,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      modifiedEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> modifiedEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1323,8 +1253,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      modifiedGreaterThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> modifiedGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1337,8 +1266,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      modifiedGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> modifiedGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1351,8 +1279,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      modifiedLessThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> modifiedLessThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1365,8 +1292,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      modifiedLessThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> modifiedLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1379,8 +1305,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      modifiedBetween(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> modifiedBetween(
     DateTime lower,
     DateTime upper,
   ) {
@@ -1395,8 +1320,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      createdEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> createdEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1409,8 +1333,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      createdGreaterThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> createdGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1423,8 +1346,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      createdGreaterThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> createdGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1437,8 +1359,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      createdLessThan(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> createdLessThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1451,8 +1372,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      createdLessThanOrEqualTo(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> createdLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1465,8 +1385,7 @@ extension ChangedNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition>
-      createdBetween(
+  QueryBuilder<ChangedNoteTag, ChangedNoteTag, QAfterFilterCondition> createdBetween(
     DateTime lower,
     DateTime upper,
   ) {

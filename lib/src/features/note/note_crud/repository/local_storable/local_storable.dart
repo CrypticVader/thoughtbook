@@ -28,9 +28,7 @@ abstract class LocalStorable<T> {
   }) async {
     if (_isar != null) throw DatabaseAlreadyOpenException();
 
-    final docsPath = kIsWeb
-        ? Isar.sqliteInMemory
-        : (await getApplicationDocumentsDirectory()).path;
+    final docsPath = kIsWeb ? Isar.sqliteInMemory : (await getApplicationDocumentsDirectory()).path;
     final schemas = [
       if (note) LocalNoteSchema,
       if (noteChange) NoteChangeSchema,
@@ -38,6 +36,9 @@ abstract class LocalStorable<T> {
       if (noteTagChange) NoteTagChangeSchema,
     ];
 
+    if (kIsWeb) {
+      Isar.initialize();
+    }
     _isar ??= Isar.open(
       engine: kIsWeb ? IsarEngine.sqlite : IsarEngine.isar,
       schemas: schemas,
@@ -56,36 +57,36 @@ abstract class LocalStorable<T> {
   }
 
   /// Creates a [T] in the collection & and returns its instance.
-  Future<T> createItem() async => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  Future<T> createItem() async =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 
   /// Gets the [T] with the given [id] from the database.
   ///
   /// Throws if not found.
-  Future<T> getItem({required int id}) => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  Future<T> getItem({required int id}) =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 
   /// Returns a list of all the objects of type [T] in the database.
-  Future<List<T>> get getAllItems => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  Future<List<T>> get getAllItems =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 
   /// Tries to update the [T] with the given [id] in the database.
-  Future<void> updateItem({required int id}) => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  Future<void> updateItem({required int id}) =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 
   /// Tries to delete the [T] with the given [id] in the database.
-  Future<void> deleteItem({required int id}) => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  Future<void> deleteItem({required int id}) =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 
   /// Deletes all the objects in the collection of type [T].
-  Future<void> deleteAllItems() => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  Future<void> deleteAllItems() =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 
   /// Returns a [ValueStream] of collection of all the [T] in the local database.
-  ValueStream<List<T>> get allItemStream => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  ValueStream<List<T>> get allItemStream =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 
   /// Returns the latest version of a [T] from the local database in a [ValueStream]
-  ValueStream<T> itemStream({required int id}) => throw UnsupportedError(
-      'This method must be implemented by a child class.');
+  ValueStream<T> itemStream({required int id}) =>
+      throw UnsupportedError('This method must be implemented by a child class.');
 }

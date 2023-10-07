@@ -12,16 +12,14 @@ import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable_exceptions.dart';
 
 class NoteChangeStorable extends LocalStorable<NoteChange> {
-  static final NoteChangeStorable _shared =
-      NoteChangeStorable._sharedInstance();
+  static final NoteChangeStorable _shared = NoteChangeStorable._sharedInstance();
 
   NoteChangeStorable._sharedInstance() {
     _ensureCollectionIsOpen();
     _eventNotifierController = PublishSubject<void>();
     _noteChangeFeedController = PublishSubject<NoteChange>();
     // Sets up the local change-feed stream as a StreamQueue
-    _changeFeedQueue =
-        StreamQueue<NoteChange>(_noteChangeFeedController.stream);
+    _changeFeedQueue = StreamQueue<NoteChange>(_noteChangeFeedController.stream);
   }
 
   factory NoteChangeStorable() => _shared;
@@ -263,10 +261,7 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
     await _ensureCollectionIsOpen();
 
     await LocalStorable.isar!.writeAsync((isar) {
-      isar.noteChanges
-          .where()
-          .note((note) => note.isarIdEqualTo(isarNoteId))
-          .deleteAll();
+      isar.noteChanges.where().note((note) => note.isarIdEqualTo(isarNoteId)).deleteAll();
     });
   }
 

@@ -66,20 +66,18 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
           debugShowCheckedModeBanner: false,
           title: 'Thoughtbook',
           theme: ThemeData(
-            fontFamily:
-                (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
-                    ? 'Roboto'
-                    : 'Montserrat',
+            fontFamily: (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
+                ? 'Roboto'
+                : 'Montserrat',
             fontFamilyFallback: const ['Roboto'],
             colorScheme: lightColorScheme ?? _defaultLightColorScheme,
             splashFactory: InkSparkle.splashFactory,
             useMaterial3: true,
           ),
           darkTheme: ThemeData(
-            fontFamily:
-                (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
-                    ? 'Roboto'
-                    : 'Montserrat',
+            fontFamily: (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
+                ? 'Roboto'
+                : 'Montserrat',
             fontFamilyFallback: const ['Roboto'],
             colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
             splashFactory: InkSparkle.splashFactory,
@@ -127,6 +125,7 @@ class HomePage extends StatelessWidget {
       );
     }
   }
+
   @override
   Widget build(BuildContext context) {
     context.read<AuthBloc>().add(const AuthEventInitialize());

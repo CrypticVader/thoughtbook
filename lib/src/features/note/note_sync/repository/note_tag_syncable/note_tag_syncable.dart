@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_note_tag_storable.dart';
@@ -33,16 +33,13 @@ class NoteTagSyncable
     ensureUserIsSignedInOrThrow();
 
     // Take first event from the stream, and map each element from CloudNoteTag to LocalNoteTag
-    Iterable<CloudNoteTag> cloudNoteTags =
-        await CloudStore.noteTag.allItems.first;
+    Iterable<CloudNoteTag> cloudNoteTags = await CloudStore.noteTag.allItems.first;
     final int cloudNoteTagsCount = cloudNoteTags.length;
     int loadedCount = 0;
     // Load all noteTags from Firestore belonging to the user to Isar database locally
     for (CloudNoteTag cloudNoteTag in cloudNoteTags) {
-      LocalNoteTag newNoteTag =
-          await LocalStore.noteTag.createItem(addToChangeFeed: false);
-      final noteTag =
-          LocalNoteTag.fromCloudNoteTag(cloudNoteTag, newNoteTag.isarId);
+      LocalNoteTag newNoteTag = await LocalStore.noteTag.createItem(addToChangeFeed: false);
+      final noteTag = LocalNoteTag.fromCloudNoteTag(cloudNoteTag, newNoteTag.isarId);
       await LocalStore.noteTag.updateItem(
         id: newNoteTag.isarId,
         cloudDocumentId: noteTag.cloudDocumentId,
@@ -83,16 +80,13 @@ class NoteTagSyncable
   Future<void> syncLocalChangeFeed() async {
     ensureUserIsSignedInOrThrow();
 
-    Stream<void> changeCollectionEvent =
-        await NoteTagChangeStorable().newChangeNotifier;
+    Stream<void> changeCollectionEvent = await NoteTagChangeStorable().newChangeNotifier;
     while (true) {
-      bool changesPending =
-          !(await NoteTagChangeStorable().hasNoPendingChanges);
+      bool changesPending = !(await NoteTagChangeStorable().hasNoPendingChanges);
       if (changesPending) {
-        if (await InternetConnectionChecker().hasConnection) {
+        if (await InternetConnection().hasInternetAccess) {
           try {
-            NoteTagChange change =
-                await NoteTagChangeStorable().getOldestChangeAndDelete();
+            NoteTagChange change = await NoteTagChangeStorable().getOldestChangeAndDelete();
             await syncOrIgnoreLocalChange(
               change: change,
               ownerUserId: currentUser.id,
@@ -110,10 +104,10 @@ class NoteTagSyncable
             'Internet connection not detected. Pausing sync.',
             name: 'NoteTagSyncService',
           );
-          Stream<InternetConnectionStatus> connectionStream =
-              InternetConnectionChecker().onStatusChange.asBroadcastStream();
-          await for (InternetConnectionStatus status in connectionStream) {
-            if (status == InternetConnectionStatus.connected) {
+          Stream<InternetStatus> connectionStream =
+              InternetConnection().onStatusChange.asBroadcastStream();
+          await for (InternetStatus status in connectionStream) {
+            if (status == InternetStatus.connected) {
               await connectionStream.listen((_) {}).cancel();
               break;
             }

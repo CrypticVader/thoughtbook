@@ -16,8 +16,7 @@ class RegisterView extends StatefulWidget {
   State<RegisterView> createState() => _RegisterViewState();
 }
 
-class _RegisterViewState extends State<RegisterView>
-    with TickerProviderStateMixin {
+class _RegisterViewState extends State<RegisterView> with TickerProviderStateMixin {
   bool _passwordMatches = true;
 
   late final TextEditingController _email;
@@ -71,32 +70,32 @@ class _RegisterViewState extends State<RegisterView>
         if (state is AuthStateRegistering) {
           if (state.exception is EmptyCredentialsAuthException) {
             await showErrorDialog(
-              context:context,
-              text:   context.loc.error_empty_credentials,
+              context: context,
+              text: context.loc.error_empty_credentials,
               showTitle: false,
             );
           } else if (state.exception is WeakPasswordAuthException) {
             await showErrorDialog(
-              context:context,
-              text:   context.loc.register_error_weak_password,
+              context: context,
+              text: context.loc.register_error_weak_password,
               showTitle: false,
             );
           } else if (state.exception is EmailAlreadyInUseAuthException) {
             await showErrorDialog(
-              context:context,
-              text:   context.loc.register_error_email_already_in_use,
+              context: context,
+              text: context.loc.register_error_email_already_in_use,
               showTitle: false,
             );
           } else if (state.exception is InvalidEmailAuthException) {
             await showErrorDialog(
-              context:context,
-              text:   context.loc.register_error_invalid_email,
+              context: context,
+              text: context.loc.register_error_invalid_email,
               showTitle: false,
             );
           } else if (state.exception is GenericAuthException) {
             await showErrorDialog(
-              context:context,
-              text:   context.loc.auth_error_generic,
+              context: context,
+              text: context.loc.auth_error_generic,
             );
           }
         }
@@ -139,8 +138,7 @@ class _RegisterViewState extends State<RegisterView>
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 28,
-                                        color: context
-                                            .theme.colorScheme.onBackground,
+                                        color: context.theme.colorScheme.onBackground,
                                       ),
                                     ),
                                     Text(
@@ -148,14 +146,11 @@ class _RegisterViewState extends State<RegisterView>
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 32,
-                                        color:
-                                            context.theme.colorScheme.primary,
+                                        color: context.theme.colorScheme.primary,
                                       ),
                                     ),
                                     SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.1,
+                                      height: MediaQuery.of(context).size.height * 0.1,
                                     ),
                                   ],
                           ),
@@ -179,15 +174,14 @@ class _RegisterViewState extends State<RegisterView>
                                 keyboardType: TextInputType.emailAddress,
                                 autofocus: true,
                                 style: TextStyle(
-                                  color: context
-                                      .theme.colorScheme.onPrimaryContainer,
+                                  color: context.theme.colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
                                 ),
                                 decoration: InputDecoration(
                                   hintStyle: TextStyle(
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer.withAlpha(200),
+                                    color:
+                                        context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                                     fontWeight: FontWeight.w500,
                                     fontSize: 16,
                                   ),
@@ -196,8 +190,7 @@ class _RegisterViewState extends State<RegisterView>
                                     borderRadius: BorderRadius.circular(28),
                                     borderSide: BorderSide(
                                       width: 0.5,
-                                      color:
-                                          context.theme.colorScheme.primary,
+                                      color: context.theme.colorScheme.primary,
                                     ),
                                   ),
                                   enabledBorder: const OutlineInputBorder(
@@ -209,17 +202,14 @@ class _RegisterViewState extends State<RegisterView>
                                     ),
                                     borderSide: BorderSide.none,
                                   ),
-                                  fillColor: context
-                                      .theme.colorScheme.primaryContainer
-                                      .withAlpha(200),
+                                  fillColor:
+                                      context.theme.colorScheme.primaryContainer.withAlpha(200),
                                   filled: true,
-                                  prefixIconColor:
-                                      context.theme.colorScheme.primary,
+                                  prefixIconColor: context.theme.colorScheme.primary,
                                   prefixIcon: const Icon(
                                     Icons.email_rounded,
                                   ),
-                                  hintText: context
-                                      .loc.email_text_field_placeholder,
+                                  hintText: context.loc.email_text_field_placeholder,
                                 ),
                               ),
                               const SizedBox(
@@ -232,15 +222,14 @@ class _RegisterViewState extends State<RegisterView>
                                 autocorrect: false,
                                 enableSuggestions: false,
                                 style: TextStyle(
-                                  color: context
-                                      .theme.colorScheme.onPrimaryContainer,
+                                  color: context.theme.colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
                                 ),
                                 decoration: InputDecoration(
                                   hintStyle: TextStyle(
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer.withAlpha(200),
+                                    color:
+                                        context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                                     fontWeight: FontWeight.w500,
                                     fontSize: 16,
                                   ),
@@ -249,8 +238,7 @@ class _RegisterViewState extends State<RegisterView>
                                     borderRadius: BorderRadius.circular(28),
                                     borderSide: BorderSide(
                                       width: 0.5,
-                                      color:
-                                          context.theme.colorScheme.primary,
+                                      color: context.theme.colorScheme.primary,
                                     ),
                                   ),
                                   enabledBorder: const OutlineInputBorder(
@@ -262,14 +250,11 @@ class _RegisterViewState extends State<RegisterView>
                                     ),
                                     borderSide: BorderSide.none,
                                   ),
-                                  fillColor: context
-                                      .theme.colorScheme.primaryContainer
-                                      .withAlpha(200),
+                                  fillColor:
+                                      context.theme.colorScheme.primaryContainer.withAlpha(200),
                                   filled: true,
-                                  hintText: context
-                                      .loc.password_text_field_placeholder,
-                                  prefixIconColor:
-                                      context.theme.colorScheme.primary,
+                                  hintText: context.loc.password_text_field_placeholder,
+                                  prefixIconColor: context.theme.colorScheme.primary,
                                   prefixIcon: const Icon(
                                     Icons.password_rounded,
                                   ),
@@ -285,17 +270,16 @@ class _RegisterViewState extends State<RegisterView>
                                   final password = _password.text;
                                   if (_isPasswordMatching()) {
                                     context.read<AuthBloc>().add(
-                                      AuthEventRegister(
-                                        email,
-                                        password,
-                                      ),
-                                    );
+                                          AuthEventRegister(
+                                            email,
+                                            password,
+                                          ),
+                                        );
                                   } else {
                                     await showErrorDialog(
-                                    context:context,
-                                    text:   context.loc
-                                        .register_error_passwords_do_not_match,
-                                    showTitle: false,
+                                      context: context,
+                                      text: context.loc.register_error_passwords_do_not_match,
+                                      showTitle: false,
                                     );
                                   }
                                 },
@@ -304,36 +288,30 @@ class _RegisterViewState extends State<RegisterView>
                                 enableSuggestions: false,
                                 textInputAction: TextInputAction.go,
                                 style: TextStyle(
-                                  color: context
-                                      .theme.colorScheme.onPrimaryContainer,
+                                  color: context.theme.colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
                                 ),
                                 decoration: InputDecoration(
                                   hintStyle: TextStyle(
-                                    color: context
-                                        .theme.colorScheme.onPrimaryContainer.withAlpha(200),
+                                    color:
+                                        context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                                     fontWeight: FontWeight.w500,
                                     fontSize: 16,
                                   ),
                                   filled: true,
                                   fillColor: _passwordMatches
-                                      ? context
-                                          .theme.colorScheme.primaryContainer
-                                          .withAlpha(200)
-                                      : context
-                                          .theme.colorScheme.errorContainer.withAlpha(200),
+                                      ? context.theme.colorScheme.primaryContainer.withAlpha(200)
+                                      : context.theme.colorScheme.errorContainer.withAlpha(200),
                                   errorText: _passwordMatches
                                       ? null
-                                      : context.loc
-                                          .register_error_passwords_do_not_match,
+                                      : context.loc.register_error_passwords_do_not_match,
                                   contentPadding: const EdgeInsets.all(20),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(28),
                                     borderSide: BorderSide(
                                       width: 0.5,
-                                      color:
-                                          context.theme.colorScheme.primary,
+                                      color: context.theme.colorScheme.primary,
                                     ),
                                   ),
                                   enabledBorder: const OutlineInputBorder(
@@ -361,8 +339,7 @@ class _RegisterViewState extends State<RegisterView>
                                       color: context.theme.colorScheme.error,
                                     ),
                                   ),
-                                  hintText: context.loc
-                                      .reenter_password_text_field_placeholder,
+                                  hintText: context.loc.reenter_password_text_field_placeholder,
                                   prefixIconColor: _passwordMatches
                                       ? context.theme.colorScheme.primary
                                       : context.theme.colorScheme.error,
@@ -390,9 +367,8 @@ class _RegisterViewState extends State<RegisterView>
                                   );
                             } else {
                               await showErrorDialog(
-                                context:context,
-                                text:   context.loc
-                                    .register_error_passwords_do_not_match,
+                                context: context,
+                                text: context.loc.register_error_passwords_do_not_match,
                                 showTitle: false,
                               );
                             }
@@ -418,13 +394,10 @@ class _RegisterViewState extends State<RegisterView>
                         ),
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: context.theme.colorScheme.surface
-                                .withOpacity(0.5),
+                            backgroundColor: context.theme.colorScheme.surface.withOpacity(0.5),
                           ),
                           onPressed: () {
-                            context
-                                .read<AuthBloc>()
-                                .add(const AuthEventLogOut());
+                            context.read<AuthBloc>().add(const AuthEventLogOut());
                           },
                           label: Text(
                             context.loc.register_view_already_registered,

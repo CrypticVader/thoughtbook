@@ -40,8 +40,7 @@ class CloudNote {
         ownerUserId = snapshot.data()[ownerUserIdFieldName],
         content = snapshot.data()[contentFieldName] as String,
         title = snapshot.data()[titleFieldName] as String,
-        tagDocumentIds =
-            List<String>.from(snapshot.data()[tagDocumentIdsFieldName] ?? []),
+        tagDocumentIds = List<String>.from(snapshot.data()[tagDocumentIdsFieldName] ?? []),
         // do not cast as int as it is nullable
         color = snapshot.data()[colorFieldName] as int?,
         created = snapshot.data()[createdFieldName] as Timestamp,

@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_tag_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_tag_syncable/note_tag_change_storable.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
@@ -46,8 +46,7 @@ mixin NoteTagChangeSyncMixin {
         'sync local create. Proceeding to delete all changes to the missing noteTag from change feed.',
         name: 'NoteSyncService',
       );
-      await NoteTagChangeStorable()
-          .deleteAllChangesForNoteTag(isarNoteId: change.noteTag.isarId);
+      await NoteTagChangeStorable().deleteAllChangesForNoteTag(isarNoteId: change.noteTag.isarId);
       return;
     }
 
@@ -88,8 +87,7 @@ mixin NoteTagChangeSyncMixin {
   Future<void> _syncOrIgnoreLocalUpdate(NoteTagChange change) async {
     LocalNoteTag localNoteTag;
     try {
-      localNoteTag =
-          await LocalStore.noteTag.getItem(id: change.noteTag.isarId);
+      localNoteTag = await LocalStore.noteTag.getItem(id: change.noteTag.isarId);
     } on CouldNotFindNoteTagException {
       // The noteTag could have been deleted locally by the user by the time the
       // update operation got processed for syncing.
@@ -99,8 +97,7 @@ mixin NoteTagChangeSyncMixin {
     }
 
     // If no cloudId was passed, then return
-    if (localNoteTag.cloudDocumentId == null ||
-        localNoteTag.cloudDocumentId!.isEmpty) {
+    if (localNoteTag.cloudDocumentId == null || localNoteTag.cloudDocumentId!.isEmpty) {
       log('cloudDocumentId field is null in NoteTagChange instance.'
           'Cannot proceed to sync local update operation.');
       return;
@@ -109,8 +106,8 @@ mixin NoteTagChangeSyncMixin {
     }
 
     // Check if the local change is outdated
-    final cloudNote = await CloudStore.noteTag
-        .getItem(cloudDocumentId: localNoteTag.cloudDocumentId!);
+    final cloudNote =
+        await CloudStore.noteTag.getItem(cloudDocumentId: localNoteTag.cloudDocumentId!);
     if (cloudNote.modified.toDate().isAfter(localNoteTag.modified)) {
       log('Local change to noteTag with isarId=${localNoteTag.isarId} is outdated.'
           'Ignoring sync.');
@@ -173,8 +170,7 @@ mixin NoteTagChangeSyncMixin {
     }
 
     try {
-      await CloudStore.noteTag
-          .deleteItem(cloudDocumentId: change.noteTag.cloudDocumentId!);
+      await CloudStore.noteTag.deleteItem(cloudDocumentId: change.noteTag.cloudDocumentId!);
     } on CouldNotDeleteNoteTagException {
       log(
         'Could not find CloudNoteTag with isarId=${change.noteTag.isarId} &'

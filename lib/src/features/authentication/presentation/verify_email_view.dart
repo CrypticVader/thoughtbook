@@ -81,8 +81,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                         child: Column(
                           children: [
                             Text(
-                              context.loc
-                                  .verify_email_view_resend_verification_prompt,
+                              context.loc.verify_email_view_resend_verification_prompt,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: context.theme.colorScheme.onSurface,
@@ -98,8 +97,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                                     );
                               },
                               child: Text(
-                                context
-                                    .loc.verify_email_send_email_verification,
+                                context.loc.verify_email_send_email_verification,
                                 style: TextStyle(
                                   color: context.theme.colorScheme.onSurface,
                                 ),

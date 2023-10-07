@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_tag_editor_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/tag_editor_bottom_sheet.dart';
 
 Future<void> showNoteTagRenameDialog({
   required BuildContext context,
@@ -35,8 +35,7 @@ Future<void> showNoteTagRenameDialog({
               maxLines: 1,
               decoration: InputDecoration(
                 filled: true,
-                fillColor:
-                    context.theme.colorScheme.primaryContainer.withAlpha(200),
+                fillColor: context.theme.colorScheme.primaryContainer.withAlpha(200),
                 border: OutlineInputBorder(
                   borderSide: BorderSide.none,
                   borderRadius: BorderRadius.circular(16),

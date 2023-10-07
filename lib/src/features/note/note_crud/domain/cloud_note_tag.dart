@@ -20,8 +20,7 @@ class CloudNoteTag {
     required this.modified,
   });
 
-  CloudNoteTag.fromSnapshot(
-      QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
+  CloudNoteTag.fromSnapshot(QueryDocumentSnapshot<Map<String, dynamic>> snapshot)
       : documentId = snapshot.id,
         ownerUserId = snapshot.data()[ownerUserIdFieldName],
         name = snapshot.data()[nameFieldName] as String,
@@ -29,8 +28,7 @@ class CloudNoteTag {
         modified = snapshot.data()[modifiedFieldName] as Timestamp;
 
   @override
-  bool operator ==(covariant CloudNoteTag other) =>
-      documentId == other.documentId;
+  bool operator ==(covariant CloudNoteTag other) => documentId == other.documentId;
 
   @override
   int get hashCode => documentId.hashCode;

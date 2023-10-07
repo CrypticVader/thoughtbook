@@ -11,16 +11,14 @@ import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable_exceptions.dart';
 
 class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
-  static final NoteTagChangeStorable _shared =
-      NoteTagChangeStorable._sharedInstance();
+  static final NoteTagChangeStorable _shared = NoteTagChangeStorable._sharedInstance();
 
   NoteTagChangeStorable._sharedInstance() {
     _ensureCollectionIsOpen();
     _eventNotifierController = PublishSubject<void>();
     _noteTagChangeFeedController = PublishSubject<NoteTagChange>();
     // Sets up the local change-feed stream as a StreamQueue
-    _changeFeedQueue =
-        StreamQueue<NoteTagChange>(_noteTagChangeFeedController.stream);
+    _changeFeedQueue = StreamQueue<NoteTagChange>(_noteTagChangeFeedController.stream);
   }
 
   factory NoteTagChangeStorable() => _shared;
@@ -149,8 +147,7 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
         (isar) {
           final duplicateUpdatesCount = isar.noteTagChanges
               .where()
-              .noteTag(
-                  (noteTag) => noteTag.isarIdEqualTo(change.noteTag.isarId))
+              .noteTag((noteTag) => noteTag.isarIdEqualTo(change.noteTag.isarId))
               .typeEqualTo(SyncableChangeType.update)
               .deleteAll();
           if (duplicateUpdatesCount > 0) {

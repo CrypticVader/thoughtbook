@@ -1,16 +1,21 @@
+import 'dart:math';
+
 import 'package:animations/animations.dart';
 import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'
-    show BlocConsumer, BlocProvider, ReadContext;
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' show BlocConsumer, BlocProvider, ReadContext;
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/src/extensions/iterable/null_check.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_bloc.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
@@ -18,19 +23,17 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/no
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_trash_bloc/note_trash_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/note_trash_view.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_filter_picker_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_group_mode_picker_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_sort_mode_picker_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/note_tag_editor_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/common_widgets/tonal_chip.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/bottom_sheets/color_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/color_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/note_filter_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/note_group_mode_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/note_sort_mode_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/tag_editor_bottom_sheet.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/note_editor_view.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/note_trash_view.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_list_view.dart';
 import 'package:thoughtbook/src/features/settings/presentation/settings_view.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
+import 'package:thoughtbook/src/utilities/common_widgets/tonal_chip.dart';
 import 'package:thoughtbook/src/utilities/dialogs/logout_dialog.dart';
 
 class NotesView extends StatefulWidget {
@@ -51,7 +54,7 @@ class _NotesViewState extends State<NotesView> {
     }
   }
 
-  SliverAppBar _getDefaultAppBar(
+  SliverAppBar _buildDefaultAppBar(
     BuildContext context,
     NoteInitializedState state,
     bool isScrolled,
@@ -64,6 +67,26 @@ class _NotesViewState extends State<NotesView> {
       GroupParameter.none => 'Ungrouped',
     };
 
+    // String tagChipLabel() {
+    //   final props = state.filterProps;
+    //   if (props == FilterProps.noFilters()) {
+    //     return 'All notes';
+    //   } else {
+    //     final tagCount = props.filterTagIds.length;
+    //     final colorCount = props.filterColors.length;
+    //     final hasCreated = props.createdRange.isNotNull;
+    //     final hasModified = props.modifiedRange.isNotNull;
+    //     return '$tagCount tag selected';
+    //   }
+    // }
+
+    final targetPlatform = ScrollConfiguration.of(context).getPlatform(context);
+    final isDesktop = {
+      TargetPlatform.windows,
+      TargetPlatform.macOS,
+      TargetPlatform.linux,
+    }.contains(targetPlatform);
+
     return SliverAppBar(
       pinned: true,
       snap: true,
@@ -73,146 +96,166 @@ class _NotesViewState extends State<NotesView> {
         context.themeColors.background,
       ),
       surfaceTintColor: Colors.transparent,
-      leadingWidth: kMinInteractiveDimension,
-      titleSpacing: 16.0,
+      titleSpacing: 8,
       automaticallyImplyLeading: false,
-      title: TextField(
-        onChanged: (value) =>
-            context.read<NoteBloc>().add(NoteSearchEvent(query: value)),
-        textInputAction: TextInputAction.search,
-        keyboardType: TextInputType.text,
-        style: TextStyle(
-          color: context.themeColors.onSecondaryContainer,
-          fontWeight: FontWeight.w500,
-          fontSize: 16,
-        ),
-        decoration: InputDecoration(
-          hintStyle: TextStyle(
-            color: context.themeColors.onSecondaryContainer.withAlpha(170),
-            fontWeight: FontWeight.w500,
-            fontSize: 16,
-          ),
-          contentPadding: const EdgeInsets.all(12),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24.0),
-            borderSide: BorderSide(
-              strokeAlign: BorderSide.strokeAlignInside,
-              width: 0.5,
-              color: context.themeColors.onSurfaceVariant.withAlpha(100),
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24.0),
-            borderSide: BorderSide.none,
-          ),
-          fillColor: Color.alphaBlend(
-            context.themeColors.inversePrimary.withAlpha(40),
-            context.themeColors.surfaceVariant.withAlpha(80),
-          ),
-          filled: true,
-          prefixIconColor: context.themeColors.secondary,
-          suffixIconColor: context.themeColors.secondary,
-          prefixIcon: IconButton(
+      toolbarHeight: isDesktop ? 70 : 56,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
             tooltip: 'Open navigation menu',
             onPressed: () => Scaffold.of(context).openDrawer(),
-            icon: const Icon(FluentIcons.line_horizontal_3_20_filled),
+            icon: Icon(
+              FluentIcons.line_horizontal_3_20_filled,
+              color: context.themeColors.onSecondaryContainer,
+            ),
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(10),
+              iconSize: 26,
+              backgroundColor: context.themeColors.secondaryContainer,
+              foregroundColor: context.themeColors.onSecondaryContainer,
+            ),
           ),
-          suffixIcon: IconButton(
-            onPressed: () =>
-                context.read<NoteBloc>().add(const NoteToggleLayoutEvent()),
+          const SizedBox(width: 4),
+          LimitedBox(
+            maxWidth: min(MediaQuery.of(context).size.width - 120, 720),
+            child: TextField(
+              onChanged: (value) => context.read<NoteBloc>().add(NoteSearchEvent(query: value)),
+              textInputAction: TextInputAction.search,
+              keyboardType: TextInputType.text,
+              style: TextStyle(
+                color: context.themeColors.onSecondaryContainer,
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+              ),
+              decoration: InputDecoration(
+                hintStyle: TextStyle(
+                    color: context.themeColors.onSecondaryContainer.withAlpha(180),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic),
+                contentPadding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24.0),
+                  borderSide: BorderSide(
+                    strokeAlign: BorderSide.strokeAlignInside,
+                    width: 0.75,
+                    color: context.themeColors.onSurfaceVariant.withAlpha(100),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24.0),
+                  borderSide: BorderSide.none,
+                ),
+                fillColor: Color.alphaBlend(
+                  context.themeColors.secondaryContainer.withAlpha(170),
+                  context.themeColors.background,
+                ),
+                filled: true,
+                hintText: 'Search your notes & tags',
+                prefixIcon: Icon(
+                  FluentIcons.search_24_regular,
+                  color: context.themeColors.onSecondaryContainer.withAlpha(200),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: () => context.read<NoteBloc>().add(const NoteToggleLayoutEvent()),
             icon: AnimatedSwitcher(
               switchOutCurve: Curves.easeInQuad,
               switchInCurve: Curves.easeOutQuad,
               duration: 300.milliseconds,
-              transitionBuilder:
-                  (child, animation) =>
-                  ScaleTransition(
-                    scale: animation,
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    ),
-                  ),
+              transitionBuilder: (child, animation) => ScaleTransition(
+                scale: animation,
+                child: FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+              ),
               child: Icon(
                 (layoutPreference == LayoutPreference.list.value)
                     ? FluentIcons.grid_28_filled
                     : FluentIcons.list_28_filled,
                 key: ValueKey<String>(layoutPreference),
+                color: context.themeColors.onSecondaryContainer,
               ),
             ),
             tooltip: (layoutPreference == LayoutPreference.list.value)
                 ? context.loc.notes_view_grid_layout
                 : context.loc.notes_view_list_layout,
+            style: IconButton.styleFrom(
+              padding: const EdgeInsets.all(10),
+              iconSize: 26,
+              backgroundColor: context.themeColors.secondaryContainer,
+              foregroundColor: context.themeColors.onSecondaryContainer,
+            ),
           ),
-          hintText: 'Search your notes & tags',
-        ),
+        ],
       ),
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(kMinInteractiveDimension + 8),
+        preferredSize: const Size.fromHeight(54),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 10.0, top: 8.0),
+            padding: const EdgeInsets.only(bottom: 8.0, top: 8.0),
             child: Row(
               children: [
-                const SizedBox(
-                  width: 16.0,
-                ),
                 TonalChip(
                   onTap: () async => await showNoteFilterPickerBottomSheet(
                     context: context,
                     allTags: state.noteTags,
-                    currentFilter: state.filterProps.filterSet,
-                    requireEntireFilter: state.filterProps.requireEntireFilter,
-                    onSelect: (tagId, requireEntireFilter) =>
-                        context.read<NoteBloc>().add(NoteModifyFilteringEvent(
-                              selectedTagId: tagId,
-                              requireEntireFilter: requireEntireFilter,
-                            )),
+                    allColors: kNoteColors,
+                    filterProps: state.filterProps,
+                    onChange: (newProps) =>
+                        context.read<NoteBloc>().add(NoteModifyFilterEvent(props: newProps)),
                   ),
-                  label: state.filterProps.filterSet.isEmpty
+                  label: state.filterProps.filterTagIds.isNullOrEmpty
                       ? 'All notes'
-                      : '${state.filterProps.filterSet.length} '
-                          'tag${(state.filterProps.filterSet.length > 1) ? 's' : ''} selected',
+                      : '${state.filterProps.filterTagIds.length} '
+                          'tag${(state.filterProps.filterTagIds.length > 1) ? 's' : ''} selected',
                   iconData: FluentIcons.filter_24_filled,
-                  backgroundColor: state.filterProps.filterSet.isNotEmpty
+                  backgroundColor: state.filterProps.filterTagIds.isNotNullAndNotEmpty
                       ? context.themeColors.primaryContainer
-                      : null,
-                  foregroundColor: state.filterProps.filterSet.isNotEmpty
+                      : context.themeColors.secondaryContainer.withAlpha(200),
+                  foregroundColor: state.filterProps.filterTagIds.isNotNullAndNotEmpty
                       ? context.themeColors.onPrimaryContainer
-                      : null,
+                      : context.themeColors.onSecondaryContainer,
+                  borderColor: state.filterProps.filterTagIds.isNotNullAndNotEmpty
+                      ? Colors.transparent
+                      : context.themeColors.onSecondaryContainer.withAlpha(25),
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
+                const SizedBox(width: 8),
                 TonalChip(
                   onTap: () async => await showNoteSortModePickerBottomSheet(
                     context: context,
                     sortMode: state.sortProps.mode,
                     sortOrder: state.sortProps.order,
                     onSelect: (sortOrder, sortMode) =>
-                        context.read<NoteBloc>().add(NoteModifySortingEvent(
+                        context.read<NoteBloc>().add(NoteModifySortEvent(
                               sortMode: sortMode,
                               sortOrder: sortOrder,
                             )),
                   ),
-                  label: state.sortProps.mode == SortMode.dataCreated
+                  label: state.sortProps.mode == SortMode.dateCreated
                       ? 'Date created'
                       : 'Date modified',
                   iconData: FluentIcons.arrow_sort_24_filled,
+                  backgroundColor: context.themeColors.secondaryContainer.withAlpha(200),
+                  foregroundColor: context.themeColors.onSecondaryContainer,
+                  borderColor: context.themeColors.onSecondaryContainer.withAlpha(25),
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
+                const SizedBox(width: 8),
                 TonalChip(
                   onTap: () async => await showNoteGroupModePickerBottomSheet(
                     context: context,
                     groupParameter: state.groupProps.groupParameter,
                     groupOrder: state.groupProps.groupOrder,
                     tagGroupLogic: state.groupProps.tagGroupLogic,
-                    onChangeProps: (groupParameter, groupOrder,
-                            tagGroupLogic) =>
-                        context.read<NoteBloc>().add(NoteModifyGroupingEvent(
+                    onChangeProps: (groupParameter, groupOrder, tagGroupLogic) =>
+                        context.read<NoteBloc>().add(NoteModifyGroupPropsEvent(
                               groupParameter: groupParameter,
                               groupOrder: groupOrder,
                               tagGroupLogic: tagGroupLogic,
@@ -220,9 +263,9 @@ class _NotesViewState extends State<NotesView> {
                   ),
                   label: groupChipLabel,
                   iconData: FluentIcons.group_24_filled,
-                ),
-                const SizedBox(
-                  width: 16.0,
+                  backgroundColor: context.themeColors.secondaryContainer.withAlpha(200),
+                  foregroundColor: context.themeColors.onSecondaryContainer,
+                  borderColor: context.themeColors.onSecondaryContainer.withAlpha(25),
                 ),
               ],
             ),
@@ -232,7 +275,7 @@ class _NotesViewState extends State<NotesView> {
     );
   }
 
-  Widget _noteSelectionToolbar(
+  Widget _buildNoteSelectionToolbar(
     BuildContext context,
     Set<LocalNote> selectedNotes,
   ) {
@@ -262,8 +305,7 @@ class _NotesViewState extends State<NotesView> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 24.0),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 4.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
                     decoration: BoxDecoration(
                       color: Color.alphaBlend(
                         context.themeColors.primary,
@@ -275,8 +317,7 @@ class _NotesViewState extends State<NotesView> {
                       children: [
                         IconButton(
                           tooltip: context.loc.close,
-                          onPressed: () =>
-                              noteBloc.add(const NoteUnselectAllEvent()),
+                          onPressed: () => noteBloc.add(const NoteUnselectAllEvent()),
                           icon: const Icon(
                             FluentIcons.dismiss_24_filled,
                           ),
@@ -324,8 +365,7 @@ class _NotesViewState extends State<NotesView> {
                                 duration: 200.milliseconds,
                                 switchOutCurve: Curves.easeInOutQuad,
                                 switchInCurve: Curves.easeInOutQuad,
-                                transitionBuilder: (child, animation) =>
-                                    FadeTransition(
+                                transitionBuilder: (child, animation) => FadeTransition(
                                   opacity: animation,
                                   child: SizeTransition(
                                     axis: Axis.horizontal,
@@ -340,39 +380,31 @@ class _NotesViewState extends State<NotesView> {
                                             onPressed: () async {
                                               final note = selectedNotes.first;
                                               final currentColor =
-                                                  (note.color != null)
-                                                      ? Color(note.color!)
-                                                      : null;
-                                              final color =
-                                                  await showColorPickerModalBottomSheet(
+                                                  (note.color != null) ? Color(note.color!) : null;
+                                              final color = await showColorPickerModalBottomSheet(
                                                 context: context,
                                                 currentColor: currentColor,
                                               );
                                               noteBloc.add(
                                                 NoteUpdateColorEvent(
                                                   note: note,
-                                                  color: (color != null)
-                                                      ? color.value
-                                                      : null,
+                                                  color: (color != null) ? color.value : null,
                                                 ),
                                               );
                                             },
                                             icon: Icon(
                                               FluentIcons.color_24_filled,
-                                              color: context.themeColors
-                                                  .onPrimaryContainer,
+                                              color: context.themeColors.onPrimaryContainer,
                                             ),
                                           ),
                                           IconButton(
                                             onPressed: () async {
                                               final note = selectedNotes.first;
-                                              noteBloc
-                                                  .add(NoteShareEvent(note));
+                                              noteBloc.add(NoteShareEvent(note));
                                             },
                                             icon: Icon(
                                               FluentIcons.share_24_filled,
-                                              color: context.themeColors
-                                                  .onPrimaryContainer,
+                                              color: context.themeColors.onPrimaryContainer,
                                             ),
                                           ),
                                           IconButton(
@@ -382,8 +414,7 @@ class _NotesViewState extends State<NotesView> {
                                             },
                                             icon: Icon(
                                               FluentIcons.copy_24_filled,
-                                              color: context.themeColors
-                                                  .onPrimaryContainer,
+                                              color: context.themeColors.onPrimaryContainer,
                                             ),
                                           ),
                                         ],
@@ -433,7 +464,7 @@ class _NotesViewState extends State<NotesView> {
     );
   }
 
-  Widget _getDrawerWidget(
+  Widget _buildDrawerWidget(
     BuildContext context,
     NoteInitializedState state,
   ) {
@@ -461,8 +492,7 @@ class _NotesViewState extends State<NotesView> {
                           children: [
                             Icon(
                               FluentIcons.person_32_filled,
-                              color:
-                                  context.theme.colorScheme.onTertiaryContainer,
+                              color: context.theme.colorScheme.onTertiaryContainer,
                             ),
                             const SizedBox(
                               width: 8.0,
@@ -475,8 +505,7 @@ class _NotesViewState extends State<NotesView> {
                                   overflow: TextOverflow.ellipsis,
                                   fontSize: 16.0,
                                   fontWeight: FontWeight.w500,
-                                  color: context
-                                      .theme.colorScheme.onTertiaryContainer,
+                                  color: context.theme.colorScheme.onTertiaryContainer,
                                 ),
                               ),
                             ),
@@ -498,8 +527,7 @@ class _NotesViewState extends State<NotesView> {
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: context.themeColors.tertiary,
-                            foregroundColor:
-                                context.theme.colorScheme.onTertiary,
+                            foregroundColor: context.theme.colorScheme.onTertiary,
                             minimumSize: const Size.fromHeight(40.0),
                           ),
                         ),
@@ -553,27 +581,21 @@ class _NotesViewState extends State<NotesView> {
                   children: [
                     // Primary actions
                     ListTile(
-                      onTap: () async =>
-                          await showNoteTagEditorModalBottomSheet(
+                      onTap: () async => await showNoteTagEditorModalBottomSheet(
                         context: context,
                         tags: () => state.noteTags(),
-                        onCreateTag: (tagName) => context
-                            .read<NoteBloc>()
-                            .add(NoteCreateTagEvent(name: tagName)),
-                        onEditTag: (tag, newName) =>
-                            context.read<NoteBloc>().add(NoteEditTagEvent(
-                                  tag: tag,
-                                  newName: newName,
-                                )),
-                        onDeleteTag: (tag) => context
-                            .read<NoteBloc>()
-                            .add(NoteDeleteTagEvent(tag: tag)),
+                        onCreateTag: (tagName) =>
+                            context.read<NoteBloc>().add(NoteCreateTagEvent(name: tagName)),
+                        onEditTag: (tag, newName) => context.read<NoteBloc>().add(NoteEditTagEvent(
+                              tag: tag,
+                              newName: newName,
+                            )),
+                        onDeleteTag: (tag) =>
+                            context.read<NoteBloc>().add(NoteDeleteTagEvent(tag: tag)),
                       ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16.0),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
                       tileColor: context.themeColors.primaryContainer,
-                      splashColor: context.theme.colorScheme.inversePrimary
-                          .withAlpha(200),
+                      splashColor: context.theme.colorScheme.inversePrimary.withAlpha(200),
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(28),
@@ -599,11 +621,9 @@ class _NotesViewState extends State<NotesView> {
                     ),
                     ListTile(
                       onTap: () {},
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16.0),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
                       tileColor: context.themeColors.primaryContainer,
-                      splashColor: context.theme.colorScheme.inversePrimary
-                          .withAlpha(200),
+                      splashColor: context.theme.colorScheme.inversePrimary.withAlpha(200),
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(4),
@@ -626,8 +646,7 @@ class _NotesViewState extends State<NotesView> {
                       trailing: InkWell(
                         onTap: () {},
                         borderRadius: BorderRadius.circular(32),
-                        splashColor: context.theme.colorScheme.primaryContainer
-                            .withAlpha(200),
+                        splashColor: context.theme.colorScheme.primaryContainer.withAlpha(200),
                         child: Ink(
                           padding: const EdgeInsets.all(6.0),
                           decoration: BoxDecoration(
@@ -732,6 +751,19 @@ class _NotesViewState extends State<NotesView> {
   }
 
   @override
+  void didChangeDependencies() {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.black.withOpacity(0.002),
+        systemNavigationBarIconBrightness:
+            Theme.of(context).brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarContrastEnforced: false,
+      ),
+    );
+    super.didChangeDependencies();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocConsumer<NoteBloc, NoteState>(
       listener: (context, state) async {
@@ -828,8 +860,7 @@ class _NotesViewState extends State<NotesView> {
                 .closed
                 .then((value) => confirmDelete);
             if (!confirmDelete) {
-              noteBloc.add(
-                  NoteUndoDeleteEvent(deletedNotes: state.deletedNotes ?? {}));
+              noteBloc.add(NoteUndoDeleteEvent(deletedNotes: state.deletedNotes ?? {}));
             }
           }
         }
@@ -872,17 +903,13 @@ class _NotesViewState extends State<NotesView> {
                             child: NoteEditorView(
                               note: null,
                               shouldAutoFocusContent: true,
-                              onDeleteNote: (note) => context
-                                  .read<NoteBloc>()
-                                  .add(NoteDeleteEvent(notes: {note})),
+                              onDeleteNote: (note) =>
+                                  context.read<NoteBloc>().add(NoteDeleteEvent(notes: {note})),
                             ),
                           ),
                           closedElevation: 8.0,
-                          closedShape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(20.0),
-                            ),
-                          ),
+                          closedShape:
+                              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                           closedColor: context.themeColors.primaryContainer,
                           middleColor: context.themeColors.secondaryContainer,
                           openColor: context.themeColors.secondaryContainer,
@@ -891,19 +918,15 @@ class _NotesViewState extends State<NotesView> {
                               onPressed: openContainer,
                               tooltip: context.loc.new_note,
                               style: IconButton.styleFrom(
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(20.0),
-                                  ),
-                                ),
-                                padding: const EdgeInsets.all(12.0),
+                                shape:
+                                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                                padding: const EdgeInsets.all(10.0),
                                 backgroundColor: Colors.transparent,
-                                foregroundColor:
-                                    context.themeColors.onPrimaryContainer,
+                                foregroundColor: context.themeColors.onPrimaryContainer,
                               ),
                               icon: const Icon(
                                 FluentIcons.note_add_48_filled,
-                                size: 44,
+                                size: 46,
                               ),
                             );
                           },
@@ -911,13 +934,12 @@ class _NotesViewState extends State<NotesView> {
                       ),
                     )
                   : null,
-              drawer: _getDrawerWidget(context, state),
+              drawer: _buildDrawerWidget(context, state),
               body: NestedScrollView(
                 floatHeaderSlivers: true,
-                headerSliverBuilder:
-                    (BuildContext context, bool innerBoxIsScrolled) {
+                headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
                   return [
-                    _getDefaultAppBar(context, state, innerBoxIsScrolled),
+                    _buildDefaultAppBar(context, state, innerBoxIsScrolled),
                   ];
                 },
                 body: StreamBuilder(
@@ -931,7 +953,7 @@ class _NotesViewState extends State<NotesView> {
                       case ConnectionState.waiting:
                       case ConnectionState.done:
                       case ConnectionState.active:
-                        if (snapshot.hasData) {
+                        if (snapshot.hasData && snapshot.data!.$1.isNotEmpty) {
                           final notes = snapshot.data!.$1;
                           final selectedNotes = snapshot.data!.$2;
 
@@ -941,16 +963,14 @@ class _NotesViewState extends State<NotesView> {
                               children: [
                                 NotificationListener<UserScrollNotification>(
                                   onNotification: (notification) {
-                                    ScrollDirection direction =
-                                        notification.direction;
+                                    ScrollDirection direction = notification.direction;
                                     if (direction == ScrollDirection.forward) {
                                       if (_showFab != true) {
                                         setState(() {
                                           _showFab = true;
                                         });
                                       }
-                                    } else if (direction ==
-                                        ScrollDirection.reverse) {
+                                    } else if (direction == ScrollDirection.reverse) {
                                       if (_showFab != false) {
                                         setState(() {
                                           _showFab = false;
@@ -959,45 +979,37 @@ class _NotesViewState extends State<NotesView> {
                                     }
                                     return true;
                                   },
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: notes.keys
-                                          .map(
-                                            (header) => NoteGroup(
+                                  child: ListView(
+                                    padding: EdgeInsets.all(10),
+                                    children: notes.keys
+                                        .map((header) => NoteGroup(
                                               key: ValueKey(header),
                                               state: state,
                                               notes: notes[header]!,
                                               groupHeader: header,
-                                              selectedNotes: selectedNotes
-                                                  .intersection(notes[header]!
-                                                      .map((e) => e.note)
-                                                      .toSet()),
+                                              selectedNotes: selectedNotes.intersection(
+                                                  notes[header]!.map((e) => e.note).toSet()),
                                               onSelectGroup: (notes) =>
-                                                  noteBloc.add(NoteSelectEvent(
-                                                      notes: notes)),
+                                                  noteBloc.add(NoteSelectEvent(notes: notes)),
                                               onUnselectGroup: (notes) =>
-                                                  noteBloc.add(
-                                                      NoteUnselectEvent(
-                                                          notes: notes)),
-                                            ),
-                                          )
-                                          .toList(),
-                                    ),
+                                                  noteBloc.add(NoteUnselectEvent(notes: notes)),
+                                            ))
+                                        .toList(),
                                   ),
                                 ),
-                                const Column(
+                                _buildNoteSelectionToolbar(context, selectedNotes),
+                                Column(
                                   children: [
-                                    Spacer(flex: 1),
+                                    const Spacer(flex: 1),
                                     AbsorbPointer(
-                                      child: SizedBox(
-                                        height: 32,
+                                      child: Container(
+                                        height: MediaQuery.of(context).padding.bottom,
                                         width: double.infinity,
+                                        color: context.themeColors.background.withAlpha(120),
                                       ),
                                     ),
                                   ],
                                 ),
-                                _noteSelectionToolbar(context, selectedNotes),
                               ],
                             ),
                           );
@@ -1063,11 +1075,13 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    _animation = Tween(begin: 0.0, end: -0.5).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOutQuad));
+    _animation = Tween(begin: 0.0, end: -0.5).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    ));
   }
 
   @override
@@ -1082,112 +1096,113 @@ class _NoteListGroupHeaderState extends State<NoteListGroupHeader>
       margin: EdgeInsets.zero,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-        child: InkWell(
-          onTap: () {
-            widget.onTapHeader();
-            if (_controller.isDismissed) {
-              _controller.forward();
-            } else {
-              _controller.reverse();
-            }
-          },
-          splashColor: context.themeColors.inversePrimary.withAlpha(170),
-          highlightColor: context.themeColors.inversePrimary,
-          borderRadius: widget.isCollapsed
-              ? BorderRadius.circular(26)
-              : const BorderRadius.only(
-                  topRight: Radius.circular(26),
-                  topLeft: Radius.circular(26),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-          child: AnimatedContainer(
-            duration: 250.milliseconds,
-            curve: Curves.ease,
-            padding: const EdgeInsets.fromLTRB(16, 2, 2, 2),
-            decoration: BoxDecoration(
-              color: context.themeColors.secondaryContainer
-                  .withAlpha(widget.isSelected ? 220 : 90),
-              borderRadius: widget.isCollapsed
-                  ? BorderRadius.circular(26)
-                  : const BorderRadius.only(
-                      topRight: Radius.circular(26),
-                      topLeft: Radius.circular(26),
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
-                    ),
+      child: InkWell(
+        onTap: () {
+          widget.onTapHeader();
+          if (_controller.isDismissed) {
+            _controller.forward();
+          } else {
+            _controller.reverse();
+          }
+        },
+        splashColor: context.themeColors.inversePrimary.withAlpha(170),
+        highlightColor: context.themeColors.inversePrimary,
+        borderRadius: widget.isCollapsed
+            ? BorderRadius.circular(26)
+            : const BorderRadius.only(
+                topRight: Radius.circular(26),
+                topLeft: Radius.circular(26),
+                bottomLeft: Radius.circular(14),
+                bottomRight: Radius.circular(14),
+              ),
+        child: AnimatedContainer(
+          duration: 250.milliseconds,
+          curve: Curves.ease,
+          padding: const EdgeInsets.fromLTRB(16, 1, 5, 1),
+          decoration: BoxDecoration(
+            color: context.themeColors.primaryContainer.withAlpha(widget.isSelected ? 220 : 120),
+            border: Border.all(
+              color: context.themeColors.primary.withAlpha(widget.isSelected ? 100 : 35),
+              width: 0.5,
+              strokeAlign: BorderSide.strokeAlignInside,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Row(
-                    children: [
-                      RotationTransition(
-                        turns: _animation,
-                        child: Icon(
-                          FluentIcons.chevron_down_24_filled,
-                          size: 20,
-                          color: context.themeColors.onSecondaryContainer
-                              .withAlpha(120),
+            borderRadius: widget.isCollapsed
+                ? BorderRadius.circular(26)
+                : const BorderRadius.only(
+                    topRight: Radius.circular(26),
+                    topLeft: Radius.circular(26),
+                    bottomLeft: Radius.circular(14),
+                    bottomRight: Radius.circular(14),
+                  ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  children: [
+                    RotationTransition(
+                      turns: _animation,
+                      child: Icon(
+                        FluentIcons.chevron_down_24_filled,
+                        size: 20,
+                        color: context.themeColors.onSecondaryContainer.withAlpha(120),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        widget.groupHeader,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: context.themeColors.onSecondaryContainer,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          widget.groupHeader,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: context.themeColors.onSecondaryContainer,
-                            overflow: TextOverflow.ellipsis,
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: () {
+                  if (widget.isSelected) {
+                    widget.onUnselectGroup();
+                  } else {
+                    widget.onSelectGroup();
+                  }
+                },
+                icon: const Icon(
+                  Icons.check_rounded,
+                  size: 24,
+                ),
+                visualDensity: const VisualDensity(horizontal: -1.75, vertical: -1.75),
+                style: IconButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: widget.isCollapsed
+                        ? const BorderRadius.only(
+                            topRight: Radius.circular(24),
+                            topLeft: Radius.circular(14),
+                            bottomLeft: Radius.circular(14),
+                            bottomRight: Radius.circular(24),
+                          )
+                        : const BorderRadius.only(
+                            topRight: Radius.circular(22),
+                            topLeft: Radius.circular(12),
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
                           ),
-                        ),
-                      )
-                    ],
                   ),
+                  backgroundColor: widget.isSelected
+                      ? context.themeColors.primary
+                      : context.themeColors.primaryContainer,
+                  foregroundColor: widget.isSelected
+                      ? context.themeColors.onPrimary
+                      : context.themeColors.onPrimaryContainer,
                 ),
-                const SizedBox(width: 4),
-                IconButton(
-                  onPressed: () {
-                    if (widget.isSelected) {
-                      widget.onUnselectGroup();
-                    } else {
-                      widget.onSelectGroup();
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.check_rounded,
-                    size: 24,
-                  ),
-                  style: IconButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: widget.isCollapsed
-                          ? const BorderRadius.only(
-                              topRight: Radius.circular(24),
-                              topLeft: Radius.circular(14),
-                              bottomLeft: Radius.circular(14),
-                              bottomRight: Radius.circular(24),
-                            )
-                          : const BorderRadius.only(
-                              topRight: Radius.circular(24),
-                              topLeft: Radius.circular(14),
-                              bottomLeft: Radius.circular(14),
-                              bottomRight: Radius.circular(14),
-                            ),
-                    ),
-                    backgroundColor: widget.isSelected
-                        ? context.themeColors.primary
-                        : context.themeColors.inversePrimary.withAlpha(120),
-                    foregroundColor: widget.isSelected
-                        ? context.themeColors.onPrimary
-                        : context.themeColors.onSecondaryContainer,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1228,7 +1243,7 @@ class _NoteGroupState extends State<NoteGroup> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (widget.groupHeader.isNotEmpty)
           NoteListGroupHeader(
@@ -1238,15 +1253,13 @@ class _NoteGroupState extends State<NoteGroup> {
             onTapHeader: () => setState(() {
               isCollapsed = !isCollapsed;
             }),
-            onSelectGroup: () =>
-                widget.onSelectGroup(widget.notes.map((e) => e.note)),
-            onUnselectGroup: () =>
-                widget.onUnselectGroup(widget.notes.map((e) => e.note)),
+            onSelectGroup: () => widget.onSelectGroup(widget.notes.map((e) => e.note)),
+            onUnselectGroup: () => widget.onUnselectGroup(widget.notes.map((e) => e.note)),
           ),
         AnimatedSwitcher(
-          duration: 450.milliseconds,
-          switchInCurve: Curves.fastOutSlowIn,
-          switchOutCurve: Curves.fastOutSlowIn.flipped,
+          duration: 650.milliseconds,
+          switchInCurve: Curves.fastEaseInToSlowEaseOut,
+          switchOutCurve: Curves.fastEaseInToSlowEaseOut.flipped,
           transitionBuilder: (child, animation) {
             return FadeTransition(
               opacity: animation,
@@ -1268,23 +1281,24 @@ class _NoteGroupState extends State<NoteGroup> {
             );
           },
           child: !isCollapsed
-              ? NotesListView(
-                  layoutPreference: widget.state.layoutPreference,
-                  notesData: widget.notes,
-                  selectedNotes: widget.selectedNotes,
-                  onDeleteNote: (LocalNote note) => context
-                      .read<NoteBloc>()
-                      .add(NoteDeleteEvent(notes: {note})),
-                  onTap: (note, openNote) {
-                    if (!(widget.state.hasSelectedNotes)) {
-                      openNote();
-                    } else {
-                      context.read<NoteBloc>().add(NoteTapEvent(note: note));
-                    }
-                  },
-                  onLongPress: (note) => context
-                      .read<NoteBloc>()
-                      .add(NoteLongPressEvent(note: note)),
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                  child: NotesListView(
+                    layoutPreference: widget.state.layoutPreference,
+                    notesData: widget.notes,
+                    selectedNotes: widget.selectedNotes,
+                    onDeleteNote: (LocalNote note) =>
+                        context.read<NoteBloc>().add(NoteDeleteEvent(notes: {note})),
+                    onTap: (note, openNote) {
+                      if (!(widget.state.hasSelectedNotes)) {
+                        openNote();
+                      } else {
+                        context.read<NoteBloc>().add(NoteTapEvent(note: note));
+                      }
+                    },
+                    onLongPress: (note) =>
+                        context.read<NoteBloc>().add(NoteLongPressEvent(note: note)),
+                  ),
                 )
               : const SizedBox(height: 10),
         ),

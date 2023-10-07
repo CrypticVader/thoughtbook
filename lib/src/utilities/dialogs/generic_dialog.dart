@@ -28,8 +28,7 @@ Future<T?> showGenericDialog<T>({
         opacity: 0,
         curve: Curves.easeInOutCubic,
         child: AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
           icon: icon,
           title: title != null
               ? Text(
@@ -65,10 +64,8 @@ Future<T?> showGenericDialog<T>({
                       borderRadius: BorderRadius.only(
                         topRight: Radius.circular(optionIndex == 0 ? 24 : 4),
                         topLeft: Radius.circular(optionIndex == 0 ? 24 : 4),
-                        bottomRight: Radius.circular(
-                            (optionIndex == optionsCount - 1) ? 24 : 4),
-                        bottomLeft: Radius.circular(
-                            (optionIndex == optionsCount - 1) ? 24 : 4),
+                        bottomRight: Radius.circular((optionIndex == optionsCount - 1) ? 24 : 4),
+                        bottomLeft: Radius.circular((optionIndex == optionsCount - 1) ? 24 : 4),
                       ),
                     ),
                     minimumSize: const Size.fromHeight(54),

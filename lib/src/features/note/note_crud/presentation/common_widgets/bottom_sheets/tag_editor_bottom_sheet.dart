@@ -5,7 +5,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/utilities/dialogs/note_tag_rename_dialog.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/dialogs/note_tag_rename_dialog.dart';
 import 'package:thoughtbook/src/utilities/dialogs/delete_dialog.dart';
 
 typedef NoteTagCreateCallback = void Function(String tagName);
@@ -71,9 +71,16 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
 
   @override
   Widget build(BuildContext context) {
+    final targetPlatform = ScrollConfiguration.of(context).getPlatform(context);
+    final isDesktop = {
+      TargetPlatform.windows,
+      TargetPlatform.macOS,
+      TargetPlatform.linux,
+    }.contains(targetPlatform);
+
     return DraggableScrollableSheet(
       expand: false,
-      initialChildSize: 0.75,
+      initialChildSize: isDesktop?0.95:0.75,
       minChildSize: 0.25,
       maxChildSize: 1.0,
       snapAnimationDuration: const Duration(microseconds: 150),
@@ -106,8 +113,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                       width: 44,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(28),
-                        color:
-                            context.themeColors.onSurfaceVariant.withAlpha(100),
+                        color: context.themeColors.onSurfaceVariant.withAlpha(100),
                       ),
                     ),
                   ),
@@ -139,24 +145,21 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                         Flexible(
                           child: TextField(
                             onSubmitted: (_) {
-                              widget
-                                  .onCreateTag(newTagTextFieldController.text);
+                              widget.onCreateTag(newTagTextFieldController.text);
                               newTagTextFieldController.text = '';
                             },
                             textInputAction: TextInputAction.done,
                             controller: newTagTextFieldController,
                             maxLines: 1,
                             style: TextStyle(
-                              color:
-                                  context.theme.colorScheme.onSecondaryContainer,
+                              color: context.theme.colorScheme.onSecondaryContainer,
                               fontWeight: FontWeight.w500,
                               fontSize: 16,
                             ),
                             decoration: InputDecoration(
                               hintStyle: TextStyle(
-                                color: context
-                                    .theme.colorScheme.onSecondaryContainer
-                                    .withAlpha(200),
+                                color:
+                                    context.theme.colorScheme.onSecondaryContainer.withAlpha(200),
                                 fontWeight: FontWeight.w500,
                                 fontSize: 16,
                               ),
@@ -172,12 +175,10 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                 borderRadius: BorderRadius.circular(28),
                                 borderSide: BorderSide.none,
                               ),
-                              fillColor: context
-                                  .theme.colorScheme.secondaryContainer
-                                  .withAlpha(200),
+                              fillColor:
+                                  context.theme.colorScheme.secondaryContainer.withAlpha(200),
                               filled: true,
-                              prefixIconColor:
-                                  context.theme.colorScheme.secondary,
+                              prefixIconColor: context.theme.colorScheme.secondary,
                               prefixIcon: const Icon(
                                 FluentIcons.tag_24_filled,
                               ),
@@ -202,10 +203,8 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                             ),
                           ),
                           style: IconButton.styleFrom(
-                            backgroundColor:
-                                context.theme.colorScheme.secondary,
-                            foregroundColor:
-                                context.theme.colorScheme.onSecondary,
+                            backgroundColor: context.theme.colorScheme.secondary,
+                            foregroundColor: context.theme.colorScheme.onSecondary,
                           ),
                         ),
                       ],
@@ -216,8 +215,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                         children: [
                           Icon(
                             Icons.tag_rounded,
-                            color: context.theme.colorScheme.onBackground
-                                .withAlpha(200),
+                            color: context.theme.colorScheme.onBackground.withAlpha(200),
                           ),
                           const SizedBox(
                             width: 8.0,
@@ -250,8 +248,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                   final tag = noteTags[index];
 
                                   return Entry.all(
-                                    delay: Duration(
-                                        milliseconds: min(200, 35 * index)),
+                                    delay: Duration(milliseconds: min(200, 35 * index)),
                                     duration: const Duration(milliseconds: 100),
                                     opacity: 0,
                                     scale: 0.75,
@@ -265,10 +262,8 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                       elevation: 0,
                                       child: ListTile(
                                         contentPadding:
-                                            const EdgeInsets.fromLTRB(
-                                                16.0, 0.0, 8.0, 0.0),
-                                        tileColor: context
-                                            .theme.colorScheme.primaryContainer
+                                            const EdgeInsets.fromLTRB(16.0, 0.0, 8.0, 0.0),
+                                        tileColor: context.theme.colorScheme.primaryContainer
                                             .withAlpha(220),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.only(
@@ -278,71 +273,56 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                             topRight: (index == 0)
                                                 ? const Radius.circular(24)
                                                 : const Radius.circular(4),
-                                            bottomLeft:
-                                                (index == (noteTags.length - 1))
-                                                    ? const Radius.circular(24)
-                                                    : const Radius.circular(4),
-                                            bottomRight:
-                                                (index == (noteTags.length - 1))
-                                                    ? const Radius.circular(24)
-                                                    : const Radius.circular(4),
+                                            bottomLeft: (index == (noteTags.length - 1))
+                                                ? const Radius.circular(24)
+                                                : const Radius.circular(4),
+                                            bottomRight: (index == (noteTags.length - 1))
+                                                ? const Radius.circular(24)
+                                                : const Radius.circular(4),
                                           ),
                                         ),
                                         leading: Icon(
                                           Icons.label_rounded,
-                                          color: context.theme.colorScheme
-                                              .onPrimaryContainer,
+                                          color: context.theme.colorScheme.onPrimaryContainer,
                                         ),
                                         title: Text(
                                           tag.name,
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w500,
-                                            color: context.theme.colorScheme
-                                                .onPrimaryContainer,
+                                            color: context.theme.colorScheme.onPrimaryContainer,
                                           ),
                                         ),
                                         trailing: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             InkWell(
-                                              onTap: () =>
-                                                  showNoteTagRenameDialog(
+                                              onTap: () => showNoteTagRenameDialog(
                                                 context: context,
                                                 tag: tag,
-                                                onEditTag: (tag, newName) =>
-                                                    widget.onEditTag(
+                                                onEditTag: (tag, newName) => widget.onEditTag(
                                                   tag,
                                                   newName,
                                                 ),
                                               ),
-                                              splashColor: context.theme
-                                                  .colorScheme.onBackground
+                                              splashColor: context.theme.colorScheme.onBackground
                                                   .withAlpha(200),
-                                              borderRadius:
-                                                  const BorderRadius.only(
+                                              borderRadius: const BorderRadius.only(
                                                 topLeft: Radius.circular(24),
                                                 bottomLeft: Radius.circular(24),
                                                 topRight: Radius.circular(4),
                                                 bottomRight: Radius.circular(4),
                                               ),
                                               child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(10.0),
+                                                padding: const EdgeInsets.all(10.0),
                                                 decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      const BorderRadius.only(
-                                                    topLeft:
-                                                        Radius.circular(24),
-                                                    bottomLeft:
-                                                        Radius.circular(24),
-                                                    topRight:
-                                                        Radius.circular(4),
-                                                    bottomRight:
-                                                        Radius.circular(4),
+                                                  borderRadius: const BorderRadius.only(
+                                                    topLeft: Radius.circular(24),
+                                                    bottomLeft: Radius.circular(24),
+                                                    topRight: Radius.circular(4),
+                                                    bottomRight: Radius.circular(4),
                                                   ),
-                                                  color: context.theme
-                                                      .colorScheme.background
+                                                  color: context.theme.colorScheme.background
                                                       .withAlpha(200),
                                                 ),
                                                 child: const Icon(
@@ -355,8 +335,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                             ),
                                             InkWell(
                                               onTap: () async {
-                                                final shouldDelete =
-                                                    await showDeleteDialog(
+                                                final shouldDelete = await showDeleteDialog(
                                                   context: context,
                                                   content:
                                                       'Are you sure you want to delete this label? '
@@ -366,37 +345,27 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                                   widget.onDeleteTag(tag);
                                                 }
                                               },
-                                              splashColor: context.theme
-                                                  .colorScheme.onBackground
+                                              splashColor: context.theme.colorScheme.onBackground
                                                   .withAlpha(200),
-                                              borderRadius:
-                                                  const BorderRadius.only(
+                                              borderRadius: const BorderRadius.only(
                                                 topLeft: Radius.circular(4),
                                                 bottomLeft: Radius.circular(4),
                                                 topRight: Radius.circular(24),
-                                                bottomRight:
-                                                    Radius.circular(24),
+                                                bottomRight: Radius.circular(24),
                                               ),
                                               child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(10.0),
+                                                padding: const EdgeInsets.all(10.0),
                                                 decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      const BorderRadius.only(
+                                                  borderRadius: const BorderRadius.only(
                                                     topLeft: Radius.circular(4),
-                                                    bottomLeft:
-                                                        Radius.circular(4),
-                                                    topRight:
-                                                        Radius.circular(24),
-                                                    bottomRight:
-                                                        Radius.circular(24),
+                                                    bottomLeft: Radius.circular(4),
+                                                    topRight: Radius.circular(24),
+                                                    bottomRight: Radius.circular(24),
                                                   ),
-                                                  color: context.theme
-                                                      .colorScheme.background
+                                                  color: context.theme.colorScheme.background
                                                       .withAlpha(200),
                                                 ),
-                                                child: const Icon(
-                                                    Icons.delete_rounded),
+                                                child: const Icon(Icons.delete_rounded),
                                               ),
                                             ),
                                           ],
@@ -417,10 +386,8 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                 padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(40),
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer
-                                      .withAlpha(90),
+                                  color:
+                                      Theme.of(context).colorScheme.primaryContainer.withAlpha(90),
                                 ),
                                 child: Center(
                                   child: Padding(
@@ -430,8 +397,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                         Icon(
                                           Icons.label_off_rounded,
                                           size: 42,
-                                          color: context.theme.colorScheme
-                                              .onPrimaryContainer
+                                          color: context.theme.colorScheme.onPrimaryContainer
                                               .withAlpha(200),
                                         ),
                                         const SizedBox(
@@ -442,8 +408,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
-                                            color: context.theme.colorScheme
-                                                .onPrimaryContainer
+                                            color: context.theme.colorScheme.onPrimaryContainer
                                                 .withAlpha(200),
                                           ),
                                         ),
@@ -458,10 +423,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                               padding: const EdgeInsets.all(8.0),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(40),
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer
-                                    .withAlpha(90),
+                                color: Theme.of(context).colorScheme.primaryContainer.withAlpha(90),
                               ),
                               child: Center(
                                 child: Padding(
@@ -471,8 +433,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                       Icon(
                                         Icons.label_off_rounded,
                                         size: 42,
-                                        color: context.theme.colorScheme
-                                            .onPrimaryContainer
+                                        color: context.theme.colorScheme.onPrimaryContainer
                                             .withAlpha(200),
                                       ),
                                       const SizedBox(
@@ -483,8 +444,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
-                                          color: context.theme.colorScheme
-                                              .onPrimaryContainer
+                                          color: context.theme.colorScheme.onPrimaryContainer
                                               .withAlpha(200),
                                         ),
                                       ),

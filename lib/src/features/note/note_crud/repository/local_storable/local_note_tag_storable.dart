@@ -4,9 +4,9 @@ import 'dart:developer';
 import 'package:isar/isar.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_storable.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_tag_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_tag_syncable/note_tag_change_storable.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
@@ -14,8 +14,7 @@ import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart
 class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
   LocalNoteTagStorable() {
     _cacheNoteTags();
-    _noteTagsStreamController =
-        BehaviorSubject<List<LocalNoteTag>>.seeded(_tags);
+    _noteTagsStreamController = BehaviorSubject<List<LocalNoteTag>>.seeded(_tags);
     log('Created LocalNoteTagStorable instance');
   }
 
@@ -23,12 +22,10 @@ class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
   late final BehaviorSubject<List<LocalNoteTag>> _noteTagsStreamController;
 
   @override
-  IsarCollection<int, LocalNoteTag> get storableCollection =>
-      LocalStorable.isar!.localNoteTags;
+  IsarCollection<int, LocalNoteTag> get storableCollection => LocalStorable.isar!.localNoteTags;
 
   @override
-  ValueStream<List<LocalNoteTag>> get allItemStream =>
-      _noteTagsStreamController.stream;
+  ValueStream<List<LocalNoteTag>> get allItemStream => _noteTagsStreamController.stream;
 
   @override
   Future<List<LocalNoteTag>> get getAllItems async {
@@ -48,7 +45,7 @@ class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
       modified: currentTime,
       isSyncedWithCloud: false,
     );
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         final tagId = isar.localNoteTags.put(newTag);
         return tagId;
@@ -117,11 +114,8 @@ class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
     final currentTime = DateTime.now().toUtc();
     LocalNoteTag? tag;
     if (name != null) {
-      final tagIds = storableCollection
-          .where()
-          .nameEqualTo(name)
-          .isarIdProperty()
-          .findAll(limit: 1);
+      final tagIds =
+          storableCollection.where().nameEqualTo(name).isarIdProperty().findAll(limit: 1);
       if (tagIds.isNotEmpty) {
         if (tagIds.length > 1) {
           throw Exception('Should not happen... hopefully');
@@ -144,8 +138,7 @@ class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
       isSyncedWithCloud: isSyncedWithCloud,
     );
     try {
-      await LocalStorable.isar!
-          .writeAsync((isar) => isar.localNoteTags.put(newTag));
+      LocalStorable.isar!.write((isar) => isar.localNoteTags.put(newTag));
 
       _tags.removeWhere((tag) => tag.isarId == newTag.isarId);
       _tags.add(newTag);
@@ -171,8 +164,7 @@ class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
     await _ensureCollectionIsOpen();
     final noteTag = await getItem(id: id);
     try {
-      await LocalStorable.isar!
-          .writeAsync<bool>((isar) => isar.localNoteTags.delete(id));
+      LocalStorable.isar!.write<bool>((isar) => isar.localNoteTags.delete(id));
       _tags.removeWhere((tag) => tag.isarId == id);
       _noteTagsStreamController.add(_tags);
     } catch (e) {
@@ -229,7 +221,7 @@ class LocalNoteTagStorable extends LocalStorable<LocalNoteTag> {
   @override
   Future<void> deleteAllItems() async {
     await _ensureCollectionIsOpen();
-    await LocalStorable.isar!.writeAsync((isar) {
+    LocalStorable.isar!.write((isar) {
       isar.localNoteTags.clear();
     });
 

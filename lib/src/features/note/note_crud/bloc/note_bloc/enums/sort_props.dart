@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum SortMode { dateModified, dataCreated }
+enum SortMode { dateModified, dateCreated }
 
 enum SortOrder { ascending, descending }
 

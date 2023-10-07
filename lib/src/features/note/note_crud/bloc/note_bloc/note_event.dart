@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/filter_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/group_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/enums/sort_props.dart';
 
 @immutable
 abstract class NoteEvent {
@@ -19,32 +20,28 @@ class NoteSearchEvent extends NoteEvent {
   const NoteSearchEvent({required this.query});
 }
 
-class NoteModifyFilteringEvent extends NoteEvent {
-  final int? selectedTagId;
-  final bool requireEntireFilter;
+class NoteModifyFilterEvent extends NoteEvent {
+  final FilterProps props;
 
-  const NoteModifyFilteringEvent({
-    required this.selectedTagId,
-    required this.requireEntireFilter,
-  });
+  const NoteModifyFilterEvent({required this.props});
 }
 
-class NoteModifySortingEvent extends NoteEvent {
+class NoteModifySortEvent extends NoteEvent {
   final SortOrder sortOrder;
   final SortMode sortMode;
 
-  const NoteModifySortingEvent({
+  const NoteModifySortEvent({
     required this.sortMode,
     required this.sortOrder,
   });
 }
 
-class NoteModifyGroupingEvent extends NoteEvent {
+class NoteModifyGroupPropsEvent extends NoteEvent {
   final GroupParameter groupParameter;
   final GroupOrder groupOrder;
   final TagGroupLogic tagGroupLogic;
 
-  const NoteModifyGroupingEvent({
+  const NoteModifyGroupPropsEvent({
     required this.groupParameter,
     required this.groupOrder,
     required this.tagGroupLogic,

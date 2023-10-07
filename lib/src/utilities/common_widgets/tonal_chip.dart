@@ -11,6 +11,7 @@ class TonalChip extends StatefulWidget {
   final EdgeInsets padding;
   final BorderRadius? borderRadius;
   final TextStyle? textStyle;
+  final Color? borderColor;
 
   /// Used to determine the `borderRadius` of the [TonalChip].
   final TonalChipPosition position;
@@ -22,6 +23,7 @@ class TonalChip extends StatefulWidget {
     required this.iconData,
     this.backgroundColor,
     this.foregroundColor,
+    this.borderColor,
     this.splashColor,
     this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 7.0),
     this.borderRadius,
@@ -58,20 +60,20 @@ class _TonalChipState extends State<TonalChip> {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: () => widget.onTap(),
-        splashColor: widget.splashColor?.withAlpha(100) ??
-            context.themeColors.secondary.withAlpha(100),
-        highlightColor: widget.splashColor?.withAlpha(70) ??
-            context.themeColors.secondary.withAlpha(120),
+        splashColor:
+            widget.splashColor?.withAlpha(100) ?? context.themeColors.secondary.withAlpha(100),
+        highlightColor:
+            widget.splashColor?.withAlpha(70) ?? context.themeColors.secondary.withAlpha(120),
         borderRadius: borderRadius,
         child: Ink(
           padding: widget.padding,
           decoration: BoxDecoration(
-            color: widget.backgroundColor ??
-                context.themeColors.secondaryContainer.withAlpha(150),
+            color: widget.backgroundColor ?? context.themeColors.secondaryContainer.withAlpha(150),
             borderRadius: borderRadius,
             border: Border.all(
               strokeAlign: BorderSide.strokeAlignInside,
-              color: widget.foregroundColor?.withAlpha(40) ??
+              color: widget.borderColor ??
+                  widget.foregroundColor?.withAlpha(40) ??
                   context.themeColors.onSecondaryContainer.withAlpha(40),
               width: 1,
             ),
@@ -82,16 +84,14 @@ class _TonalChipState extends State<TonalChip> {
                 Icon(
                   widget.iconData!,
                   size: 22,
-                  color: widget.foregroundColor ??
-                      context.themeColors.onSecondaryContainer,
+                  color: widget.foregroundColor ?? context.themeColors.onSecondaryContainer,
                 ),
               if (widget.iconData != null) const SizedBox(width: 8.0),
               Text(
                 widget.label,
                 style: widget.textStyle ??
                     TextStyle(
-                      color: widget.foregroundColor ??
-                          context.themeColors.onSecondaryContainer,
+                      color: widget.foregroundColor ?? context.themeColors.onSecondaryContainer,
                       fontWeight: FontWeight.w600,
                       fontSize: 14.0,
                     ),

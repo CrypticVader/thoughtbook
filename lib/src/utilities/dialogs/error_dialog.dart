@@ -9,7 +9,7 @@ Future<void> showErrorDialog({
 }) {
   return showGenericDialog<void>(
     context: context,
-    title: showTitle?context.loc.generic_error_prompt:null,
+    title: showTitle ? context.loc.generic_error_prompt : null,
     icon: const Icon(
       Icons.error_outline_rounded,
       size: 40,

@@ -1,5 +1,5 @@
-import 'dart:math';
 import 'dart:developer' as dev;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -49,44 +49,14 @@ class NoteTagPickerView extends StatefulWidget {
 
 class _NoteTagPickerViewState extends State<NoteTagPickerView> {
   double maxHeight = 1.0;
-  bool hideHandle = false;
-  late final DraggableScrollableController controller;
 
   @override
   void initState() {
-    controller = DraggableScrollableController();
-    controller.addListener(() {
-      final size = controller.size;
-      dev.log(size.toString());
-      if (size == 1 && !hideHandle) {
-        setState(() {
-          hideHandle = true;
-        });
-      } else if (hideHandle) {
-        setState(() {
-          hideHandle = false;
-        });
-      }
-    });
     super.initState();
   }
 
   @override
   void dispose() {
-    controller.removeListener(() {
-      final size = controller.size;
-      dev.log(size.toString());
-      if (size == 1 && !hideHandle) {
-        setState(() {
-          hideHandle = true;
-        });
-      } else if (hideHandle) {
-        setState(() {
-          hideHandle = false;
-        });
-      }
-    });
-    controller.dispose();
     super.dispose();
   }
 
@@ -115,16 +85,22 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
               final itemHeight = allNoteTagList.length * 66 + 86 + 32;
               maxHeight = max(0.25, min(1, itemHeight / screenHeight));
 
+              final targetPlatform = ScrollConfiguration.of(context).getPlatform(context);
+              final isDesktop = {
+                TargetPlatform.windows,
+                TargetPlatform.macOS,
+                TargetPlatform.linux,
+              }.contains(targetPlatform);
+
               return ClipRRect(
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(28),
                   topLeft: Radius.circular(28),
                 ),
                 child: DraggableScrollableSheet(
-                  // controller: controller,
                   expand: false,
-                  initialChildSize: min(0.75, maxHeight),
-                  maxChildSize: maxHeight,
+                  initialChildSize: isDesktop ? 1 : min(0.75, maxHeight),
+                  maxChildSize: isDesktop ? 1 : maxHeight,
                   builder: (context, scrollController) {
                     return Scaffold(
                       backgroundColor: Color.alphaBlend(
@@ -143,15 +119,13 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                         title: Column(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                  0.0, 8.0, 0.0, 16.0),
+                              padding: const EdgeInsets.fromLTRB(0.0, 8.0, 0.0, 16.0),
                               child: Ink(
                                 height: 6.0,
                                 width: 40,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(28),
-                                  color: colorScheme.onSurfaceVariant
-                                      .withAlpha(hideHandle ? 0 : 100),
+                                  color: colorScheme.onSurfaceVariant.withAlpha(100),
                                 ),
                               ),
                             ),
@@ -168,7 +142,6 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                       ),
                       body: SingleChildScrollView(
                         controller: scrollController,
-                        physics: const ClampingScrollPhysics(),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: ListView.separated(
@@ -176,12 +149,10 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                             shrinkWrap: true,
                             itemBuilder: (context, index) {
                               final tag = allNoteTagList[index];
-                              final isSelected =
-                                  noteTagIds.contains(tag.isarId);
+                              final isSelected = noteTagIds.contains(tag.isarId);
                               return ListTile(
                                 onTap: () => widget.onTapTag(tag),
-                                splashColor:
-                                    colorScheme.secondary.withAlpha(100),
+                                splashColor: colorScheme.secondary.withAlpha(100),
                                 tileColor: colorScheme.secondaryContainer,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.only(
@@ -191,14 +162,12 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                                     topRight: index == 0
                                         ? const Radius.circular(24)
                                         : const Radius.circular(4),
-                                    bottomLeft:
-                                        (index == allNoteTagList.length - 1)
-                                            ? const Radius.circular(24)
-                                            : const Radius.circular(4),
-                                    bottomRight:
-                                        (index == allNoteTagList.length - 1)
-                                            ? const Radius.circular(24)
-                                            : const Radius.circular(4),
+                                    bottomLeft: (index == allNoteTagList.length - 1)
+                                        ? const Radius.circular(24)
+                                        : const Radius.circular(4),
+                                    bottomRight: (index == allNoteTagList.length - 1)
+                                        ? const Radius.circular(24)
+                                        : const Radius.circular(4),
                                   ),
                                 ),
                                 leading: Icon(
@@ -218,18 +187,15 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                                     width: 2,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(4.0)),
+                                      borderRadius: BorderRadius.circular(4.0)),
                                   activeColor: colorScheme.secondary,
                                   checkColor: colorScheme.onPrimary,
                                   value: isSelected,
-                                  onChanged: (value) =>
-                                      widget.onTapTag(tag),
+                                  onChanged: (value) => widget.onTapTag(tag),
                                 ),
                               );
                             },
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(
+                            separatorBuilder: (context, index) => const SizedBox(
                               height: 2,
                             ),
                             itemCount: allNoteTagList.length,
@@ -245,10 +211,7 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(40),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withAlpha(90),
+                  color: Theme.of(context).colorScheme.primaryContainer.withAlpha(90),
                 ),
                 child: Center(
                   child: Padding(
@@ -258,8 +221,7 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                         Icon(
                           Icons.label_off_rounded,
                           size: 42,
-                          color: context.theme.colorScheme.onPrimaryContainer
-                              .withAlpha(200),
+                          color: context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                         ),
                         const SizedBox(
                           height: 10.0,
@@ -269,8 +231,7 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: context.theme.colorScheme.onPrimaryContainer
-                                .withAlpha(200),
+                            color: context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                           ),
                         ),
                       ],
@@ -294,8 +255,7 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                       Icon(
                         Icons.label_off_rounded,
                         size: 42,
-                        color: context.theme.colorScheme.onPrimaryContainer
-                            .withAlpha(200),
+                        color: context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                       ),
                       const SizedBox(
                         height: 10.0,
@@ -305,8 +265,7 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: context.theme.colorScheme.onPrimaryContainer
-                              .withAlpha(200),
+                          color: context.theme.colorScheme.onPrimaryContainer.withAlpha(200),
                         ),
                       ),
                     ],

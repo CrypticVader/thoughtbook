@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_state.dart';
 import 'package:thoughtbook/src/features/authentication/repository/auth_provider.dart';
@@ -11,8 +12,7 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/app_pr
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_keys.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(AuthProvider provider)
-      : super(const AuthStateUninitialized(isLoading: true)) {
+  AuthBloc(AuthProvider provider) : super(const AuthStateUninitialized(isLoading: true)) {
     // forgot password
     on<AuthEventForgotPassword>(
       (event, emit) async {
@@ -98,6 +98,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEventInitialize>(
       (event, emit) async {
         await provider.initialize();
+        if (kIsWeb) {
+          await provider.logOut();
+          await AppPreferenceService().setPreference(
+            key: PreferenceKey.isGuest,
+            value: false,
+          );
+          emit(const AuthStateLoggedIn(
+            isUserGuest: false,
+            user: null,
+            isLoading: false,
+          ));
+          return;
+        }
         final user = provider.currentUser;
         if (user == null) {
           final isUserGuest = AppPreferenceService().isUserLoggedInAsGuest;
@@ -183,14 +196,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             CloudStore.open();
             await LocalStore.open();
 
-            final Stream<int> noteTagLoadProgress =
-                Synchronizer.noteTag.initLocalFromCloud();
+            final Stream<int> noteTagLoadProgress = Synchronizer.noteTag.initLocalFromCloud();
             await for (int progress in noteTagLoadProgress) {
               log('CloudNoteTag retrieval progress: ${progress.toString()}%');
             }
             log('Successfully retrieved all note tags from Firestore');
-            final Stream<int> noteLoadProgress =
-                Synchronizer.note.initLocalFromCloud();
+            final Stream<int> noteLoadProgress = Synchronizer.note.initLocalFromCloud();
             await for (int progress in noteLoadProgress) {
               log('CloudNote retrieval progress: ${progress.toString()}%');
             }
@@ -223,10 +234,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           value: true,
         );
         CloudStore.open();
-        await LocalStore.open(
-            // noteChange: false,
-            // noteTagChange: false,
-            );
+        await LocalStore.open();
         emit(
           const AuthStateLoggedIn(
             isLoading: false,

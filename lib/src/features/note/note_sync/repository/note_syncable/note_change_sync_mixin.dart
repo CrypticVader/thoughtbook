@@ -3,8 +3,8 @@ import 'dart:developer';
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/cloud_storable/cloud_store.dart';
-import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
+import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 import 'package:thoughtbook/src/features/note/note_sync/domain/note_change.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/note_syncable/note_change_storable.dart';
 import 'package:thoughtbook/src/features/note/note_sync/repository/syncable.dart';
@@ -46,8 +46,7 @@ mixin NoteChangeSyncMixin {
         'sync local create. Proceeding to delete all changes to the missing note from change feed.',
         name: 'NoteSyncService',
       );
-      await NoteChangeStorable()
-          .deleteAllChangesForNote(isarNoteId: change.note.isarId);
+      await NoteChangeStorable().deleteAllChangesForNote(isarNoteId: change.note.isarId);
       return;
     }
 
@@ -55,8 +54,7 @@ mixin NoteChangeSyncMixin {
     final CloudNote newCloudNote = await CloudStore.note.createItem();
 
     // Obtain the documentIds for tags from their isarIds
-    final tagDocIds =
-        LocalStore.noteTag.getCloudIdsFor(isarIds: change.note.tagIds);
+    final tagDocIds = LocalStore.noteTag.getCloudIdsFor(isarIds: change.note.tagIds);
     if (tagDocIds.length != change.note.tagIds.length) {
       final diff = change.note.tagIds.length - tagDocIds.length;
       log(
@@ -110,8 +108,7 @@ mixin NoteChangeSyncMixin {
     }
 
     // If no cloudId was passed, then return
-    if (localNote.cloudDocumentId == null ||
-        localNote.cloudDocumentId!.isEmpty) {
+    if (localNote.cloudDocumentId == null || localNote.cloudDocumentId!.isEmpty) {
       log('cloudDocumentId field found to be null in NoteChange instance.'
           'Cannot proceed to sync local update operation.');
       return;
@@ -121,8 +118,7 @@ mixin NoteChangeSyncMixin {
 
     // Update the note in the Firestore collection
     try {
-      final tagDocIds =
-          LocalStore.noteTag.getCloudIdsFor(isarIds: change.note.tagIds);
+      final tagDocIds = LocalStore.noteTag.getCloudIdsFor(isarIds: change.note.tagIds);
       if (tagDocIds.length != change.note.tagIds.length) {
         final diff = change.note.tagIds.length - tagDocIds.length;
         log(
@@ -180,8 +176,7 @@ mixin NoteChangeSyncMixin {
     }
 
     try {
-      await CloudStore.note
-          .deleteItem(cloudDocumentId: change.note.cloudDocumentId!);
+      await CloudStore.note.deleteItem(cloudDocumentId: change.note.cloudDocumentId!);
     } on CouldNotDeleteNoteException {
       log(
         'Could not find CloudNote with isarId=${change.note.isarId} &'

@@ -264,8 +264,7 @@ class _LocalNoteTagQueryUpdateImpl implements _LocalNoteTagQueryUpdate {
 }
 
 extension LocalNoteTagQueryUpdate on IsarQuery<LocalNoteTag> {
-  _LocalNoteTagQueryUpdate get updateFirst =>
-      _LocalNoteTagQueryUpdateImpl(this, limit: 1);
+  _LocalNoteTagQueryUpdate get updateFirst => _LocalNoteTagQueryUpdateImpl(this, limit: 1);
 
   _LocalNoteTagQueryUpdate get updateAll => _LocalNoteTagQueryUpdateImpl(this);
 }
@@ -299,17 +298,13 @@ class _LocalNoteTagQueryBuilderUpdateImpl implements _LocalNoteTagQueryUpdate {
   }
 }
 
-extension LocalNoteTagQueryBuilderUpdate
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QOperations> {
-  _LocalNoteTagQueryUpdate get updateFirst =>
-      _LocalNoteTagQueryBuilderUpdateImpl(this, limit: 1);
+extension LocalNoteTagQueryBuilderUpdate on QueryBuilder<LocalNoteTag, LocalNoteTag, QOperations> {
+  _LocalNoteTagQueryUpdate get updateFirst => _LocalNoteTagQueryBuilderUpdateImpl(this, limit: 1);
 
-  _LocalNoteTagQueryUpdate get updateAll =>
-      _LocalNoteTagQueryBuilderUpdateImpl(this);
+  _LocalNoteTagQueryUpdate get updateAll => _LocalNoteTagQueryBuilderUpdateImpl(this);
 }
 
-extension LocalNoteTagQueryFilter
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QFilterCondition> {
+extension LocalNoteTagQueryFilter on QueryBuilder<LocalNoteTag, LocalNoteTag, QFilterCondition> {
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isarIdEqualTo(
     int value,
   ) {
@@ -323,8 +318,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      isarIdGreaterThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isarIdGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -337,8 +331,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      isarIdGreaterThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isarIdGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -351,8 +344,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      isarIdLessThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isarIdLessThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -365,8 +357,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      isarIdLessThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isarIdLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -394,22 +385,19 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsNull() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 1));
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsNotNull() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 1));
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -424,8 +412,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdGreaterThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdGreaterThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -456,8 +443,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdLessThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdLessThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -472,8 +458,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdLessThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -488,8 +473,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdBetween(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -506,8 +490,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdStartsWith(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -522,8 +505,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdEndsWith(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -538,8 +520,9 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdContains(
+      String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
@@ -551,8 +534,9 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
@@ -564,8 +548,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsEmpty() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -576,8 +559,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      cloudDocumentIdIsNotEmpty() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> cloudDocumentIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -603,8 +585,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      nameGreaterThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -619,8 +600,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      nameGreaterThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -650,8 +630,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      nameLessThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -683,8 +662,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      nameStartsWith(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -714,8 +692,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameContains(
-      String value,
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -728,8 +705,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameMatches(
-      String pattern,
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -742,8 +718,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      nameIsEmpty() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -754,8 +729,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      nameIsNotEmpty() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -766,8 +740,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> modifiedEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -780,8 +753,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedGreaterThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> modifiedGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -794,8 +766,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedGreaterThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> modifiedGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -808,8 +779,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedLessThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> modifiedLessThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -822,8 +792,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedLessThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> modifiedLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -836,8 +805,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      modifiedBetween(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> modifiedBetween(
     DateTime lower,
     DateTime upper,
   ) {
@@ -852,8 +820,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> createdEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -866,8 +833,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdGreaterThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> createdGreaterThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -880,8 +846,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdGreaterThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> createdGreaterThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -894,8 +859,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdLessThan(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> createdLessThan(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -908,8 +872,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdLessThanOrEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> createdLessThanOrEqualTo(
     DateTime value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -922,8 +885,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      createdBetween(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> createdBetween(
     DateTime lower,
     DateTime upper,
   ) {
@@ -938,8 +900,7 @@ extension LocalNoteTagQueryFilter
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition>
-      isSyncedWithCloudEqualTo(
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterFilterCondition> isSyncedWithCloudEqualTo(
     bool value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -953,11 +914,9 @@ extension LocalNoteTagQueryFilter
   }
 }
 
-extension LocalNoteTagQueryObject
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QFilterCondition> {}
+extension LocalNoteTagQueryObject on QueryBuilder<LocalNoteTag, LocalNoteTag, QFilterCondition> {}
 
-extension LocalNoteTagQuerySortBy
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QSortBy> {
+extension LocalNoteTagQuerySortBy on QueryBuilder<LocalNoteTag, LocalNoteTag, QSortBy> {
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0);
@@ -980,8 +939,8 @@ extension LocalNoteTagQuerySortBy
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      sortByCloudDocumentIdDesc({bool caseSensitive = true}) {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByCloudDocumentIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
         1,
@@ -991,8 +950,7 @@ extension LocalNoteTagQuerySortBy
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByName(
-      {bool caseSensitive = true}) {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
         2,
@@ -1036,23 +994,20 @@ extension LocalNoteTagQuerySortBy
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      sortByIsSyncedWithCloud() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByIsSyncedWithCloud() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      sortByIsSyncedWithCloudDesc() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> sortByIsSyncedWithCloudDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5, sort: Sort.desc);
     });
   }
 }
 
-extension LocalNoteTagQuerySortThenBy
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QSortThenBy> {
+extension LocalNoteTagQuerySortThenBy on QueryBuilder<LocalNoteTag, LocalNoteTag, QSortThenBy> {
   QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(0);
@@ -1072,15 +1027,14 @@ extension LocalNoteTagQuerySortThenBy
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      thenByCloudDocumentIdDesc({bool caseSensitive = true}) {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByCloudDocumentIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByName(
-      {bool caseSensitive = true}) {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(2, caseSensitive: caseSensitive);
     });
@@ -1117,25 +1071,22 @@ extension LocalNoteTagQuerySortThenBy
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      thenByIsSyncedWithCloud() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByIsSyncedWithCloud() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5);
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy>
-      thenByIsSyncedWithCloudDesc() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterSortBy> thenByIsSyncedWithCloudDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5, sort: Sort.desc);
     });
   }
 }
 
-extension LocalNoteTagQueryWhereDistinct
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> {
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct>
-      distinctByCloudDocumentId({bool caseSensitive = true}) {
+extension LocalNoteTagQueryWhereDistinct on QueryBuilder<LocalNoteTag, LocalNoteTag, QDistinct> {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct> distinctByCloudDocumentId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(1, caseSensitive: caseSensitive);
     });
@@ -1148,8 +1099,7 @@ extension LocalNoteTagQueryWhereDistinct
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct>
-      distinctByModified() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct> distinctByModified() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(3);
     });
@@ -1161,24 +1111,21 @@ extension LocalNoteTagQueryWhereDistinct
     });
   }
 
-  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct>
-      distinctByIsSyncedWithCloud() {
+  QueryBuilder<LocalNoteTag, LocalNoteTag, QAfterDistinct> distinctByIsSyncedWithCloud() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(5);
     });
   }
 }
 
-extension LocalNoteTagQueryProperty1
-    on QueryBuilder<LocalNoteTag, LocalNoteTag, QProperty> {
+extension LocalNoteTagQueryProperty1 on QueryBuilder<LocalNoteTag, LocalNoteTag, QProperty> {
   QueryBuilder<LocalNoteTag, int, QAfterProperty> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
     });
   }
 
-  QueryBuilder<LocalNoteTag, String?, QAfterProperty>
-      cloudDocumentIdProperty() {
+  QueryBuilder<LocalNoteTag, String?, QAfterProperty> cloudDocumentIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
@@ -1209,16 +1156,14 @@ extension LocalNoteTagQueryProperty1
   }
 }
 
-extension LocalNoteTagQueryProperty2<R>
-    on QueryBuilder<LocalNoteTag, R, QAfterProperty> {
+extension LocalNoteTagQueryProperty2<R> on QueryBuilder<LocalNoteTag, R, QAfterProperty> {
   QueryBuilder<LocalNoteTag, (R, int), QAfterProperty> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(0);
     });
   }
 
-  QueryBuilder<LocalNoteTag, (R, String?), QAfterProperty>
-      cloudDocumentIdProperty() {
+  QueryBuilder<LocalNoteTag, (R, String?), QAfterProperty> cloudDocumentIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
@@ -1242,8 +1187,7 @@ extension LocalNoteTagQueryProperty2<R>
     });
   }
 
-  QueryBuilder<LocalNoteTag, (R, bool), QAfterProperty>
-      isSyncedWithCloudProperty() {
+  QueryBuilder<LocalNoteTag, (R, bool), QAfterProperty> isSyncedWithCloudProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
@@ -1258,8 +1202,7 @@ extension LocalNoteTagQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<LocalNoteTag, (R1, R2, String?), QOperations>
-      cloudDocumentIdProperty() {
+  QueryBuilder<LocalNoteTag, (R1, R2, String?), QOperations> cloudDocumentIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
@@ -1271,22 +1214,19 @@ extension LocalNoteTagQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<LocalNoteTag, (R1, R2, DateTime), QOperations>
-      modifiedProperty() {
+  QueryBuilder<LocalNoteTag, (R1, R2, DateTime), QOperations> modifiedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<LocalNoteTag, (R1, R2, DateTime), QOperations>
-      createdProperty() {
+  QueryBuilder<LocalNoteTag, (R1, R2, DateTime), QOperations> createdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<LocalNoteTag, (R1, R2, bool), QOperations>
-      isSyncedWithCloudProperty() {
+  QueryBuilder<LocalNoteTag, (R1, R2, bool), QOperations> isSyncedWithCloudProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });

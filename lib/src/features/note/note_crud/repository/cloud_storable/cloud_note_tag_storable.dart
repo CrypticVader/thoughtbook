@@ -12,8 +12,7 @@ class CloudNoteTagStorable implements CloudStorable<CloudNoteTag> {
 
   @override
   CollectionReference<Map<String, dynamic>> get storableCollection =>
-      _firestoreInstance
-          .collection(getFirestoreNoteTagsCollectionPath(_userId));
+      _firestoreInstance.collection(getFirestoreNoteTagsCollectionPath(_userId));
 
   /// Returns a [Stream] of an [Iterable] of [CloudNoteTag] from the Firestore 'noteTags'
   /// collection belonging to the logged in user

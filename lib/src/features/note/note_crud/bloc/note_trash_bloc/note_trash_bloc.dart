@@ -7,21 +7,19 @@ import 'package:thoughtbook/src/features/note/note_crud/repository/local_storabl
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 part 'note_trash_event.dart';
-
 part 'note_trash_state.dart';
 
 class NoteTrashBloc extends Bloc<NoteTrashEvent, NoteTrashState> {
   Set<LocalNote> _selectedNotes = <LocalNote>{};
   String _layout = LayoutPreference.list.value;
 
-  ValueStream<List<PresentableNoteData>> trashedNotes() => Rx.combineLatest2(
-          LocalStore.note.allItemStream, LocalStore.noteTag.allItemStream,
+  ValueStream<List<PresentableNoteData>> trashedNotes() =>
+      Rx.combineLatest2(LocalStore.note.allItemStream, LocalStore.noteTag.allItemStream,
           (notes, tags) {
         final trashedNotes = notes.where((note) => note.isTrashed);
         List<PresentableNoteData> noteData = [];
         for (final note in trashedNotes) {
-          final noteTags =
-              tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
+          final noteTags = tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
           noteData.add(PresentableNoteData(note: note, noteTags: noteTags));
         }
         return noteData;
@@ -65,9 +63,8 @@ class NoteTrashBloc extends Bloc<NoteTrashEvent, NoteTrashState> {
     });
 
     on<NoteTrashSelectAllEvent>((event, emit) async {
-      _selectedNotes = (await LocalStore.note.getAllItems)
-          .where((element) => element.isTrashed)
-          .toSet();
+      _selectedNotes =
+          (await LocalStore.note.getAllItems).where((element) => element.isTrashed).toSet();
       emit(NoteTrashInitialized(
         layout: _layout,
         trashedNotes: trashedNotes,

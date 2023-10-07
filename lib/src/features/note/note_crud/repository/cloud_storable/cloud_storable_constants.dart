@@ -1,8 +1,6 @@
-String getFirestoreNotesCollectionPath(String id) =>
-    'thoughtbookData/$id/notes';
+String getFirestoreNotesCollectionPath(String id) => 'thoughtbookData/$id/notes';
 
-String getFirestoreNoteTagsCollectionPath(String id) =>
-    'thoughtbookData/$id/noteTags';
+String getFirestoreNoteTagsCollectionPath(String id) => 'thoughtbookData/$id/noteTags';
 
 const ownerUserIdFieldName = 'user_id';
 const nameFieldName = 'name';

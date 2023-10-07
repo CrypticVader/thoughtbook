@@ -81,8 +81,7 @@ class CloudNoteStorable implements CloudStorable<CloudNote> {
       ownerUserId: note.data()?[ownerUserIdFieldName] as String,
       content: note.data()?[contentFieldName] as String,
       title: note.data()?[titleFieldName] as String,
-      tagDocumentIds:
-          List<String>.from(note.data()?[tagDocumentIdsFieldName] ?? []),
+      tagDocumentIds: List<String>.from(note.data()?[tagDocumentIdsFieldName] ?? []),
       color: note.data()?[colorFieldName] as int?,
       created: note.data()?[createdFieldName] as Timestamp,
       modified: note.data()?[modifiedFieldName] as Timestamp,
