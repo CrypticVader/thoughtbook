@@ -1,146 +1,23 @@
-import 'dart:async' show unawaited;
-import 'dart:developer' show log;
-import 'dart:math' show min, max;
+import 'dart:async';
+import 'dart:math' show min;
 
 import 'package:animations/animations.dart';
 import 'package:entry/entry.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:thoughtbook/src/extensions/buildContext/loc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_bloc.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/note_editor_view.dart';
-import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
-import 'package:thoughtbook/src/utilities/dialogs/error_dialog.dart';
-import 'package:visibility_detector/visibility_detector.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/pages/note_editor_page.dart'
+    show NoteEditorPage;
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/notes_list_view.dart'
+    show NoteCallback, NoteDataCallback;
 
-typedef NoteCallback = void Function(LocalNote note);
-typedef NoteDataCallback = void Function(PresentableNoteData noteData);
-
-class NotesListView extends StatefulWidget {
-  final bool isDismissible;
-  final String layoutPreference;
-
-  final List<PresentableNoteData> notesData;
-  final Set<LocalNote> selectedNotes;
-  final NoteCallback onDeleteNote;
-  final void Function(LocalNote note, void Function() openContainer) onTap;
-  final NoteCallback onLongPress;
-
-  const NotesListView({
-    Key? key,
-    this.isDismissible = true,
-    required this.layoutPreference,
-    required this.notesData,
-    required this.selectedNotes,
-    required this.onDeleteNote,
-    required this.onTap,
-    required this.onLongPress,
-  }) : super(key: key);
-
-  @override
-  State<NotesListView> createState() => _NotesListViewState();
-}
-
-class _NotesListViewState extends State<NotesListView> {
-  int _getLayoutColumnCount(context) {
-    if (widget.layoutPreference == LayoutPreference.list.value) {
-      return 1;
-    } else if (widget.layoutPreference == LayoutPreference.grid.value) {
-      final width = MediaQuery.of(context).size.width;
-      if (width < 150) {
-        return 1;
-      }
-      int count = (width / 280).round();
-      return max(2, count);
-    } else {
-      showErrorDialog(
-        context: context,
-        text: context.loc.notes_list_view_invalid_layout_error,
-      );
-      return 1;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.notesData.isEmpty) {
-      return Center(
-        child: Ink(
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: context.themeColors.secondaryContainer.withAlpha(120),
-            borderRadius: BorderRadius.circular(40),
-          ),
-          child: UnconstrainedBox(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  FluentIcons.note_add_48_filled,
-                  size: 150,
-                  color: context.theme.colorScheme.onSecondaryContainer.withAlpha(150),
-                ),
-                const SizedBox(
-                  height: 16.0,
-                ),
-                Center(
-                  child: Text(
-                    context.loc.notes_view_create_note_to_see_here,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: context.theme.colorScheme.onSecondaryContainer.withAlpha(220),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    } else {
-      return MasonryGridView.count(
-        key: ValueKey<int>(_getLayoutColumnCount(context)),
-        primary: true,
-        itemCount: widget.notesData.length,
-        crossAxisSpacing: 8.0,
-        mainAxisSpacing: 8.0,
-        crossAxisCount: _getLayoutColumnCount(context),
-        padding: EdgeInsets.zero,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemBuilder: (BuildContext context, int index) {
-          final noteData = widget.notesData.elementAt(index);
-          return NoteItem(
-            key: ValueKey<int>(noteData.note.isarId),
-            noteData: noteData,
-            isSelected: widget.selectedNotes.contains(noteData.note),
-            onTap: (note, openContainer) => widget.onTap(note, openContainer),
-            onLongPress: (note) => widget.onLongPress(note),
-            onDeleteNote: (noteData) {
-              setState(() {
-                widget.notesData.remove(noteData);
-              });
-              widget.onDeleteNote(noteData.note);
-            },
-            enableDismissible: widget.selectedNotes.isEmpty && widget.isDismissible,
-            index: index,
-          );
-        },
-      );
-    }
-  }
-}
-
-class NoteItem extends StatefulWidget {
+class NoteTile extends StatefulWidget {
   final PresentableNoteData noteData;
   final bool isSelected;
   final NoteDataCallback onDeleteNote;
@@ -149,7 +26,7 @@ class NoteItem extends StatefulWidget {
   final bool enableDismissible;
   final int index;
 
-  const NoteItem({
+  const NoteTile({
     Key? key,
     required this.noteData,
     required this.isSelected,
@@ -161,11 +38,10 @@ class NoteItem extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<NoteItem> createState() => _NoteItemState();
+  State<NoteTile> createState() => _NoteTileState();
 }
 
-//TODO: Use Boxy to find size of md body before build, & decide to paint the gradient
-class _NoteItemState extends State<NoteItem> {
+class _NoteTileState extends State<NoteTile> {
   bool get _isDarkMode =>
       SchedulerBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
   late void Function() _openContainer;
@@ -173,7 +49,6 @@ class _NoteItemState extends State<NoteItem> {
   bool _hasVibrated = false;
   ColorScheme _noteColors = ColorScheme.fromSeed(seedColor: Colors.grey);
   bool _isVisible = true;
-  bool _renderFade = false;
 
   @override
   Widget build(BuildContext context) {
@@ -183,18 +58,9 @@ class _NoteItemState extends State<NoteItem> {
         brightness: _isDarkMode ? Brightness.dark : Brightness.light,
       );
     } else {
-      if (_isDarkMode) {
-        _noteColors = ColorScheme.fromSeed(
-          seedColor: Colors.grey,
-          brightness: Brightness.dark,
-        );
-      } else {
-        _noteColors = ColorScheme.fromSeed(
-          seedColor: Colors.grey,
-          brightness: Brightness.light,
-        );
-      }
+      _noteColors = context.themeColors;
     }
+
     return Entry.all(
       visible: _isVisible,
       delay: Duration(milliseconds: min(250, 25 * widget.index + 10)),
@@ -272,7 +138,7 @@ class _NoteItemState extends State<NoteItem> {
                 color: _noteColors.primary.withAlpha(15),
                 strokeAlign: BorderSide.strokeAlignInside,
               ),
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(24),
       ),
       closedBuilder: (context, openContainer) {
         _openContainer = openContainer;
@@ -281,11 +147,11 @@ class _NoteItemState extends State<NoteItem> {
       openBuilder: (context, closeContainer) {
         return BlocProvider<NoteEditorBloc>(
           create: (context) => NoteEditorBloc(),
-          child: NoteEditorView(
+          child: NoteEditorPage(
             note: widget.noteData.note,
             shouldAutoFocusContent: false,
             onDeleteNote: (_) async {
-              await Future.delayed(const Duration(milliseconds: 200));
+              await Future.delayed(const Duration(milliseconds: 300));
               setState(() {
                 _isVisible = false;
               });
@@ -300,7 +166,7 @@ class _NoteItemState extends State<NoteItem> {
 
   Widget _buildInkWell() {
     return InkWell(
-      borderRadius: BorderRadius.circular(26),
+      borderRadius: BorderRadius.circular(24),
       onLongPress: () => widget.onLongPress(widget.noteData.note),
       onTap: () => widget.onTap(widget.noteData.note, _openContainer),
       splashColor: _noteColors.inversePrimary.withAlpha(120),
@@ -314,7 +180,7 @@ class _NoteItemState extends State<NoteItem> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           if (widget.noteData.note.title.isNotEmpty)
@@ -340,12 +206,21 @@ class _NoteItemState extends State<NoteItem> {
   }
 
   Widget _buildPaintedNoteContent() {
-    return CustomPaint(
-      foregroundPainter: _renderFade
-          ? BottomFadingGradient(
-              color: Color.alphaBlend(
-                  _noteColors.primaryContainer.withAlpha(135), _noteColors.background))
-          : null,
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      key: ValueKey<int>(widget.noteData.note.isarId),
+      shaderCallback: (Rect bounds) {
+        const color = Colors.black;
+        final lg = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [color, color.withAlpha((bounds.height >= 240.0) ? 0 : 255)],
+        );
+        final shaderBounds = (bounds.height >= 240.0)
+            ? Rect.fromLTRB(bounds.left, bounds.bottom - 32, bounds.right, bounds.bottom)
+            : bounds;
+        return lg.createShader(shaderBounds);
+      },
       child: LimitedBox(
         maxHeight: 240,
         child: _buildMarkdown(),
@@ -354,26 +229,14 @@ class _NoteItemState extends State<NoteItem> {
   }
 
   Widget _buildMarkdown() {
-    return VisibilityDetector(
-      key: ValueKey<int>(widget.noteData.note.isarId),
-      onVisibilityChanged: (VisibilityInfo info) {
-        log('title: ${widget.noteData.note.title}, size: ${info.size}');
-        if (info.size.height == 240.0 && !_renderFade) {
-          setState(() {
-            _renderFade = true;
-          });
-        } else if (info.size.height < 240.0 && _renderFade) {
-          setState(() {
-            _renderFade = false;
-          });
-        }
-      },
+    return ClipRect(
       child: Markdown(
         padding: EdgeInsets.zero,
         controller: null,
         physics: const NeverScrollableScrollPhysics(),
-        data: widget.noteData.note.content
-            .substring(0, min(600, widget.noteData.note.content.length)),
+        data:
+            widget.noteData.note.content.substring(0, min(600, widget.noteData.note.content.length)),
+        onTapLink: (_, __, ___) => widget.onTap(widget.noteData.note, _openContainer),
         softLineBreak: true,
         shrinkWrap: true,
         bulletBuilder: (index, style) {
@@ -417,6 +280,15 @@ class _NoteItemState extends State<NoteItem> {
             color: _noteColors.background.withAlpha(200),
             borderRadius: BorderRadius.circular(16),
           ),
+          blockquoteDecoration: BoxDecoration(
+            color: _noteColors.primaryContainer.withAlpha(120),
+            border: Border.all(
+              color: _noteColors.onPrimaryContainer.withAlpha(70),
+              width: 0.5,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          blockquotePadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           p: TextStyle(
             color: _noteColors.onPrimaryContainer,
             fontSize: 14.0,
@@ -436,6 +308,10 @@ class _NoteItemState extends State<NoteItem> {
             color: _noteColors.onPrimaryContainer,
             fontSize: 16.0,
             fontWeight: FontWeight.w500,
+          ),
+          blockquote: TextStyle(
+            color: _noteColors.onPrimaryContainer,
+            height: 1.5,
           ),
         ),
       ),
@@ -484,33 +360,4 @@ class _NoteItemState extends State<NoteItem> {
           .toList(),
     );
   }
-}
-
-class BottomFadingGradient extends CustomPainter {
-  final Color color;
-
-  const BottomFadingGradient({
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Rect rect = Rect.fromPoints(
-      Offset(-16, size.height - 32.0),
-      Offset(size.width + 16, size.height + 0.5),
-    );
-    LinearGradient lg = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        color.withAlpha(0),
-        color,
-      ],
-    );
-    Paint paint = Paint()..shader = lg.createShader(rect);
-    canvas.drawRect(rect, paint);
-  }
-
-  @override
-  bool shouldRepaint(BottomFadingGradient oldDelegate) => false;
 }

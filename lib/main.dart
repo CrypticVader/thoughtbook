@@ -18,24 +18,19 @@ import 'package:thoughtbook/src/features/authentication/presentation/register_vi
 import 'package:thoughtbook/src/features/authentication/presentation/verify_email_view.dart';
 import 'package:thoughtbook/src/features/authentication/repository/firebase_auth_provider.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_bloc.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_view.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/pages/notes_page.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/app_preference_service.dart';
 import 'package:thoughtbook/src/helpers/loading/loading_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   unawaited(AppPreferenceService().initPrefs());
-
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.black.withOpacity(0.002),
-    ),
-  );
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    systemNavigationBarColor: Colors.black.withOpacity(0.002),
+  ));
 
-  runApp(
-    const ThoughtbookApp(),
-  );
+  runApp(const ThoughtbookApp());
 }
 
 class ThoughtbookApp extends StatefulWidget {
@@ -46,15 +41,34 @@ class ThoughtbookApp extends StatefulWidget {
 }
 
 class _ThoughtbookAppState extends State<ThoughtbookApp> {
+  late Image _appLogo;
   static final _defaultLightColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.pinkAccent,
+    seedColor: Colors.lightGreen,
     brightness: Brightness.light,
   );
 
   static final _defaultDarkColorScheme = ColorScheme.fromSeed(
-    seedColor: Colors.pinkAccent,
+    seedColor: Colors.lightGreen,
     brightness: Brightness.dark,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    _appLogo = Image.asset(
+      'assets/icon/icon.png',
+      height: 192,
+      width: 192,
+      cacheHeight: 288,
+      cacheWidth: 288,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(_appLogo.image, context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,21 +80,21 @@ class _ThoughtbookAppState extends State<ThoughtbookApp> {
           debugShowCheckedModeBanner: false,
           title: 'Thoughtbook',
           theme: ThemeData(
-            fontFamily: (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
-                ? 'Roboto'
-                : 'Montserrat',
-            fontFamilyFallback: const ['Roboto'],
+            fontFamily: 'Montserrat',
+            fontFamilyFallback: const ['NotoSans','Roboto'],
             colorScheme: lightColorScheme ?? _defaultLightColorScheme,
-            splashFactory: InkSparkle.splashFactory,
+            splashFactory: (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
+                ? InkRipple.splashFactory
+                : InkSparkle.splashFactory,
             useMaterial3: true,
           ),
           darkTheme: ThemeData(
-            fontFamily: (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
-                ? 'Roboto'
-                : 'Montserrat',
-            fontFamilyFallback: const ['Roboto'],
+            fontFamily: 'Montserrat',
+            fontFamilyFallback: const ['NotoSans','Roboto'],
             colorScheme: darkColorScheme ?? _defaultDarkColorScheme,
-            splashFactory: InkSparkle.splashFactory,
+            splashFactory: (kIsWeb && Theme.of(context).platform == TargetPlatform.android)
+                ? InkRipple.splashFactory
+                : InkSparkle.splashFactory,
             useMaterial3: true,
           ),
           themeMode: ThemeMode.system,
@@ -104,7 +118,7 @@ class HomePage extends StatelessWidget {
     if (state is AuthStateLoggedIn) {
       return BlocProvider<NoteBloc>(
         create: (context) => NoteBloc(),
-        child: const NotesView(),
+        child: const NotesPage(),
       );
     } else if (state is AuthStateForgotPassword) {
       return const ForgotPasswordView();
@@ -115,13 +129,8 @@ class HomePage extends StatelessWidget {
     } else if (state is AuthStateRegistering) {
       return const RegisterView();
     } else {
-      return Scaffold(
-        body: Center(
-          child: SpinKitDoubleBounce(
-            color: context.theme.colorScheme.primary,
-            size: 60,
-          ),
-        ),
+      return const Scaffold(
+        body: SplashScreen(),
       );
     }
   }
@@ -157,6 +166,46 @@ class HomePage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 64),
+          const Spacer(flex: 1),
+          Image.asset(
+            'assets/icon/icon.png',
+            height: 192,
+            width: 192,
+            cacheHeight: 288,
+            cacheWidth: 288,
+          ),
+          const SizedBox(height: 32),
+          Text(
+            context.loc.app_title,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: context.themeColors.onSurfaceVariant.withAlpha(200),
+            ),
+          ),
+          const Spacer(flex: 1),
+          SpinKitThreeBounce(
+            color: context.theme.colorScheme.primary.withAlpha(200),
+            size: 48,
+          ),
+          const SizedBox(height: 64),
+        ],
+      ),
     );
   }
 }

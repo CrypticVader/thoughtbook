@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/extensions/object/null_check.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/filter_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/filter_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/utilities/common_widgets/tonal_chip.dart';
 
@@ -176,14 +176,14 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                           splashColor: context.themeColors.inversePrimary,
                         );
                         final widgetWidth = (TextPainter(
-                              text: TextSpan(
+                          text: TextSpan(
                                   text: tags[i].name,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 15.0,
                                       fontFamily: 'Montserrat')),
                               maxLines: 1,
-                              textScaleFactor: MediaQuery.of(context).textScaleFactor,
+                              textScaler: MediaQuery.of(context).textScaler,
                               textDirection: TextDirection.ltr,
                             )..layout())
                                 .size
@@ -212,7 +212,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                         children: [
                           // Tag Filter
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(36),
                               color: context.themeColors.primaryContainer.withAlpha(70),
@@ -289,23 +289,26 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           bottomRight: Radius.circular(4),
                                         ),
                                       ),
-                                      child: SingleChildScrollView(
-                                        padding: const EdgeInsets.all(14),
-                                        scrollDirection: Axis.horizontal,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: tagWidgetsRow1,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: tagWidgetsRow2,
-                                            ),
-                                          ],
+                                      child: Scrollbar(
+                                        thickness: isDesktop ? 8 : 0,
+                                        child: SingleChildScrollView(
+                                          padding: const EdgeInsets.all(14),
+                                          scrollDirection: Axis.horizontal,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: tagWidgetsRow1,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: tagWidgetsRow2,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -381,7 +384,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
 
                           // Color Filter
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(36),
                               color: context.themeColors.primaryContainer.withAlpha(70),
@@ -453,93 +456,101 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           bottomRight: Radius.circular(28),
                                         ),
                                       ),
-                                      child: SingleChildScrollView(
-                                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-                                        scrollDirection: Axis.horizontal,
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints(maxHeight: 160),
-                                          child: Material(
-                                            type: MaterialType.transparency,
-                                            child: Wrap(
-                                              spacing: 4,
-                                              runSpacing: 8,
-                                              direction: Axis.vertical,
-                                              children: widget.allColors.keys
-                                                  .map<Widget>((key) => Tooltip(
-                                                        message: key,
-                                                        child: Padding(
-                                                          padding: const EdgeInsets.only(bottom: 4),
-                                                          child: InkWell(
-                                                            splashColor: widget.allColors[key],
-                                                            borderRadius: BorderRadius.circular(36),
-                                                            onTap: () {
-                                                              setState(() {
-                                                                if (filterProps.filterColors
-                                                                    .contains(widget
-                                                                        .allColors[key]!.value)) {
-                                                                  filterProps.filterColors.remove(
-                                                                      widget.allColors[key]!.value);
-                                                                } else {
-                                                                  filterProps.filterColors.add(
-                                                                      widget.allColors[key]!.value);
-                                                                }
-                                                              });
-                                                              widget.onChange(filterProps);
-                                                            },
-                                                            child: Ink(
-                                                              height: 70,
-                                                              width: 70,
-                                                              decoration: BoxDecoration(
-                                                                color: widget.allColors[key]!
-                                                                    .withAlpha(filterProps
-                                                                            .filterColors
-                                                                            .contains(widget
-                                                                                .allColors[key]!
-                                                                                .value)
-                                                                        ? 150
-                                                                        : 190),
-                                                                shape: BoxShape.circle,
-                                                                boxShadow: kElevationToShadow[
-                                                                    filterProps.filterColors
-                                                                            .contains(widget
-                                                                                .allColors[key]!
-                                                                                .value)
-                                                                        ? 0
-                                                                        : 1],
-                                                                border: filterProps.filterColors
+                                      child: Scrollbar(
+                                        thickness: isDesktop ? 8 : 0,
+                                        child: SingleChildScrollView(
+                                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+                                          scrollDirection: Axis.horizontal,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(maxHeight: 160),
+                                            child: Material(
+                                              type: MaterialType.transparency,
+                                              child: Wrap(
+                                                spacing: 4,
+                                                runSpacing: 8,
+                                                direction: Axis.vertical,
+                                                children: widget.allColors.keys
+                                                    .map<Widget>((key) => Tooltip(
+                                                          message: key,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets.only(bottom: 4),
+                                                            child: InkWell(
+                                                              splashColor: widget.allColors[key],
+                                                              borderRadius:
+                                                                  BorderRadius.circular(36),
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  if (filterProps.filterColors
+                                                                      .contains(widget
+                                                                          .allColors[key]!.value)) {
+                                                                    filterProps.filterColors.remove(
+                                                                        widget
+                                                                            .allColors[key]!.value);
+                                                                  } else {
+                                                                    filterProps.filterColors.add(
+                                                                        widget
+                                                                            .allColors[key]!.value);
+                                                                  }
+                                                                });
+                                                                widget.onChange(filterProps);
+                                                              },
+                                                              child: Ink(
+                                                                height: 70,
+                                                                width: 70,
+                                                                decoration: BoxDecoration(
+                                                                  color: widget.allColors[key]!
+                                                                      .withAlpha(filterProps
+                                                                              .filterColors
+                                                                              .contains(widget
+                                                                                  .allColors[key]!
+                                                                                  .value)
+                                                                          ? 150
+                                                                          : 190),
+                                                                  shape: BoxShape.circle,
+                                                                  boxShadow: kElevationToShadow[
+                                                                      filterProps.filterColors
+                                                                              .contains(widget
+                                                                                  .allColors[key]!
+                                                                                  .value)
+                                                                          ? 0
+                                                                          : 1],
+                                                                  border: filterProps.filterColors
+                                                                          .contains(widget
+                                                                              .allColors[key]!
+                                                                              .value)
+                                                                      ? Border.all(
+                                                                          color: Color.alphaBlend(
+                                                                            context.themeColors
+                                                                                .inverseSurface
+                                                                                .withAlpha(120),
+                                                                            widget.allColors[key]!,
+                                                                          ),
+                                                                          width: 2)
+                                                                      : null,
+                                                                ),
+                                                                child: filterProps.filterColors
                                                                         .contains(widget
                                                                             .allColors[key]!.value)
-                                                                    ? Border.all(
-                                                                        color: Color.alphaBlend(
-                                                                          context.themeColors
-                                                                              .inverseSurface
-                                                                              .withAlpha(120),
-                                                                          widget.allColors[key]!,
+                                                                    ? Center(
+                                                                        child: Icon(
+                                                                          Icons.check_rounded,
+                                                                          size: 40,
+                                                                          color: Color.alphaBlend(
+                                                                            context.themeColors
+                                                                                .inverseSurface
+                                                                                .withAlpha(120),
+                                                                            widget.allColors[key]!,
+                                                                          ),
                                                                         ),
-                                                                        width: 2)
+                                                                      )
                                                                     : null,
                                                               ),
-                                                              child: filterProps.filterColors
-                                                                      .contains(widget
-                                                                          .allColors[key]!.value)
-                                                                  ? Center(
-                                                                      child: Icon(
-                                                                        Icons.check_rounded,
-                                                                        size: 40,
-                                                                        color: Color.alphaBlend(
-                                                                          context.themeColors
-                                                                              .inverseSurface
-                                                                              .withAlpha(120),
-                                                                          widget.allColors[key]!,
-                                                                        ),
-                                                                      ),
-                                                                    )
-                                                                  : null,
                                                             ),
                                                           ),
-                                                        ),
-                                                      ))
-                                                  .toList(),
+                                                        ))
+                                                    .toList(),
+                                              ),
                                             ),
                                           ),
                                         ),

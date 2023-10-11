@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
@@ -14,9 +15,12 @@ import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 
+
+//TODO: Remove this bloc, & instead use the NoteBloc. Having multiple BLoCs dealing with the same functionality seems anti-pattern
 class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   int? _noteIsarId;
   late NoteDataNode _currentNoteNode;
+  // final _dmp = DiffMatchPatch();
 
   ValueStream<LocalNote> noteStream() => LocalStore.note.itemStream(id: _noteIsarId!);
 
@@ -113,6 +117,8 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     // Update note title & content
     on<NoteEditorUpdateEvent>(
       (event, emit) async {
+        // final List<Diff> diffs = _dmp.diffMain(_currentNoteNode.data.content, event.newContent);
+        // log(diffs.toString());
         if (_currentNoteNode.data.content != event.newContent ||
             _currentNoteNode.data.title != event.newTitle) {
           _currentNoteNode.removeNodesToRight();
@@ -134,10 +140,10 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             title: event.newTitle,
             content: event.newContent,
             isSyncedWithCloud: false,
-            debounceChangeFeedEvent: true,
           );
         }
       },
+      transformer: debounceSequential(250.milliseconds),
     );
 
     // Share note
@@ -201,6 +207,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           );
         }
       },
+      transformer: sequential(),
     );
 
     // Copy note
@@ -263,7 +270,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           content: _currentNoteNode.data.content,
         );
       }
-    });
+    }
+    ,transformer: sequential(),
+    );
 
     // Redo edit
     on<NoteEditorRedoEvent>((event, emit) async {
@@ -284,13 +293,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           content: _currentNoteNode.data.content,
         );
       }
-    });
-  }
-
-  @override
-  void onTransition(Transition<NoteEditorEvent, NoteEditorState> transition) {
-    super.onTransition(transition);
-    log(transition.toString());
+    },
+      transformer: sequential(),
+    );
   }
 }
 
@@ -330,4 +335,8 @@ class NoteDataNode {
     _next?.removeNodesToRight();
     _next = null;
   }
+}
+
+EventTransformer<Event> debounceSequential<Event>(Duration duration) {
+  return (events, mapper) => events.debounceTime(duration).asyncExpand(mapper);
 }

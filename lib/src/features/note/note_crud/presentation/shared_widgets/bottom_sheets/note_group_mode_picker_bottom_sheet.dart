@@ -2,7 +2,7 @@ import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/group_props.dart';
 
 Future<void> showNoteGroupModePickerBottomSheet({
   required BuildContext context,

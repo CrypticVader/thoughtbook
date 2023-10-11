@@ -17,15 +17,15 @@ import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/no
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_editor_bloc/note_editor_state.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/color_picker_bottom_sheet.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/bottom_sheets/tag_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/bottom_sheets/color_picker_bottom_sheet.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/bottom_sheets/tag_picker_bottom_sheet.dart';
 import 'package:thoughtbook/src/utilities/common_widgets/tonal_chip.dart';
 import 'package:thoughtbook/src/utilities/dialogs/generic_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 typedef NoteCallback = void Function(LocalNote note);
 
-class NoteEditorView extends StatefulWidget {
+class NoteEditorPage extends StatefulWidget {
   /// This note is used to initialize the state of the [NoteEditorBloc]
   /// and it should not be used anywhere else.
   final LocalNote? note;
@@ -36,7 +36,7 @@ class NoteEditorView extends StatefulWidget {
   /// not accessible from this view's [context]
   final NoteCallback onDeleteNote;
 
-  const NoteEditorView({
+  const NoteEditorPage({
     required this.note,
     required this.shouldAutoFocusContent,
     required this.onDeleteNote,
@@ -44,10 +44,10 @@ class NoteEditorView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<NoteEditorView> createState() => _NoteEditorViewState();
+  State<NoteEditorPage> createState() => _NoteEditorPageState();
 }
 
-class _NoteEditorViewState extends State<NoteEditorView> {
+class _NoteEditorPageState extends State<NoteEditorPage> {
   late final TextEditingController _noteContentController;
   late final TextEditingController _noteTitleController;
   late NoteEditorBloc noteEditorBloc;

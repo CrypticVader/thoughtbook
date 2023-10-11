@@ -51,14 +51,15 @@ android {
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        ndk {
+            //noinspection ChromeOsAbiSupport
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
     }
 
     buildTypes {
         debug {
             minifyEnabled true
-
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
         }
         release {

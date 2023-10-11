@@ -39,7 +39,6 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
     bool isSyncedWithCloud = false,
     String? cloudDocumentId,
     bool addToChangeFeed = true,
-    bool debounceChangeFeedEvent = false,
     bool? isTrashed,
     DateTime? created,
     DateTime? modified,
@@ -78,19 +77,10 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
 
     // Add event to note change feed
     if (addToChangeFeed) {
-      if (debounceChangeFeedEvent) {
-        _debouncer.run(
-          () => NoteChangeStorable().addToChangeFeed(
-            note: ChangedNote.fromLocalNote(newNote),
-            type: SyncableChangeType.update,
-          ),
-        );
-      } else {
-        NoteChangeStorable().addToChangeFeed(
-          note: ChangedNote.fromLocalNote(newNote),
-          type: SyncableChangeType.update,
-        );
-      }
+      NoteChangeStorable().addToChangeFeed(
+        note: ChangedNote.fromLocalNote(newNote),
+        type: SyncableChangeType.update,
+      );
     }
   }
 
@@ -164,10 +154,7 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
   }
 
   @override
-  Future<LocalNote> createItem({
-    bool addToChangeFeed = true,
-    bool debounceChangeFeedEvent = false,
-  }) async {
+  Future<LocalNote> createItem({bool addToChangeFeed = true}) async {
     await _ensureCollectionIsOpen();
     final currentTime = DateTime.now().toUtc();
     final note = LocalNote(
@@ -198,19 +185,10 @@ class LocalNoteStorable extends LocalStorable<LocalNote> {
 
     // Add event to note change feed
     if (addToChangeFeed) {
-      if (debounceChangeFeedEvent) {
-        _debouncer.run(
-          () => NoteChangeStorable().addToChangeFeed(
-            note: ChangedNote.fromLocalNote(note),
-            type: SyncableChangeType.create,
-          ),
-        );
-      } else {
         NoteChangeStorable().addToChangeFeed(
           note: ChangedNote.fromLocalNote(note),
           type: SyncableChangeType.create,
         );
-      }
     }
 
     return note;

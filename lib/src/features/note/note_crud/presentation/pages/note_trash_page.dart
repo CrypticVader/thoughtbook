@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_trash_bloc/note_trash_bloc.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_list_view.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/notes_list_view.dart';
 import 'package:thoughtbook/src/utilities/dialogs/delete_dialog.dart';
 
-class NoteTrashView extends StatefulWidget {
-  const NoteTrashView({super.key});
+class NoteTrashPage extends StatefulWidget {
+  const NoteTrashPage({super.key});
 
   @override
-  State<NoteTrashView> createState() => _NoteTrashViewState();
+  State<NoteTrashPage> createState() => _NoteTrashPageState();
 }
 
-class _NoteTrashViewState extends State<NoteTrashView> {
+class _NoteTrashPageState extends State<NoteTrashPage> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<NoteTrashBloc, NoteTrashState>(
@@ -91,9 +91,7 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                           .read<NoteTrashBloc>()
                                           .add(NoteTrashLongPressEvent(note: note)),
                                     ),
-                                    const SizedBox(
-                                      height: 128,
-                                    ),
+                                    const SizedBox(height: 192),
                                   ],
                                 ),
                               ),
@@ -208,35 +206,30 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                               padding: const EdgeInsets.all(40),
                               decoration: BoxDecoration(
                                 color: context.themeColors.secondaryContainer.withAlpha(120),
-                                borderRadius:
-                                    BorderRadius.circular(40),
+                                borderRadius: BorderRadius.circular(40),
                               ),
-                              child: UnconstrainedBox(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      FluentIcons.bin_recycle_24_filled,
-                                      size: 150,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    FluentIcons.bin_recycle_24_filled,
+                                    size: 150,
+                                    color: context.theme.colorScheme.onSecondaryContainer
+                                        .withAlpha(150),
+                                  ),
+                                  const SizedBox(height: 16.0),
+                                  Text(
+                                    'Nothing to see here',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
                                       color: context.theme.colorScheme.onSecondaryContainer
-                                          .withAlpha(150),
+                                          .withAlpha(220),
                                     ),
-                                    const SizedBox(
-                                      height: 16.0,
-                                    ),
-                                    Center(
-                                      child: Text(
-                                        'Nothing to see here',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: context.theme.colorScheme.onSecondaryContainer
-                                              .withAlpha(220),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           );

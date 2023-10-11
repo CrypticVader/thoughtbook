@@ -5,7 +5,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/dialogs/note_tag_rename_dialog.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/dialogs/note_tag_rename_dialog.dart';
 import 'package:thoughtbook/src/utilities/dialogs/delete_dialog.dart';
 
 typedef NoteTagCreateCallback = void Function(String tagName);

@@ -5,16 +5,17 @@ import 'package:bloc/bloc.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:isolate_manager/isolate_manager.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:thoughtbook/src/extensions/object/null_check.dart';
 import 'package:thoughtbook/src/features/authentication/domain/auth_user.dart';
 import 'package:thoughtbook/src/features/authentication/repository/auth_service.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/filter_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/group_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_event.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/note_state.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/filter_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
@@ -27,11 +28,11 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
-  NoteInitializedState _getInitializedState({
+  NoteInitialized _getInitializedState({
     String? snackBarText,
     Set<LocalNote>? deletedNotes,
   }) =>
-      NoteInitializedState(
+      NoteInitialized(
         isLoading: false,
         user: _user,
         notesData: () => _adaptedNotesData,
@@ -82,31 +83,35 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
   ValueStream<List<LocalNoteTag>> get _allNoteTags => LocalStore.noteTag.allItemStream;
 
-  ValueStream<Map<String, List<PresentableNoteData>>> get _adaptedNotesData =>
-      Rx.combineLatest2(LocalStore.note.allItemStream, _allNoteTags, (allNotes, tags) {
-        final notes = allNotes.where((note) => !note.isTrashed);
-        List<PresentableNoteData> notesData = [];
-        for (final note in notes) {
-          final noteTags = tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
-          notesData.add(PresentableNoteData(note: note, noteTags: noteTags));
-        }
+  final noteProcessorIsolateManager = IsolateManager.create(
+    notesProcessor,
+    isDebug: true,
+    workerName: 'worker',
+    workerConverter: (p0) {
+      log('worker message');
+      return p0;
+    },
+  );
 
-        // Processing the stream using the search parameter
-        notesData =
-            FilterFunctions.getNotesWithQuery(notesData: notesData, query: _searchParameter);
-
-        // Processing the stream using the filters
-        notesData = FilterFunctions.usingProps(notesData: notesData, props: _getFilterProps);
-
-        // Processing the stream using the sorting props
-        notesData = SortFunctions.usingProps(notesData: notesData, props: _sortProps);
-
-        // Processing the stream using the grouping props
-        return GroupFunctions.usingProps(notesData: notesData, props: _groupProps);
-      }).shareValue();
+  ValueStream<Map<String, List<PresentableNoteData>>> get _adaptedNotesData => Rx.combineLatest2(
+        LocalStore.note.allItemStream,
+        _allNoteTags,
+        (allNotes, tags) => (allNotes.where((note) => !note.isTrashed), tags),
+      ).transform<Map<String, List<PresentableNoteData>>>(
+          StreamTransformer.fromHandlers(handleData: (data, sink) async {
+        final adapted = await noteProcessorIsolateManager.compute((
+          notes: data.$1,
+          tags: data.$2,
+          searchQuery: _searchParameter,
+          groupProps: _groupProps,
+          filterProps: _getFilterProps,
+          sortProps: _sortProps,
+        ));
+        sink.add(adapted);
+      })).shareValue();
 
   NoteBloc()
-      : super(const NoteUninitializedState(
+      : super(const NoteUninitialized(
           isLoading: true,
           user: null,
         )) {
@@ -115,10 +120,18 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       (event, emit) async {
         if (_user == null) {
           await LocalStore.open();
+          for (int i = 0; i < 200; i++) {
+            final note = await LocalStore.note.createItem();
+            await LocalStore.note.updateItem(
+              id: note.isarId,
+              title: DateTime.now().toString(),
+              content: DateTime.timestamp().toString(),
+            );
+          }
           log('Isar opened in NoteBloc, no user');
           emit(_getInitializedState());
         } else {
-          CloudStore.open();
+          await CloudStore.open();
           await LocalStore.open();
           log('Isar opened in NoteBloc, user logged in');
           emit(_getInitializedState());
@@ -192,7 +205,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
           _selectedNoteIds.remove(note.isarId);
         }
         emit(
-          NoteInitializedState(
+          NoteInitialized(
             isLoading: false,
             user: _user,
             notesData: () => _adaptedNotesData,
@@ -392,12 +405,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       },
     );
   }
-
-  @override
-  void onTransition(Transition<NoteEvent, NoteState> transition) {
-    super.onTransition(transition);
-    log(transition.toString());
-  }
 }
 
 abstract class FilterFunctions {
@@ -519,7 +526,7 @@ abstract class GroupFunctions {
           tagGroupLogic: props.tagGroupLogic,
         );
       case GroupParameter.none:
-        return {'': notesData};
+        return notesData.isEmpty ? {} : {'': notesData};
     }
   }
 
@@ -560,10 +567,11 @@ abstract class GroupFunctions {
     }
 
     final notesLastWeek = notesData.where((noteData) {
+      if (now.month != dateParam(noteData.note).month) return false;
       final endOfLastWeek = now.weekday.days.ago;
       final startOfLastWeek = (now.weekday + 6).days.ago;
       final isSameWeek =
-          (dateParam(noteData.note).toLocal().between(startOfLastWeek, endOfLastWeek));
+      (dateParam(noteData.note).toLocal().between(startOfLastWeek, endOfLastWeek));
       return isSameWeek;
     }).toList();
     if (notesLastWeek.isNotEmpty) {
@@ -694,4 +702,33 @@ abstract class SortFunctions {
         : notesData.sort((a, b) => -dateParam(a.note).compareTo(dateParam(b.note)));
     return notesData;
   }
+}
+
+@pragma('vm:entry-point')
+Map<String, List<PresentableNoteData>> notesProcessor(
+    ({
+      Iterable<LocalNote> notes,
+      Iterable<LocalNoteTag> tags,
+      String searchQuery,
+      GroupProps groupProps,
+      FilterProps filterProps,
+      SortProps sortProps,
+    }) params) {
+  List<PresentableNoteData> notesData = [];
+  for (final note in params.notes) {
+    final noteTags = params.tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
+    notesData.add(PresentableNoteData(note: note, noteTags: noteTags));
+  }
+
+  // Processing the stream using the search parameter
+  notesData = FilterFunctions.getNotesWithQuery(notesData: notesData, query: params.searchQuery);
+
+  // Processing the stream using the filters
+  notesData = FilterFunctions.usingProps(notesData: notesData, props: params.filterProps);
+
+  // Processing the stream using the sorting props
+  notesData = SortFunctions.usingProps(notesData: notesData, props: params.sortProps);
+
+  // Processing the stream using the grouping props
+  return GroupFunctions.usingProps(notesData: notesData, props: params.groupProps);
 }

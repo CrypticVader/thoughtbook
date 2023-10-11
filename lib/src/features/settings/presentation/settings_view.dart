@@ -184,9 +184,7 @@ class _SettingsViewState extends State<SettingsView> {
                       ],
                     ),
 
-                    const SizedBox(
-                      height: 16,
-                    ),
+                    const SizedBox(height: 16),
 
                     // Appearance Settings
                     const PreferenceSectionHeader(
@@ -202,9 +200,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 FluentIcons.dark_theme_24_filled,
                                 color: context.theme.colorScheme.onBackground,
                               ),
-                              const SizedBox(
-                                width: 16.0,
-                              ),
+                              const SizedBox(width: 16.0),
                               Text(
                                 'App theme',
                                 style: TextStyle(
@@ -245,8 +241,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 color: context.theme.colorScheme.onBackground,
                               ),
                               const SizedBox(
-                                width: 16.0,
-                              ),
+                                  width: 16.0),
                               Text(
                                 'Notes Layout',
                                 style: TextStyle(

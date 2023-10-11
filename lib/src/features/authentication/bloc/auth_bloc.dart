@@ -98,43 +98,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthEventInitialize>(
       (event, emit) async {
         await provider.initialize();
-        if (kIsWeb) {
-          await provider.logOut();
-          await AppPreferenceService().setPreference(
-            key: PreferenceKey.isGuest,
-            value: false,
-          );
-          emit(const AuthStateLoggedIn(
-            isUserGuest: false,
-            user: null,
-            isLoading: false,
-          ));
-          return;
-        }
         final user = provider.currentUser;
         if (user == null) {
           final isUserGuest = AppPreferenceService().isUserLoggedInAsGuest;
           if (isUserGuest) {
-            emit(
-              const AuthStateLoggedIn(
+            if (kIsWeb) {
+              await AppPreferenceService().setPreference(
+                key: PreferenceKey.isGuest,
+                value: false,
+              );
+              emit(const AuthStateLoggedOut(exception: null, isLoading: false));
+            } else {
+              emit(const AuthStateLoggedIn(
                 isLoading: false,
                 isUserGuest: true,
                 user: null,
-              ),
-            );
+              ));
+            }
           } else {
-            emit(
-              const AuthStateLoggedOut(
-                exception: null,
-                isLoading: false,
-              ),
-            );
+            emit(const AuthStateLoggedOut(exception: null, isLoading: false));
           }
         } else {
           await AppPreferenceService().setPreference(
             key: PreferenceKey.isGuest,
             value: false,
           );
+          if (kIsWeb) {
+            await provider.logOut();
+            emit(const AuthStateLoggedOut(exception: null, isLoading: false));
+            return;
+          }
           if (!user.isEmailVerified) {
             emit(
               const AuthStateNeedsVerification(
@@ -184,16 +177,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             );
             emit(const AuthStateNeedsVerification(isLoading: false));
           } else {
-            emit(
-              const AuthStateLoggedOut(
-                exception: null,
-                isLoading: true,
-              ),
-            );
+            emit(const AuthStateLoggedOut(
+              exception: null,
+              isLoading: true,
+            ));
 
             // After logging in, retrieve all the notes belonging to the user from
             // the Firestore collection to the local database
-            CloudStore.open();
+            await CloudStore.open();
             await LocalStore.open();
 
             final Stream<int> noteTagLoadProgress = Synchronizer.noteTag.initLocalFromCloud();
@@ -207,21 +198,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             }
             log('Successfully retrieved all notes from Firestore');
 
-            emit(
-              AuthStateLoggedIn(
-                user: user,
-                isLoading: false,
-                isUserGuest: false,
-              ),
-            );
+            emit(AuthStateLoggedIn(
+              user: user,
+              isLoading: false,
+              isUserGuest: false,
+            ));
           }
         } on Exception catch (e) {
-          emit(
-            AuthStateLoggedOut(
-              exception: e,
-              isLoading: false,
-            ),
-          );
+          emit(AuthStateLoggedOut(
+            exception: e,
+            isLoading: false,
+          ));
         }
       },
     );
@@ -229,19 +216,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // log in as guest
     on<AuthEventLoginAsGuest>(
       (event, emit) async {
+        emit(const AuthStateLoggedOut(
+          exception: null,
+          isLoading: true,
+        ));
         await AppPreferenceService().setPreference(
           key: PreferenceKey.isGuest,
           value: true,
         );
-        CloudStore.open();
+        await CloudStore.open();
         await LocalStore.open();
-        emit(
-          const AuthStateLoggedIn(
-            isLoading: false,
-            isUserGuest: true,
-            user: null,
-          ),
-        );
+        emit(const AuthStateLoggedIn(
+          isLoading: false,
+          isUserGuest: true,
+          user: null,
+        ));
       },
     );
 
@@ -277,7 +266,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           );
         } finally {
           await LocalStore.close(clearData: true);
-          CloudStore.close();
+          await CloudStore.close();
         }
       },
     );
