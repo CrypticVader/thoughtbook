@@ -62,6 +62,7 @@ dependencies:
   drift: ^2.12.1
   bloc_concurrency: ^0.2.2
   isolate_manager: ^4.1.2
+  sliver_tools: ^0.2.12
 
 dev_dependencies:
   flutter_test:

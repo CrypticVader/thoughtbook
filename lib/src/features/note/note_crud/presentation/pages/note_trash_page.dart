@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_trash_bloc/note_trash_bloc.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/notes_list_view.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/sliver_notes_grid.dart';
 import 'package:thoughtbook/src/utilities/dialogs/delete_dialog.dart';
 
 class NoteTrashPage extends StatefulWidget {
@@ -75,7 +75,7 @@ class _NoteTrashPageState extends State<NoteTrashPage> {
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    NotesListView(
+                                    SliverNotesGrid(
                                       isDismissible: false,
                                       layoutPreference: state.layout,
                                       notesData: trashedNotes,

@@ -14,26 +14,32 @@ import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/pages/note_editor_page.dart'
     show NoteEditorPage;
-import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/notes_list_view.dart'
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/sliver_notes_grid.dart'
     show NoteCallback, NoteDataCallback;
 
 class NoteTile extends StatefulWidget {
+  final Animation<double> animation;
   final PresentableNoteData noteData;
+  final bool isVisible;
   final bool isSelected;
   final NoteDataCallback onDeleteNote;
   final void Function(LocalNote note, void Function() openContainer) onTap;
   final NoteCallback onLongPress;
   final bool enableDismissible;
+  final int gridCrossAxisCount;
   final int index;
 
   const NoteTile({
     Key? key,
+    required this.animation,
     required this.noteData,
+    required this.isVisible,
     required this.isSelected,
     required this.onDeleteNote,
     required this.onTap,
     required this.onLongPress,
     required this.enableDismissible,
+    required this.gridCrossAxisCount,
     required this.index,
   }) : super(key: key);
 
@@ -48,7 +54,6 @@ class _NoteTileState extends State<NoteTile> {
   double _noteOpacity = 1.0;
   bool _hasVibrated = false;
   ColorScheme _noteColors = ColorScheme.fromSeed(seedColor: Colors.grey);
-  bool _isVisible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -61,17 +66,61 @@ class _NoteTileState extends State<NoteTile> {
       _noteColors = context.themeColors;
     }
 
-    return Entry.all(
-      visible: _isVisible,
-      delay: Duration(milliseconds: min(250, 25 * widget.index + 10)),
-      duration: const Duration(milliseconds: 220),
-      opacity: 0,
-      scale: 0.95,
-      curve: Curves.easeInOutExpo,
-      yOffset: 0.0,
-      xOffset: 0.0,
-      child: _buildDismissible(),
-    );
+    // Since grouping notes isn't possible in grid layout, there won't be any need for the transition
+    if (widget.gridCrossAxisCount > 1) {
+      return Entry.all(
+        visible: true,
+        delay: Duration(milliseconds: min(450, 40 * widget.index)),
+        duration: const Duration(milliseconds: 300),
+        opacity: 0,
+        scale: 0.9,
+        curve: Curves.fastOutSlowIn,
+        yOffset: 0.0,
+        xOffset: 0.0,
+        child: _buildDismissible(),
+      );
+    } else {
+      // This check is done as an optimization
+      // Using transitions for every item slows the build significantly
+      if (widget.index > 10) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Entry.all(
+              visible: true,
+              delay: Duration(milliseconds: min(450, 40 * widget.index)),
+              duration: const Duration(milliseconds: 300),
+              opacity: 0,
+              scale: 0.9,
+              curve: Curves.fastOutSlowIn,
+              yOffset: 0.0,
+              xOffset: 0.0,
+              child: _buildDismissible(),
+            ),
+          );
+      } else {
+        return FadeTransition(
+          opacity: widget.animation,
+          child: SizeTransition(
+            sizeFactor: widget.animation,
+            axis: Axis.vertical,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Entry.all(
+                visible: true,
+                delay: Duration(milliseconds: min(450, 40 * widget.index)),
+                duration: const Duration(milliseconds: 300),
+                opacity: 0,
+                scale: 0.9,
+                curve: Curves.fastOutSlowIn,
+                yOffset: 0.0,
+                xOffset: 0.0,
+                child: _buildDismissible(),
+              ),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildDismissible() {
@@ -150,14 +199,7 @@ class _NoteTileState extends State<NoteTile> {
           child: NoteEditorPage(
             note: widget.noteData.note,
             shouldAutoFocusContent: false,
-            onDeleteNote: (_) async {
-              await Future.delayed(const Duration(milliseconds: 300));
-              setState(() {
-                _isVisible = false;
-              });
-              await Future.delayed(const Duration(milliseconds: 150));
-              widget.onDeleteNote(widget.noteData);
-            },
+            onDeleteNote: (_) => widget.onDeleteNote(widget.noteData),
           ),
         );
       },

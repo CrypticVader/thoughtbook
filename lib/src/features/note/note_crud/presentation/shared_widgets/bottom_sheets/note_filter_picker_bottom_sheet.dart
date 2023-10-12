@@ -62,11 +62,26 @@ class NoteFilterPickerView extends StatefulWidget {
 
 class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
   late FilterProps filterProps;
+  late ValueStream<List<LocalNoteTag>> Function() allTags;
+  late FilterPropsCallback onChange;
+  late Map<String, Color> allColors;
 
   @override
   void initState() {
-    filterProps = widget.filterProps;
     super.initState();
+    filterProps = widget.filterProps;
+    onChange = widget.onChange;
+    allTags = widget.allTags;
+    allColors = widget.allColors;
+  }
+
+  @override
+  void didUpdateWidget(covariant NoteFilterPickerView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    filterProps = widget.filterProps;
+    onChange = widget.onChange;
+    allTags = widget.allTags;
+    allColors = widget.allColors;
   }
 
   @override
@@ -166,7 +181,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                 filterProps.filterTagIds.add(tags[i].isarId);
                               }
                             });
-                            widget.onChange(filterProps);
+                            onChange(filterProps);
                           },
                           label: tags[i].name,
                           iconData: null,
@@ -249,7 +264,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           setState(() {
                                             filterProps.filterTagIds = {};
                                           });
-                                          widget.onChange(filterProps);
+                                          onChange(filterProps);
                                         },
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: IconButton.styleFrom(
@@ -321,7 +336,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                       filterProps.requireEntireTagFilter =
                                           !(filterProps.requireEntireTagFilter);
                                     });
-                                    widget.onChange(filterProps);
+                                    onChange(filterProps);
                                   },
                                   splashColor: context.themeColors.secondary.withAlpha(40),
                                   highlightColor: context.themeColors.secondary.withAlpha(40),
@@ -360,7 +375,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                               filterProps.requireEntireTagFilter =
                                                   !(filterProps.requireEntireTagFilter);
                                             });
-                                            widget.onChange(filterProps);
+                                            onChange(filterProps);
                                           },
                                         ),
                                         const SizedBox(width: 12.0),
@@ -420,7 +435,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           setState(() {
                                             filterProps.filterColors = {};
                                           });
-                                          widget.onChange(filterProps);
+                                          onChange(filterProps);
                                         },
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: IconButton.styleFrom(
@@ -469,69 +484,62 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                                 spacing: 4,
                                                 runSpacing: 8,
                                                 direction: Axis.vertical,
-                                                children: widget.allColors.keys
+                                                children: allColors.keys
                                                     .map<Widget>((key) => Tooltip(
                                                           message: key,
                                                           child: Padding(
                                                             padding:
                                                                 const EdgeInsets.only(bottom: 4),
                                                             child: InkWell(
-                                                              splashColor: widget.allColors[key],
+                                                              splashColor: allColors[key],
                                                               borderRadius:
                                                                   BorderRadius.circular(36),
                                                               onTap: () {
                                                                 setState(() {
                                                                   if (filterProps.filterColors
-                                                                      .contains(widget
-                                                                          .allColors[key]!.value)) {
+                                                                      .contains(allColors[key]!.value)) {
                                                                     filterProps.filterColors.remove(
-                                                                        widget
-                                                                            .allColors[key]!.value);
+                                                                        allColors[key]!.value);
                                                                   } else {
                                                                     filterProps.filterColors.add(
-                                                                        widget
-                                                                            .allColors[key]!.value);
+                                                                        allColors[key]!.value);
                                                                   }
                                                                 });
-                                                                widget.onChange(filterProps);
+                                                                onChange(filterProps);
                                                               },
                                                               child: Ink(
                                                                 height: 70,
                                                                 width: 70,
                                                                 decoration: BoxDecoration(
-                                                                  color: widget.allColors[key]!
+                                                                  color: allColors[key]!
                                                                       .withAlpha(filterProps
                                                                               .filterColors
-                                                                              .contains(widget
-                                                                                  .allColors[key]!
+                                                                              .contains(allColors[key]!
                                                                                   .value)
                                                                           ? 150
                                                                           : 190),
                                                                   shape: BoxShape.circle,
                                                                   boxShadow: kElevationToShadow[
                                                                       filterProps.filterColors
-                                                                              .contains(widget
-                                                                                  .allColors[key]!
+                                                                              .contains(allColors[key]!
                                                                                   .value)
                                                                           ? 0
                                                                           : 1],
                                                                   border: filterProps.filterColors
-                                                                          .contains(widget
-                                                                              .allColors[key]!
+                                                                          .contains(allColors[key]!
                                                                               .value)
                                                                       ? Border.all(
                                                                           color: Color.alphaBlend(
                                                                             context.themeColors
                                                                                 .inverseSurface
                                                                                 .withAlpha(120),
-                                                                            widget.allColors[key]!,
+                                                                            allColors[key]!,
                                                                           ),
                                                                           width: 2)
                                                                       : null,
                                                                 ),
                                                                 child: filterProps.filterColors
-                                                                        .contains(widget
-                                                                            .allColors[key]!.value)
+                                                                        .contains(allColors[key]!.value)
                                                                     ? Center(
                                                                         child: Icon(
                                                                           Icons.check_rounded,
@@ -540,7 +548,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                                                             context.themeColors
                                                                                 .inverseSurface
                                                                                 .withAlpha(120),
-                                                                            widget.allColors[key]!,
+                                                                            allColors[key]!,
                                                                           ),
                                                                         ),
                                                                       )
@@ -724,7 +732,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                             setState(() {
                                               filterProps.createdRange = range;
                                             });
-                                            widget.onChange(filterProps);
+                                            onChange(filterProps);
                                           }
                                         },
                                         label: const Text('Select range'),
@@ -751,7 +759,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           setState(() {
                                             filterProps.createdRange = null;
                                           });
-                                          widget.onChange(filterProps);
+                                          onChange(filterProps);
                                         }
                                             : null,
                                         label: const Text('Reset'),
@@ -938,7 +946,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                             setState(() {
                                               filterProps.modifiedRange = range;
                                             });
-                                            widget.onChange(filterProps);
+                                            onChange(filterProps);
                                           }
                                         },
                                         label: const Text('Select range'),
@@ -965,7 +973,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                                 setState(() {
                                                   filterProps.modifiedRange = null;
                                                 });
-                                                widget.onChange(filterProps);
+                                                onChange(filterProps);
                                               }
                                             : null,
                                         label: const Text('Reset'),

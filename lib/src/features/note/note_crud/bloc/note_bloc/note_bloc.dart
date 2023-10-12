@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:isolate_manager/isolate_manager.dart';
@@ -28,25 +29,6 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
-  NoteInitialized _getInitializedState({
-    String? snackBarText,
-    Set<LocalNote>? deletedNotes,
-  }) =>
-      NoteInitialized(
-        isLoading: false,
-        user: _user,
-        notesData: () => _adaptedNotesData,
-        filterProps: _getFilterProps,
-        sortProps: _sortProps,
-        groupProps: _groupProps,
-        noteTags: () => _allNoteTags,
-        hasSelectedNotes: _selectedNoteIds.isNotEmpty,
-        selectedNotes: () => _getSelectedNotes,
-        layoutPreference: _layoutPreference,
-        snackBarText: snackBarText,
-        deletedNotes: deletedNotes,
-      );
-
   String _searchParameter = '';
 
   final Set<int> _selectedNoteIds = <int>{};
@@ -83,15 +65,24 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
 
   ValueStream<List<LocalNoteTag>> get _allNoteTags => LocalStore.noteTag.allItemStream;
 
-  final noteProcessorIsolateManager = IsolateManager.create(
-    notesProcessor,
-    isDebug: true,
-    workerName: 'worker',
-    workerConverter: (p0) {
-      log('worker message');
-      return p0;
-    },
-  );
+  NoteInitialized _getInitializedState({
+    String? snackBarText,
+    Set<LocalNote>? deletedNotes,
+  }) =>
+      NoteInitialized(
+        isLoading: false,
+        user: _user,
+        notesData: () => _adaptedNotesData,
+        filterProps: _getFilterProps,
+        sortProps: _sortProps,
+        groupProps: _groupProps,
+        noteTags: () => _allNoteTags,
+        hasSelectedNotes: _selectedNoteIds.isNotEmpty,
+        selectedNotes: () => _getSelectedNotes,
+        layoutPreference: _layoutPreference,
+        snackBarText: snackBarText,
+        deletedNotes: deletedNotes,
+      );
 
   ValueStream<Map<String, List<PresentableNoteData>>> get _adaptedNotesData => Rx.combineLatest2(
         LocalStore.note.allItemStream,
@@ -99,14 +90,14 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         (allNotes, tags) => (allNotes.where((note) => !note.isTrashed), tags),
       ).transform<Map<String, List<PresentableNoteData>>>(
           StreamTransformer.fromHandlers(handleData: (data, sink) async {
-        final adapted = await noteProcessorIsolateManager.compute((
+        final adapted = await NoteProcessor.processNotes(
           notes: data.$1,
           tags: data.$2,
           searchQuery: _searchParameter,
           groupProps: _groupProps,
           filterProps: _getFilterProps,
           sortProps: _sortProps,
-        ));
+        );
         sink.add(adapted);
       })).shareValue();
 
@@ -120,12 +111,21 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       (event, emit) async {
         if (_user == null) {
           await LocalStore.open();
-          for (int i = 0; i < 200; i++) {
+          for (var i = 0; i < 200; i++) {
             final note = await LocalStore.note.createItem();
             await LocalStore.note.updateItem(
               id: note.isarId,
-              title: DateTime.now().toString(),
-              content: DateTime.timestamp().toString(),
+              content: DateTime.now().toString(),
+              title: DateTime.timestamp().toString(),
+            );
+          }
+          for (var i = 0; i < 200; i++) {
+            final note = await LocalStore.note.createItem();
+            await LocalStore.note.updateItem(
+              id: note.isarId,
+              content: DateTime.now().toString(),
+              title: DateTime.timestamp().toString(),
+              modified: DateTime(2022),
             );
           }
           log('Isar opened in NoteBloc, no user');
@@ -704,31 +704,76 @@ abstract class SortFunctions {
   }
 }
 
-@pragma('vm:entry-point')
-Map<String, List<PresentableNoteData>> notesProcessor(
-    ({
-      Iterable<LocalNote> notes,
-      Iterable<LocalNoteTag> tags,
-      String searchQuery,
-      GroupProps groupProps,
-      FilterProps filterProps,
-      SortProps sortProps,
-    }) params) {
-  List<PresentableNoteData> notesData = [];
-  for (final note in params.notes) {
-    final noteTags = params.tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
-    notesData.add(PresentableNoteData(note: note, noteTags: noteTags));
+class NoteProcessor {
+  static final _processorIsolateManager = IsolateManager.create(
+    _processNotes,
+    isDebug: false,
+    workerName: 'worker',
+    workerConverter: (p0) {
+      log('worker message');
+      return p0;
+    },
+  )..start();
+
+  @pragma('vm:entry-point')
+  static Map<String, List<PresentableNoteData>> _processNotes(
+      ({
+        Iterable<LocalNote> notes,
+        Iterable<LocalNoteTag> tags,
+        String searchQuery,
+        GroupProps groupProps,
+        FilterProps filterProps,
+        SortProps sortProps,
+      }) params) {
+    List<PresentableNoteData> notesData = [];
+    for (final note in params.notes) {
+      final noteTags = params.tags.where((tag) => note.tagIds.contains(tag.isarId)).toList();
+      notesData.add(PresentableNoteData(note: note, noteTags: noteTags));
+    }
+
+    // Processing the stream using the search parameter
+    notesData = FilterFunctions.getNotesWithQuery(notesData: notesData, query: params.searchQuery);
+
+    // Processing the stream using the filters
+    notesData = FilterFunctions.usingProps(notesData: notesData, props: params.filterProps);
+
+    // Processing the stream using the sorting props
+    notesData = SortFunctions.usingProps(notesData: notesData, props: params.sortProps);
+
+    // Processing the stream using the grouping props
+    return GroupFunctions.usingProps(notesData: notesData, props: params.groupProps);
   }
 
-  // Processing the stream using the search parameter
-  notesData = FilterFunctions.getNotesWithQuery(notesData: notesData, query: params.searchQuery);
-
-  // Processing the stream using the filters
-  notesData = FilterFunctions.usingProps(notesData: notesData, props: params.filterProps);
-
-  // Processing the stream using the sorting props
-  notesData = SortFunctions.usingProps(notesData: notesData, props: params.sortProps);
-
-  // Processing the stream using the grouping props
-  return GroupFunctions.usingProps(notesData: notesData, props: params.groupProps);
+  /// Runs the computation in a background isolate.
+  ///
+  /// Not available on the web, where this function runs its synchronous counterpart in the main thread.
+  static Future<Map<String, List<PresentableNoteData>>> processNotes({
+    required Iterable<LocalNote> notes,
+    required Iterable<LocalNoteTag> tags,
+    required String searchQuery,
+    required GroupProps groupProps,
+    required FilterProps filterProps,
+    required SortProps sortProps,
+  }) async {
+    if (kIsWeb) {
+      return Future.value(_processNotes((
+        notes: notes,
+        tags: tags,
+        searchQuery: searchQuery,
+        groupProps: groupProps,
+        filterProps: filterProps,
+        sortProps: sortProps,
+      )));
+    } else {
+      final result = await _processorIsolateManager.compute((
+        notes: notes,
+        tags: tags,
+        searchQuery: searchQuery,
+        groupProps: groupProps,
+        filterProps: filterProps,
+        sortProps: sortProps,
+      ));
+      return result;
+    }
+  }
 }
