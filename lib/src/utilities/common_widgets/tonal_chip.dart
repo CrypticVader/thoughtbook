@@ -61,9 +61,9 @@ class _TonalChipState extends State<TonalChip> {
       child: InkWell(
         onTap: widget.onTap,
         splashColor:
-            widget.splashColor?.withAlpha(100) ?? context.themeColors.secondary.withAlpha(100),
+            widget.splashColor ?? context.themeColors.secondary.withAlpha(50),
         highlightColor:
-            widget.splashColor?.withAlpha(70) ?? context.themeColors.secondary.withAlpha(120),
+            widget.splashColor ?? context.themeColors.secondary.withAlpha(70),
         borderRadius: borderRadius,
         child: Ink(
           padding: widget.padding,

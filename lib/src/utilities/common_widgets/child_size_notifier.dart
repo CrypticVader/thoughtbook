@@ -4,10 +4,10 @@ class ChildSizeNotifier extends StatefulWidget {
   final Widget Function(BuildContext context, Size size, Widget child) builder;
   final Widget child;
   const ChildSizeNotifier({
-    Key? key,
+    super.key,
     required this.builder,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   State<ChildSizeNotifier> createState() => _ChildSizeNotifierState();

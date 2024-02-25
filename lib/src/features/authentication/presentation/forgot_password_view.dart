@@ -10,7 +10,7 @@ import 'package:thoughtbook/src/utilities/dialogs/error_dialog.dart';
 import 'package:thoughtbook/src/utilities/dialogs/password_reset_email_sent_dialog.dart';
 
 class ForgotPasswordView extends StatefulWidget {
-  const ForgotPasswordView({Key? key}) : super(key: key);
+  const ForgotPasswordView({super.key});
 
   @override
   State<ForgotPasswordView> createState() => _ForgotPasswordViewState();
@@ -35,7 +35,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-        if (state is AuthStateForgotPassword) {
+        if (state is AuthForgotPassword) {
           if (state.hasSentEmail) {
             _controller.clear();
             await showPasswordResetEmailSentDialog(context);
@@ -139,7 +139,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                         keyboardType: TextInputType.emailAddress,
                         onSubmitted: (_) {
                           final email = _controller.text;
-                          context.read<AuthBloc>().add(AuthEventForgotPassword(email: email));
+                          context.read<AuthBloc>().add(AuthForgotPasswordEvent(email: email));
                         },
                         textInputAction: TextInputAction.go,
                         autocorrect: false,
@@ -214,7 +214,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                     children: [
                       IconButton.filledTonal(
                         onPressed: () {
-                          context.read<AuthBloc>().add(const AuthEventLogOut());
+                          context.read<AuthBloc>().add(const AuthLogOutEvent());
                         },
                         icon: const Icon(Icons.arrow_back_rounded),
                         style: IconButton.styleFrom(
@@ -230,7 +230,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                       FilledButton.icon(
                         onPressed: () {
                           final email = _controller.text;
-                          context.read<AuthBloc>().add(AuthEventForgotPassword(email: email));
+                          context.read<AuthBloc>().add(AuthForgotPasswordEvent(email: email));
                         },
                         label: Text(
                           context.loc.forgot_password_view_send_me_link,

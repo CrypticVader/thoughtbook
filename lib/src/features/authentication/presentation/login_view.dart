@@ -10,7 +10,7 @@ import 'package:thoughtbook/src/features/authentication/repository/auth_exceptio
 import 'package:thoughtbook/src/utilities/dialogs/error_dialog.dart';
 
 class LoginView extends StatefulWidget {
-  const LoginView({Key? key}) : super(key: key);
+  const LoginView({super.key});
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -40,7 +40,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-        if (state is AuthStateLoggedOut) {
+        if (state is AuthLoggedOut) {
           if (state.exception is EmptyCredentialsAuthException) {
             await showErrorDialog(
               context: context,
@@ -186,7 +186,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                   final email = _email.text;
                                   final password = _password.text;
                                   context.read<AuthBloc>().add(
-                                        AuthEventLogIn(
+                                        AuthLogInEvent(
                                           email,
                                           password,
                                         ),
@@ -244,7 +244,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                           ),
                           onPressed: () =>
-                              context.read<AuthBloc>().add(const AuthEventForgotPassword()),
+                              context.read<AuthBloc>().add(const AuthForgotPasswordEvent()),
                           icon: const Icon(Icons.lightbulb_outline_rounded),
                           label: Text(context.loc.login_view_forgot_password),
                         ),
@@ -253,7 +253,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                           onPressed: () {
                             final email = _email.text;
                             final password = _password.text;
-                            context.read<AuthBloc>().add(AuthEventLogIn(email, password));
+                            context.read<AuthBloc>().add(AuthLogInEvent(email, password));
                           },
                           style: FilledButton.styleFrom(
                             minimumSize: const Size.fromHeight(54),
@@ -275,7 +275,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                         ),
                         OutlinedButton.icon(
                           onPressed: () =>
-                              context.read<AuthBloc>().add(const AuthEventShouldRegister()),
+                              context.read<AuthBloc>().add(const AuthShouldRegisterEvent()),
                           label: Text(context.loc.login_view_not_registered_yet),
                           icon: const Icon(Icons.app_registration_rounded),
                           style: OutlinedButton.styleFrom(
@@ -298,7 +298,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                     FilledButton.tonalIcon(
                                       onPressed: () => context
                                           .read<AuthBloc>()
-                                          .add(const AuthEventLoginAsGuest()),
+                                          .add(const AuthLoginAsGuestEvent()),
                                       label: const Text('Continue without an account'),
                                       icon: const Icon(Icons.no_accounts_rounded),
                                     ),

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-part of diff_match_patch;
+part of 'diff_match_patch.dart';
 
 /// Class representing one patch operation.
 class Patch {

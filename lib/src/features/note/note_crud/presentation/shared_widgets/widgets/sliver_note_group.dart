@@ -51,7 +51,7 @@ class _SliverNoteGroupState extends State<SliverNoteGroup> {
             onUnselectGroup: () => widget.onUnselectGroup(widget.notes.map((e) => e.note)),
           ),
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(0, widget.groupHeader.isNotEmpty ? 8 : 0, 0, isCollapsed?0:12),
+          padding: EdgeInsets.fromLTRB(0, widget.groupHeader.isNotEmpty ? 12 : 0, 0, 8),
           sliver: SliverNotesGrid(
             layoutPreference: widget.state.layoutPreference,
             isCollapsed: isCollapsed,

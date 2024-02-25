@@ -2,6 +2,7 @@ import 'package:dartx/dartx.dart';
 import 'package:entry/entry.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/src/extensions/curves/material_3.dart';
 
 typedef DialogOptionBuilder<T> = Map<String, T?> Function();
 
@@ -22,11 +23,11 @@ Future<T?> showGenericDialog<T>({
       var optionIndex = -1;
       final optionsCount = options.length;
       return Entry.all(
-        duration: 330.milliseconds,
+        duration: 450.milliseconds,
         yOffset: 0,
-        scale: 0.8,
+        scale: 0.65,
         opacity: 0,
-        curve: Curves.easeInOutCubic,
+        curve: M3Easings.emphasizedDecelerate,
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
           icon: icon,
@@ -41,12 +42,12 @@ Future<T?> showGenericDialog<T>({
               : null,
           content: (content != null)
               ? Text(
-                  content,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                )
+                content,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              )
               : body,
           actionsAlignment: MainAxisAlignment.center,
           actions: options.keys.toList().map<Widget>(
@@ -70,7 +71,7 @@ Future<T?> showGenericDialog<T>({
                     ),
                     minimumSize: const Size.fromHeight(54),
                     backgroundColor: (value == null || value == false)
-                        ? context.theme.colorScheme.secondaryContainer
+                        ? context.theme.colorScheme.surfaceTint.withAlpha(25)
                         : context.theme.colorScheme.primary,
                     foregroundColor: (value == null || value == false)
                         ? context.theme.colorScheme.onSecondaryContainer

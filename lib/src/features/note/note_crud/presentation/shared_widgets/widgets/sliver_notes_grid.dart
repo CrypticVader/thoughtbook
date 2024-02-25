@@ -5,7 +5,9 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:sliver_tools/sliver_tools.dart';
+// import 'package:sliver_tools/sliver_tools.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/src/extensions/curves/material_3.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/note_tile.dart';
@@ -27,7 +29,7 @@ class SliverNotesGrid extends StatefulWidget {
   final NoteCallback onLongPress;
 
   const SliverNotesGrid({
-    Key? key,
+    super.key,
     this.isCollapsed = false,
     this.isDismissible = true,
     required this.layoutPreference,
@@ -36,7 +38,7 @@ class SliverNotesGrid extends StatefulWidget {
     required this.onDeleteNote,
     required this.onTap,
     required this.onLongPress,
-  }) : super(key: key);
+  });
 
   @override
   State<SliverNotesGrid> createState() => _SliverNotesGridState();
@@ -54,12 +56,18 @@ class _SliverNotesGridState extends State<SliverNotesGrid> with SingleTickerProv
     _controller = AnimationController(
       vsync: this,
       duration: 500.milliseconds,
-      reverseDuration: 500.milliseconds,
     );
     _animation = Tween<double>(begin: 1, end: 0).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.fastOutSlowIn,
+      curve: M3Easings.emphasized,
+      reverseCurve: M3Easings.emphasizedAccelerate,
     ));
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _childCount = widget.notesData.length;
   }
 
   @override
@@ -67,7 +75,7 @@ class _SliverNotesGridState extends State<SliverNotesGrid> with SingleTickerProv
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isCollapsed != widget.isCollapsed) {
       // childCount is set here to avoid a 'jump' in the grid view when the group is expanded
-      // the jump happens when the NoteGroup provides the grid with the entire list of notes unlike
+      // The jump happens when the NoteGroup provides the grid with the entire list of notes unlike
       // the sublist that is provided when the group is collapsed
       if (widget.isCollapsed) {
         setChildCount(min(10, widget.notesData.length));
@@ -76,12 +84,16 @@ class _SliverNotesGridState extends State<SliverNotesGrid> with SingleTickerProv
         setChildCount(min(10, widget.notesData.length));
         _controller.reverse().then((value) => setChildCount(widget.notesData.length));
       }
+    } else {
+      setChildCount(widget.notesData.length);
     }
   }
 
   void setChildCount(int count) {
     if (_childCount != count) {
-      _childCount = count;
+      setState(() {
+        _childCount = count;
+      });
     }
   }
 
@@ -163,8 +175,8 @@ class _SliverNotesGridState extends State<SliverNotesGrid> with SingleTickerProv
   Widget _buildSliverGrid() {
     return SliverMasonryGrid.count(
       key: ValueKey<int>(_getLayoutColumnCount(context)),
-      crossAxisSpacing: (widget.isCollapsed || widget.layoutPreference == 'list') ? 0 : 8.0,
-      mainAxisSpacing: (widget.isCollapsed || widget.layoutPreference == 'list') ? 0 : 8.0,
+      crossAxisSpacing: (widget.isCollapsed || widget.layoutPreference == 'list') ? 0 : 12.0,
+      mainAxisSpacing: (widget.isCollapsed || widget.layoutPreference == 'list') ? 0 : 12.0,
       crossAxisCount: _getLayoutColumnCount(context),
       childCount: _childCount,
       itemBuilder: (BuildContext context, int index) {

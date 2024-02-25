@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -23,10 +25,12 @@ class _NoteTrashPageState extends State<NoteTrashPage> {
           context.read<NoteTrashBloc>().add(const NoteTrashInitializeEvent());
           return const Placeholder();
         } else if (state is NoteTrashInitialized) {
+          final bottomInset = max(16, MediaQuery.of(context).padding.bottom).toDouble();
           return Scaffold(
             body: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverAppBar.large(
+                  backgroundColor: context.themeColors.background,
                   iconTheme: IconThemeData(color: context.themeColors.onSurfaceVariant),
                   title: Text(
                     'Deleted notes',
@@ -71,11 +75,11 @@ class _NoteTrashPageState extends State<NoteTrashPage> {
                           final buttonWidth = MediaQuery.of(context).size.width / 2 - 24;
                           return Stack(
                             children: [
-                              SingleChildScrollView(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SliverNotesGrid(
+                              CustomScrollView(
+                                slivers: [
+                                  SliverPadding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    sliver: SliverNotesGrid(
                                       isDismissible: false,
                                       layoutPreference: state.layout,
                                       notesData: trashedNotes,
@@ -91,15 +95,15 @@ class _NoteTrashPageState extends State<NoteTrashPage> {
                                           .read<NoteTrashBloc>()
                                           .add(NoteTrashLongPressEvent(note: note)),
                                     ),
-                                    const SizedBox(height: 192),
-                                  ],
-                                ),
+                                  ),
+                                  const SliverToBoxAdapter(child: SizedBox(height: 192)),
+                                ],
                               ),
                               Column(
                                 children: [
                                   const Spacer(flex: 1),
                                   Container(
-                                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+                                    padding: EdgeInsets.fromLTRB(16, 24, 16, bottomInset+8),
                                     decoration: BoxDecoration(
                                       color: context.themeColors.surfaceVariant,
                                       borderRadius: const BorderRadius.only(
@@ -111,7 +115,8 @@ class _NoteTrashPageState extends State<NoteTrashPage> {
                                       absorbing: state.selectedNotes.isEmpty,
                                       child: AnimatedOpacity(
                                         opacity: state.selectedNotes.isEmpty ? 0.25 : 1,
-                                        duration: 200.milliseconds,
+                                        duration: 250.milliseconds,
+                                        curve: Curves.ease,
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           mainAxisSize: MainAxisSize.max,

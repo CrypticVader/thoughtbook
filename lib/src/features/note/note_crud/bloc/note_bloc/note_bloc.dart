@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +31,7 @@ import 'package:thoughtbook/src/features/settings/services/app_preference/enums/
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
-  String _searchParameter = '';
+  String _searchQuery = '';
 
   final Set<int> _selectedNoteIds = <int>{};
 
@@ -93,7 +95,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         final adapted = await NoteProcessor.processNotes(
           notes: data.$1,
           tags: data.$2,
-          searchQuery: _searchParameter,
+          searchQuery: _searchQuery,
           groupProps: _groupProps,
           filterProps: _getFilterProps,
           sortProps: _sortProps,
@@ -111,23 +113,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       (event, emit) async {
         if (_user == null) {
           await LocalStore.open();
-          for (var i = 0; i < 200; i++) {
-            final note = await LocalStore.note.createItem();
-            await LocalStore.note.updateItem(
-              id: note.isarId,
-              content: DateTime.now().toString(),
-              title: DateTime.timestamp().toString(),
-            );
-          }
-          for (var i = 0; i < 200; i++) {
-            final note = await LocalStore.note.createItem();
-            await LocalStore.note.updateItem(
-              id: note.isarId,
-              content: DateTime.now().toString(),
-              title: DateTime.timestamp().toString(),
-              modified: DateTime(2022),
-            );
-          }
           log('Isar opened in NoteBloc, no user');
           emit(_getInitializedState());
         } else {
@@ -142,12 +127,13 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         }
         log('NoteBloc initialized');
       },
+      transformer: restartable(),
     );
 
     // Search notes
     on<NoteSearchEvent>(
       (event, emit) {
-        _searchParameter = event.query;
+        _searchQuery = event.query;
         emit(_getInitializedState());
       },
     );
@@ -706,17 +692,18 @@ abstract class SortFunctions {
 
 class NoteProcessor {
   static final _processorIsolateManager = IsolateManager.create(
-    _processNotes,
+    processNotesSync,
     isDebug: false,
     workerName: 'worker',
     workerConverter: (p0) {
-      log('worker message');
+      //TODO: JSON encode the params before sending
+      jsonEncode(p0);
       return p0;
     },
   )..start();
 
   @pragma('vm:entry-point')
-  static Map<String, List<PresentableNoteData>> _processNotes(
+  static Map<String, List<PresentableNoteData>> processNotesSync(
       ({
         Iterable<LocalNote> notes,
         Iterable<LocalNoteTag> tags,
@@ -745,8 +732,6 @@ class NoteProcessor {
   }
 
   /// Runs the computation in a background isolate.
-  ///
-  /// Not available on the web, where this function runs its synchronous counterpart in the main thread.
   static Future<Map<String, List<PresentableNoteData>>> processNotes({
     required Iterable<LocalNote> notes,
     required Iterable<LocalNoteTag> tags,
@@ -756,7 +741,7 @@ class NoteProcessor {
     required SortProps sortProps,
   }) async {
     if (kIsWeb) {
-      return Future.value(_processNotes((
+      return Future.value(processNotesSync((
         notes: notes,
         tags: tags,
         searchQuery: searchQuery,

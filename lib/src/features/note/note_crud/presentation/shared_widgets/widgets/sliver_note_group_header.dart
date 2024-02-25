@@ -2,6 +2,7 @@ import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
+import 'package:thoughtbook/src/extensions/curves/material_3.dart';
 
 class SliverNoteGroupHeader extends StatefulWidget {
   final String groupHeader;
@@ -54,6 +55,7 @@ class _SliverNoteGroupHeaderState extends State<SliverNoteGroupHeader> with Sing
       child: Card(
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
+        color: Colors.transparent,
         elevation: 0,
         child: InkWell(
           onTap: () {
@@ -75,13 +77,13 @@ class _SliverNoteGroupHeaderState extends State<SliverNoteGroupHeader> with Sing
             bottomRight: Radius.circular(14),
           ),
           child: AnimatedContainer(
-            duration: 250.milliseconds,
-            curve: Curves.ease,
+            duration: 200.milliseconds,
+            curve: M3Easings.emphasizedDecelerate,
             padding: const EdgeInsets.fromLTRB(16, 4, 5, 4),
             decoration: BoxDecoration(
-              color: context.themeColors.primaryContainer.withAlpha(widget.isSelected ? 220 : 120),
+              color: context.themeColors.primaryContainer.withAlpha(widget.isSelected ? 255 : 120),
               border: Border.all(
-                color: context.themeColors.primary.withAlpha(widget.isSelected ? 100 : 35),
+                color: context.themeColors.primary.withAlpha(widget.isSelected ? 105 : 30),
                 width: 0.5,
                 strokeAlign: BorderSide.strokeAlignInside,
               ),

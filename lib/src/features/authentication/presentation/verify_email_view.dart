@@ -6,7 +6,7 @@ import 'package:thoughtbook/src/features/authentication/bloc/auth_bloc.dart';
 import 'package:thoughtbook/src/features/authentication/bloc/auth_event.dart';
 
 class VerifyEmailView extends StatefulWidget {
-  const VerifyEmailView({Key? key}) : super(key: key);
+  const VerifyEmailView({super.key});
 
   @override
   State<VerifyEmailView> createState() => _VerifyEmailViewState();
@@ -55,7 +55,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                     ElevatedButton(
                       onPressed: () {
                         context.read<AuthBloc>().add(
-                              const AuthEventLogOut(),
+                              const AuthLogOutEvent(),
                             );
                       },
                       style: TextButton.styleFrom(
@@ -93,7 +93,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                             OutlinedButton(
                               onPressed: () {
                                 context.read<AuthBloc>().add(
-                                      const AuthEventSendEmailVerification(),
+                                      const AuthSendEmailVerificationEvent(),
                                     );
                               },
                               child: Text(

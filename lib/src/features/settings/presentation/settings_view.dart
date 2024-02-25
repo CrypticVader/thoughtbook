@@ -131,7 +131,7 @@ class _SettingsViewState extends State<SettingsView> {
                             final navigator = Navigator.of(context);
                             final shouldLogout = await showLogoutDialog(context);
                             if (shouldLogout) {
-                              authBloc.add(const AuthEventLogOut());
+                              authBloc.add(const AuthLogOutEvent());
                               navigator.pop();
                             }
                           },

@@ -10,7 +10,7 @@ import 'package:thoughtbook/src/features/authentication/repository/auth_exceptio
 import 'package:thoughtbook/src/utilities/dialogs/error_dialog.dart';
 
 class RegisterView extends StatefulWidget {
-  const RegisterView({Key? key}) : super(key: key);
+  const RegisterView({super.key});
 
   @override
   State<RegisterView> createState() => _RegisterViewState();
@@ -67,7 +67,7 @@ class _RegisterViewState extends State<RegisterView> with TickerProviderStateMix
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-        if (state is AuthStateRegistering) {
+        if (state is AuthRegistering) {
           if (state.exception is EmptyCredentialsAuthException) {
             await showErrorDialog(
               context: context,
@@ -270,7 +270,7 @@ class _RegisterViewState extends State<RegisterView> with TickerProviderStateMix
                                   final password = _password.text;
                                   if (_isPasswordMatching()) {
                                     context.read<AuthBloc>().add(
-                                          AuthEventRegister(
+                                          AuthRegisterEvent(
                                             email,
                                             password,
                                           ),
@@ -360,7 +360,7 @@ class _RegisterViewState extends State<RegisterView> with TickerProviderStateMix
                             final password = _password.text;
                             if (_isPasswordMatching()) {
                               context.read<AuthBloc>().add(
-                                    AuthEventRegister(
+                                    AuthRegisterEvent(
                                       email,
                                       password,
                                     ),
@@ -397,7 +397,7 @@ class _RegisterViewState extends State<RegisterView> with TickerProviderStateMix
                             backgroundColor: context.theme.colorScheme.surface.withOpacity(0.5),
                           ),
                           onPressed: () {
-                            context.read<AuthBloc>().add(const AuthEventLogOut());
+                            context.read<AuthBloc>().add(const AuthLogOutEvent());
                           },
                           label: Text(
                             context.loc.register_view_already_registered,

@@ -24,12 +24,9 @@ abstract class NoteState {
 
 class NoteUninitialized extends NoteState {
   const NoteUninitialized({
-    required bool isLoading,
-    required AuthUser? user,
-  }) : super(
-          isLoading: isLoading,
-          user: user,
-        );
+    required super.isLoading,
+    required super.user,
+  });
 }
 
 class NoteInitialized extends NoteState with EquatableMixin {
@@ -65,13 +62,10 @@ class NoteInitialized extends NoteState with EquatableMixin {
     required this.selectedNotes,
     this.deletedNotes,
     this.snackBarText,
-    required bool isLoading,
-    required AuthUser? user,
+    required super.isLoading,
+    required super.user,
     required this.layoutPreference,
-  }) : super(
-          isLoading: isLoading,
-          user: user,
-        );
+  });
 
   @override
   List<Object?> get props => [
