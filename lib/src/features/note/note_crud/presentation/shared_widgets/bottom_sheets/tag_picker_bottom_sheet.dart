@@ -105,12 +105,12 @@ class _NoteTagPickerViewState extends State<NoteTagPickerView> {
                     return Scaffold(
                       backgroundColor: Color.alphaBlend(
                         colorScheme.surfaceTint.withAlpha(25),
-                        colorScheme.background,
+                        colorScheme.surface,
                       ),
                       appBar: AppBar(
                         backgroundColor: Color.alphaBlend(
                           colorScheme.surfaceTint.withAlpha(25),
-                          colorScheme.background,
+                          colorScheme.surface,
                         ),
                         leading: null,
                         automaticallyImplyLeading: false,

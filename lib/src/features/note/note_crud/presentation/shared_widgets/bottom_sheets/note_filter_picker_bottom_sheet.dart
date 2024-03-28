@@ -106,12 +106,12 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
           return Scaffold(
             backgroundColor: Color.alphaBlend(
               context.themeColors.surfaceTint.withAlpha(15),
-              context.themeColors.background,
+              context.themeColors.surface,
             ),
             appBar: AppBar(
               backgroundColor: Color.alphaBlend(
                 context.themeColors.surfaceTint.withAlpha(15),
-                context.themeColors.background,
+                context.themeColors.surface,
               ),
               leading: null,
               automaticallyImplyLeading: false,
@@ -137,7 +137,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                       fontSize: 18,
                       color: Color.alphaBlend(
                         context.themeColors.surfaceTint.withAlpha(25),
-                        context.themeColors.onBackground,
+                        context.themeColors.onSurface,
                       ),
                     ),
                   ),
@@ -287,7 +287,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                     foregroundPainter: HorizontalFadingGradient(
                                       color: Color.alphaBlend(
                                         context.themeColors.primaryContainer.withAlpha(220),
-                                        context.themeColors.background,
+                                        context.themeColors.surface,
                                       ),
                                     ),
                                     child: Container(
@@ -295,7 +295,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                       decoration: BoxDecoration(
                                         color: Color.alphaBlend(
                                           context.themeColors.primaryContainer.withAlpha(220),
-                                          context.themeColors.background,
+                                          context.themeColors.surface,
                                         ),
                                         borderRadius: const BorderRadius.only(
                                           topLeft: Radius.circular(28),
@@ -458,7 +458,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                     foregroundPainter: HorizontalFadingGradient(
                                         color: Color.alphaBlend(
                                       context.themeColors.secondaryContainer.withAlpha(220),
-                                      context.themeColors.background,
+                                      context.themeColors.surface,
                                     )),
                                     child: Ink(
                                       decoration: BoxDecoration(
@@ -619,7 +619,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(24),
                                               topRight: Radius.circular(4),
@@ -669,7 +669,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(4),
                                               topRight: Radius.circular(24),
@@ -765,7 +765,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         label: const Text('Reset'),
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: TextButton.styleFrom(
-                                          backgroundColor: context.themeColors.surfaceVariant.withAlpha(200),
+                                          backgroundColor: context.themeColors.surfaceContainerHighest.withAlpha(200),
                                           foregroundColor: context.themeColors.onSurface,
                                           shape: const RoundedRectangleBorder(
                                             borderRadius: BorderRadius.only(
@@ -833,7 +833,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(24),
                                               topRight: Radius.circular(4),
@@ -883,7 +883,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(4),
                                               topRight: Radius.circular(24),
@@ -979,7 +979,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         label: const Text('Reset'),
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: TextButton.styleFrom(
-                                          backgroundColor: context.themeColors.surfaceVariant.withAlpha(200),
+                                          backgroundColor: context.themeColors.surfaceContainerHighest.withAlpha(200),
                                           foregroundColor: context.themeColors.onSurface,
                                           shape: const RoundedRectangleBorder(
                                             borderRadius: BorderRadius.only(

@@ -68,65 +68,50 @@ class _NoteTileState extends State<NoteTile> {
       _noteColors = context.themeColors;
     }
 
-    // Since grouping notes isn't possible in grid layout, there won't be any need for the transition
-    if (widget.gridCrossAxisCount > 1) {
-      return Entry.all(
-        visible: true,
-        delay: Duration(milliseconds: min(400, 50 * widget.index + 100)),
-        duration: const Duration(milliseconds: 250),
-        opacity: 0,
-        scale: 0.9,
-        curve: M3Easings.emphasized,
-        yOffset: 0.0,
-        xOffset: 0.0,
-        child: _buildDismissible(),
+    // This check is done as an optimization
+    // Using transitions for every item slows the build significantly
+    if (widget.index > 10) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Entry.all(
+          visible: true,
+          delay: Duration(milliseconds: min(400, 50 * widget.index + 100)),
+          duration: const Duration(milliseconds: 250),
+          opacity: 0,
+          scale: 0.9,
+          curve: M3Easings.emphasized,
+          yOffset: 0.0,
+          xOffset: 0.0,
+          child: _buildDismissible(),
+        ),
       );
     } else {
-      // This check is done as an optimization
-      // Using transitions for every item slows the build significantly
-      if (widget.index > 10) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Entry.all(
-            visible: true,
-            delay: Duration(milliseconds: min(400, 50 * widget.index + 100)),
-            duration: const Duration(milliseconds: 250),
-            opacity: 0,
-            scale: 0.9,
-            curve: M3Easings.emphasized,
-            yOffset: 0.0,
-            xOffset: 0.0,
-            child: _buildDismissible(),
-          ),
-        );
-      } else {
-        return FadeTransition(
-          opacity: widget.animation,
-          child: SizeTransition(
-            sizeFactor: widget.animation,
-            axis: Axis.vertical,
-            axisAlignment: -1,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 12, top: 0),
-              child: ClipRRect(
-                clipBehavior: Clip.hardEdge,
-                borderRadius: BorderRadius.circular(24),
-                child: Entry.all(
-                  visible: true,
-                  delay: Duration(milliseconds: min(400, 50 * widget.index + 100)),
-                  duration: const Duration(milliseconds: 250),
-                  opacity: 0,
-                  scale: 0.9,
-                  curve: M3Easings.emphasized,
-                  yOffset: 0.0,
-                  xOffset: 0.0,
-                  child: _buildDismissible(),
-                ),
+      return FadeTransition(
+        opacity: widget.animation,
+        child: SizeTransition(
+          sizeFactor: widget.animation,
+          axis: Axis.vertical,
+          axisAlignment: -1,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 12, top: 0),
+            child: ClipRRect(
+              clipBehavior: Clip.hardEdge,
+              borderRadius: BorderRadius.circular(24),
+              child: Entry.all(
+                visible: true,
+                delay: Duration(milliseconds: min(400, 50 * widget.index + 100)),
+                duration: const Duration(milliseconds: 250),
+                opacity: 0,
+                scale: 0.9,
+                curve: M3Easings.emphasized,
+                yOffset: 0.0,
+                xOffset: 0.0,
+                child: _buildDismissible(),
               ),
             ),
           ),
-        );
-      }
+        ),
+      );
     }
   }
 
@@ -375,7 +360,7 @@ class NoteMaskedContent extends StatelessWidget {
             ),
             codeblockPadding: const EdgeInsets.all(12.0),
             codeblockDecoration: BoxDecoration(
-              color: colorScheme.background.withAlpha(200),
+              color: colorScheme.surface.withAlpha(200),
               borderRadius: BorderRadius.circular(16),
             ),
             blockquoteDecoration: BoxDecoration(
@@ -535,15 +520,15 @@ class NoteOpenContainer extends StatelessWidget {
       openElevation: 0,
       closedColor: Color.alphaBlend(
         colorScheme.primaryContainer.withAlpha(_isDarkMode ? 120 : 170),
-        context.themeColors.background,
+        context.themeColors.surface,
       ),
       middleColor: Color.alphaBlend(
         colorScheme.primaryContainer.withAlpha(_isDarkMode ? 120 : 170),
-        colorScheme.background,
+        colorScheme.surface,
       ),
       openColor: Color.alphaBlend(
         colorScheme.primaryContainer.withAlpha(_isDarkMode ? 120 : 170),
-        colorScheme.background,
+        colorScheme.surface,
       ),
       useRootNavigator: true,
       closedShape: RoundedRectangleBorder(

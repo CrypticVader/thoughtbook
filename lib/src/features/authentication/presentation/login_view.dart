@@ -76,7 +76,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
       child: Scaffold(
         backgroundColor: Color.alphaBlend(
           context.theme.colorScheme.inversePrimary.withAlpha(40),
-          context.theme.colorScheme.background,
+          context.theme.colorScheme.surface,
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -109,7 +109,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 28,
-                                        color: context.theme.colorScheme.onBackground,
+                                        color: context.theme.colorScheme.onSurface,
                                       ),
                                     ),
                                     Text(

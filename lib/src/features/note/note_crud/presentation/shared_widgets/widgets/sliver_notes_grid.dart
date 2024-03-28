@@ -3,9 +3,7 @@ import 'dart:math' show max, min;
 import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:sliver_tools/sliver_tools.dart';
-// import 'package:sliver_tools/sliver_tools.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/extensions/curves/material_3.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
@@ -13,6 +11,7 @@ import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_
 import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/note_tile.dart';
 import 'package:thoughtbook/src/features/settings/services/app_preference/enums/preference_values.dart';
 import 'package:thoughtbook/src/utilities/dialogs/error_dialog.dart';
+import 'package:waterfall_flow/waterfall_flow.dart';
 
 typedef NoteCallback = void Function(LocalNote note);
 typedef NoteDataCallback = void Function(PresentableNoteData noteData);
@@ -173,33 +172,37 @@ class _SliverNotesGridState extends State<SliverNotesGrid> with SingleTickerProv
   }
 
   Widget _buildSliverGrid() {
-    return SliverMasonryGrid.count(
+    return SliverWaterfallFlow(
       key: ValueKey<int>(_getLayoutColumnCount(context)),
-      crossAxisSpacing: (widget.isCollapsed || widget.layoutPreference == 'list') ? 0 : 12.0,
-      mainAxisSpacing: (widget.isCollapsed || widget.layoutPreference == 'list') ? 0 : 12.0,
-      crossAxisCount: _getLayoutColumnCount(context),
-      childCount: _childCount,
-      itemBuilder: (BuildContext context, int index) {
-        final noteData = widget.notesData.elementAt(index);
-        return NoteTile(
-          key: ValueKey<int>(noteData.note.isarId),
-          animation: _animation,
-          noteData: noteData,
-          isVisible: !(widget.isCollapsed),
-          isSelected: widget.selectedNotes.contains(noteData.note),
-          onTap: (note, openContainer) => widget.onTap(note, openContainer),
-          onLongPress: (note) => widget.onLongPress(note),
-          onDeleteNote: (noteData) {
-            setState(() {
-              widget.notesData.remove(noteData);
-            });
-            widget.onDeleteNote(noteData.note);
-          },
-          enableDismissible: widget.selectedNotes.isEmpty && widget.isDismissible,
-          index: index,
-          gridCrossAxisCount: _getLayoutColumnCount(context),
-        );
-      },
+      gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _getLayoutColumnCount(context),
+        crossAxisSpacing: 12.0,
+        mainAxisSpacing: 0.0,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        childCount: _childCount,
+        (context, index) {
+          final noteData = widget.notesData.elementAt(index);
+          return NoteTile(
+            key: ValueKey<int>(noteData.note.isarId),
+            animation: _animation,
+            noteData: noteData,
+            isVisible: !(widget.isCollapsed),
+            isSelected: widget.selectedNotes.contains(noteData.note),
+            onTap: (note, openContainer) => widget.onTap(note, openContainer),
+            onLongPress: (note) => widget.onLongPress(note),
+            onDeleteNote: (noteData) {
+              setState(() {
+                widget.notesData.remove(noteData);
+              });
+              widget.onDeleteNote(noteData.note);
+            },
+            enableDismissible: widget.selectedNotes.isEmpty && widget.isDismissible,
+            index: index,
+            gridCrossAxisCount: _getLayoutColumnCount(context),
+          );
+        },
+      ),
     );
   }
 }

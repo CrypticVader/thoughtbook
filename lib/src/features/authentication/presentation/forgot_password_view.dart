@@ -75,7 +75,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onBackground,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),

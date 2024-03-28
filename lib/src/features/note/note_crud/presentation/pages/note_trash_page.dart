@@ -30,7 +30,7 @@ class _NoteTrashPageState extends State<NoteTrashPage> {
             body: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverAppBar.large(
-                  backgroundColor: context.themeColors.background,
+                  backgroundColor: context.themeColors.surface,
                   iconTheme: IconThemeData(color: context.themeColors.onSurfaceVariant),
                   title: Text(
                     'Deleted notes',
@@ -105,7 +105,7 @@ class _NoteTrashPageState extends State<NoteTrashPage> {
                                   Container(
                                     padding: EdgeInsets.fromLTRB(16, 24, 16, bottomInset+8),
                                     decoration: BoxDecoration(
-                                      color: context.themeColors.surfaceVariant,
+                                      color: context.themeColors.surfaceContainerHighest,
                                       borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(40),
                                         topRight: Radius.circular(40),

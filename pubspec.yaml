@@ -63,6 +63,7 @@ dependencies:
   isolate_manager: ^4.1.2
   sliver_tools: ^0.2.12
   logger: ^2.0.2+1
+  waterfall_flow: any
 
 dev_dependencies:
   flutter_test:

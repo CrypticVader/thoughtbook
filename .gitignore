@@ -54,3 +54,4 @@ machinet.conf
 .fastRequest/config/fastRequestCurrentProjectConfig.json
 .fastRequest/collections/Root/directory.json
 .fastRequest/collections/Root/Default Group/directory.json
+devtools_options.yaml

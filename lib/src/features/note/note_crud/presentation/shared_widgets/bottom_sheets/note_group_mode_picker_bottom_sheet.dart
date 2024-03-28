@@ -94,12 +94,12 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
           return Scaffold(
             backgroundColor: Color.alphaBlend(
               themeColors.surfaceTint.withAlpha(15),
-              themeColors.background,
+              themeColors.surface,
             ),
             appBar: AppBar(
               backgroundColor: Color.alphaBlend(
                 themeColors.surfaceTint.withAlpha(15),
-                themeColors.background,
+                themeColors.surface,
               ),
               leading: null,
               automaticallyImplyLeading: false,
@@ -125,7 +125,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                       fontSize: 18,
                       color: Color.alphaBlend(
                         themeColors.surfaceTint.withAlpha(25),
-                        themeColors.onBackground,
+                        themeColors.onSurface,
                       ),
                     ),
                   ),
@@ -213,7 +213,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                   FluentIcons.group_24_filled,
                                   color: Color.alphaBlend(
                                     themeColors.surfaceTint.withAlpha(70),
-                                    themeColors.onBackground,
+                                    themeColors.onSurface,
                                   ),
                                   size: 22,
                                 ),
@@ -225,7 +225,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                   style: TextStyle(
                                     color: Color.alphaBlend(
                                       themeColors.surfaceTint.withAlpha(70),
-                                      themeColors.onBackground,
+                                      themeColors.onSurface,
                                     ),
                                     fontWeight: FontWeight.w500,
                                     fontSize: 15,
@@ -464,7 +464,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                       FluentIcons.options_24_filled,
                                       color: Color.alphaBlend(
                                         themeColors.surfaceTint.withAlpha(70),
-                                        themeColors.onBackground,
+                                        themeColors.onSurface,
                                       ),
                                       size: 24,
                                     ),
@@ -477,7 +477,7 @@ class _NoteGroupModePickerViewState extends State<NoteGroupModePickerView> {
                                         style: TextStyle(
                                           color: Color.alphaBlend(
                                             themeColors.surfaceTint.withAlpha(70),
-                                            themeColors.onBackground,
+                                            themeColors.onSurface,
                                           ),
                                           fontWeight: FontWeight.w500,
                                           fontSize: 15,

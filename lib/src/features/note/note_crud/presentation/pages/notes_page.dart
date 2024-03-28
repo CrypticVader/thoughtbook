@@ -408,10 +408,10 @@ class _NotesViewAppBarState extends State<NotesViewAppBar> {
       pinned: true,
       snap: true,
       floating: true,
-      backgroundColor: context.themeColors.background,
+      backgroundColor: context.themeColors.surface,
       surfaceTintColor: Color.alphaBlend(
         context.themeColors.surfaceTint.withAlpha(180),
-        context.themeColors.background,
+        context.themeColors.surface,
       ),
       titleSpacing: 8,
       automaticallyImplyLeading: false,
@@ -467,7 +467,7 @@ class _NotesViewAppBarState extends State<NotesViewAppBar> {
                 ),
                 fillColor: Color.alphaBlend(
                   context.themeColors.inversePrimary.withAlpha(50),
-                  context.themeColors.surfaceVariant.withAlpha(25),
+                  context.themeColors.surfaceContainerHighest.withAlpha(25),
                 ),
                 filled: true,
                 hintText: 'Search your notes & tags',
@@ -646,7 +646,7 @@ class NoteSelectionToolbar extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Color.alphaBlend(
                         context.themeColors.primary,
-                        context.themeColors.background,
+                        context.themeColors.surface,
                       ),
                       borderRadius: BorderRadius.circular(32),
                     ),

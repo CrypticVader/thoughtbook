@@ -23,7 +23,7 @@ class _SettingsViewState extends State<SettingsView> {
         return Scaffold(
           backgroundColor: Color.alphaBlend(
             context.theme.colorScheme.inversePrimary.withAlpha(50),
-            context.theme.colorScheme.background,
+            context.theme.colorScheme.surface,
           ),
           body: NestedScrollView(
             headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -37,13 +37,13 @@ class _SettingsViewState extends State<SettingsView> {
                   ),
                   backgroundColor: Color.alphaBlend(
                     context.theme.colorScheme.inversePrimary.withAlpha(50),
-                    context.theme.colorScheme.background,
+                    context.theme.colorScheme.surface,
                   ),
                   title: Text(
                     'Settings',
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      color: context.theme.colorScheme.onBackground,
+                      color: context.theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -92,7 +92,7 @@ class _SettingsViewState extends State<SettingsView> {
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w600,
-                                      color: context.theme.colorScheme.onBackground,
+                                      color: context.theme.colorScheme.onSurface,
                                     ),
                                   ),
                                   Text(AuthService.firebase().currentUser?.email ?? ''),
@@ -109,7 +109,7 @@ class _SettingsViewState extends State<SettingsView> {
                             children: [
                               Icon(
                                 FluentIcons.edit_settings_24_filled,
-                                color: context.theme.colorScheme.onBackground,
+                                color: context.theme.colorScheme.onSurface,
                               ),
                               const SizedBox(
                                 width: 16,
@@ -119,7 +119,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: context.theme.colorScheme.onBackground,
+                                  color: context.theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -141,7 +141,7 @@ class _SettingsViewState extends State<SettingsView> {
                             children: [
                               Icon(
                                 FluentIcons.sign_out_24_filled,
-                                color: context.theme.colorScheme.onBackground,
+                                color: context.theme.colorScheme.onSurface,
                               ),
                               const SizedBox(
                                 width: 16,
@@ -151,7 +151,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: context.theme.colorScheme.onBackground,
+                                  color: context.theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -198,7 +198,7 @@ class _SettingsViewState extends State<SettingsView> {
                             children: [
                               Icon(
                                 FluentIcons.dark_theme_24_filled,
-                                color: context.theme.colorScheme.onBackground,
+                                color: context.theme.colorScheme.onSurface,
                               ),
                               const SizedBox(width: 16.0),
                               Text(
@@ -206,7 +206,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: context.theme.colorScheme.onBackground,
+                                  color: context.theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -217,7 +217,7 @@ class _SettingsViewState extends State<SettingsView> {
                             children: [
                               Icon(
                                 FluentIcons.color_fill_24_filled,
-                                color: context.theme.colorScheme.onBackground,
+                                color: context.theme.colorScheme.onSurface,
                               ),
                               const SizedBox(
                                 width: 16.0,
@@ -227,7 +227,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: context.theme.colorScheme.onBackground,
+                                  color: context.theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -238,7 +238,7 @@ class _SettingsViewState extends State<SettingsView> {
                             children: [
                               Icon(
                                 FluentIcons.board_split_24_filled,
-                                color: context.theme.colorScheme.onBackground,
+                                color: context.theme.colorScheme.onSurface,
                               ),
                               const SizedBox(
                                   width: 16.0),
@@ -247,7 +247,7 @@ class _SettingsViewState extends State<SettingsView> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: context.theme.colorScheme.onBackground,
+                                  color: context.theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -259,7 +259,7 @@ class _SettingsViewState extends State<SettingsView> {
                             children: [
                               Icon(
                                 FluentIcons.pin_24_filled,
-                                color: context.theme.colorScheme.onBackground,
+                                color: context.theme.colorScheme.onSurface,
                               ),
                               const SizedBox(
                                 width: 16.0,
@@ -271,7 +271,7 @@ class _SettingsViewState extends State<SettingsView> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: context.theme.colorScheme.onBackground,
+                                    color: context.theme.colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -386,7 +386,7 @@ class PreferenceSection extends StatelessWidget {
               child: Ink(
                 padding: item.padding,
                 decoration: BoxDecoration(
-                  color: context.theme.colorScheme.background,
+                  color: context.theme.colorScheme.surface,
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(24),
                     topLeft: Radius.circular(24),
@@ -394,7 +394,7 @@ class PreferenceSection extends StatelessWidget {
                     bottomLeft: Radius.circular(4),
                   ),
                   border: Border.all(
-                    color: context.themeColors.surfaceVariant,
+                    color: context.themeColors.surfaceContainerHighest,
                     strokeAlign: BorderSide.strokeAlignInside,
                     width: 0.25,
                   ),
@@ -422,7 +422,7 @@ class PreferenceSection extends StatelessWidget {
               child: Ink(
                 padding: item.padding,
                 decoration: BoxDecoration(
-                  color: context.theme.colorScheme.background,
+                  color: context.theme.colorScheme.surface,
                   borderRadius: const BorderRadius.only(
                     bottomRight: Radius.circular(24),
                     bottomLeft: Radius.circular(24),
@@ -430,7 +430,7 @@ class PreferenceSection extends StatelessWidget {
                     topRight: Radius.circular(4),
                   ),
                   border: Border.all(
-                    color: context.themeColors.surfaceVariant,
+                    color: context.themeColors.surfaceContainerHighest,
                     strokeAlign: BorderSide.strokeAlignInside,
                     width: 0.25,
                   ),
@@ -458,10 +458,10 @@ class PreferenceSection extends StatelessWidget {
               child: Ink(
                 padding: item.padding,
                 decoration: BoxDecoration(
-                  color: context.theme.colorScheme.background,
+                  color: context.theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
-                    color: context.themeColors.surfaceVariant,
+                    color: context.themeColors.surfaceContainerHighest,
                     strokeAlign: BorderSide.strokeAlignInside,
                     width: 0.25,
                   ),

@@ -195,7 +195,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                     return Scaffold(
                       backgroundColor: Color.alphaBlend(
                         _noteColors.primaryContainer.withAlpha(70),
-                        _noteColors.background,
+                        _noteColors.surface,
                       ),
                       bottomNavigationBar: NoteEditorBottomAppBar(
                         state: state,
@@ -241,7 +241,7 @@ class _NoteEditorViewState extends State<NoteEditorView> {
                               decoration: BoxDecoration(
                                 color: Color.alphaBlend(
                                   _noteColors.primaryContainer.withAlpha(_isDarkMode ? 120 : 170),
-                                  _noteColors.background,
+                                  _noteColors.surface,
                                 ),
                               ),
                               constraints: const BoxConstraints.expand(),
@@ -550,7 +550,7 @@ class NoteReadableView extends StatelessWidget {
                   ),
                 ),
                 closedElevation: 4,
-                openColor: noteColors.background,
+                openColor: noteColors.surface,
                 closedBuilder: (context, action) {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(16),
@@ -648,7 +648,7 @@ class NoteReadableView extends StatelessWidget {
                 height: 1.3,
               ),
               codeblockDecoration: BoxDecoration(
-                color: noteColors.background.withAlpha(200),
+                color: noteColors.surface.withAlpha(200),
                 borderRadius: BorderRadius.circular(16),
               ),
               codeblockPadding: const EdgeInsets.all(12.0),

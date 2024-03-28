@@ -73,12 +73,12 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
           return Scaffold(
             backgroundColor: Color.alphaBlend(
               context.themeColors.surfaceTint.withAlpha(15),
-              context.themeColors.background,
+              context.themeColors.surface,
             ),
             appBar: AppBar(
               backgroundColor: Color.alphaBlend(
                 context.themeColors.surfaceTint.withAlpha(15),
-                context.themeColors.background,
+                context.themeColors.surface,
               ),
               leading: null,
               automaticallyImplyLeading: false,
@@ -104,7 +104,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                       fontSize: 18,
                       color: Color.alphaBlend(
                         context.themeColors.surfaceTint.withAlpha(25),
-                        context.themeColors.onBackground,
+                        context.themeColors.onSurface,
                       ),
                     ),
                   ),
@@ -168,7 +168,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                           FluentIcons.arrow_sort_24_filled,
                           color: Color.alphaBlend(
                             context.themeColors.surfaceTint.withAlpha(70),
-                            context.themeColors.onBackground,
+                            context.themeColors.onSurface,
                           ),
                         ),
                         const SizedBox(
@@ -179,7 +179,7 @@ class _NoteSortModePickerViewState extends State<NoteSortModePickerView> {
                           style: TextStyle(
                             color: Color.alphaBlend(
                               context.themeColors.surfaceTint.withAlpha(25),
-                              context.themeColors.onBackground,
+                              context.themeColors.onSurface,
                             ),
                             fontWeight: FontWeight.w500,
                             fontSize: 16,

@@ -23,7 +23,7 @@ Future<Color?> showColorPickerModalBottomSheet({
   await showModalBottomSheet(
     backgroundColor: Color.alphaBlend(
       colorScheme.surfaceTint.withAlpha(50),
-      colorScheme.background,
+      colorScheme.surface,
     ),
     showDragHandle: false,
     elevation: 0.0,
@@ -58,7 +58,7 @@ Future<Color?> showColorPickerModalBottomSheet({
                     fontSize: 18,
                     color: Color.alphaBlend(
                       colorScheme.surfaceTint.withAlpha(60),
-                      colorScheme.onBackground,
+                      colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -74,7 +74,7 @@ Future<Color?> showColorPickerModalBottomSheet({
                   decoration: BoxDecoration(
                     color: Color.alphaBlend(
                       colorScheme.surfaceTint.withAlpha(70),
-                      colorScheme.background,
+                      colorScheme.surface,
                     ),
                     borderRadius: BorderRadius.circular(40),
                   ),
@@ -108,7 +108,7 @@ Future<Color?> showColorPickerModalBottomSheet({
                                         border: Border.all(
                                           strokeAlign: BorderSide.strokeAlignOutside,
                                           color: Color.alphaBlend(
-                                            colorScheme!.onBackground.withAlpha(120),
+                                            colorScheme!.onSurface.withAlpha(120),
                                             color,
                                           ),
                                           width: 2.0,
@@ -119,7 +119,7 @@ Future<Color?> showColorPickerModalBottomSheet({
                                         Icons.check_rounded,
                                         size: 40,
                                         color: Color.alphaBlend(
-                                          colorScheme.onBackground.withAlpha(150),
+                                          colorScheme.onSurface.withAlpha(150),
                                           color,
                                         ),
                                       ),
@@ -151,17 +151,17 @@ Future<Color?> showColorPickerModalBottomSheet({
               style: FilledButton.styleFrom(
                 backgroundColor: Color.alphaBlend(
                   colorScheme.surfaceTint.withAlpha(70),
-                  colorScheme.background,
+                  colorScheme.surface,
                 ),
                 foregroundColor: Color.alphaBlend(
                   colorScheme.surfaceTint.withAlpha(70),
-                  colorScheme.onBackground,
+                  colorScheme.onSurface,
                 ),
                 disabledBackgroundColor: Color.alphaBlend(
                   colorScheme.surfaceTint.withAlpha(60),
-                  colorScheme.background,
+                  colorScheme.surface,
                 ),
-                disabledForegroundColor: colorScheme.onBackground.withAlpha(40),
+                disabledForegroundColor: colorScheme.onSurface.withAlpha(40),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),

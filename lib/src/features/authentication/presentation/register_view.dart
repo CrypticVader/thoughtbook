@@ -103,7 +103,7 @@ class _RegisterViewState extends State<RegisterView> with TickerProviderStateMix
       child: Scaffold(
         backgroundColor: Color.alphaBlend(
           context.theme.colorScheme.inversePrimary.withAlpha(40),
-          context.theme.colorScheme.background,
+          context.theme.colorScheme.surface,
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -138,7 +138,7 @@ class _RegisterViewState extends State<RegisterView> with TickerProviderStateMix
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 28,
-                                        color: context.theme.colorScheme.onBackground,
+                                        color: context.theme.colorScheme.onSurface,
                                       ),
                                     ),
                                     Text(
