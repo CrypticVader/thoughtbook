@@ -1,20 +1,22 @@
+import 'dart:math';
+
 import 'package:dartx/dartx.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/bloc/note_trash_bloc/note_trash_bloc.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/notes_list_view.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/widgets/sliver_notes_grid.dart';
 import 'package:thoughtbook/src/utilities/dialogs/delete_dialog.dart';
 
-class NoteTrashView extends StatefulWidget {
-  const NoteTrashView({super.key});
+class NoteTrashPage extends StatefulWidget {
+  const NoteTrashPage({super.key});
 
   @override
-  State<NoteTrashView> createState() => _NoteTrashViewState();
+  State<NoteTrashPage> createState() => _NoteTrashPageState();
 }
 
-class _NoteTrashViewState extends State<NoteTrashView> {
+class _NoteTrashPageState extends State<NoteTrashPage> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<NoteTrashBloc, NoteTrashState>(
@@ -23,10 +25,12 @@ class _NoteTrashViewState extends State<NoteTrashView> {
           context.read<NoteTrashBloc>().add(const NoteTrashInitializeEvent());
           return const Placeholder();
         } else if (state is NoteTrashInitialized) {
+          final bottomInset = max(16, MediaQuery.of(context).padding.bottom).toDouble();
           return Scaffold(
             body: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverAppBar.large(
+                  backgroundColor: context.themeColors.surface,
                   iconTheme: IconThemeData(color: context.themeColors.onSurfaceVariant),
                   title: Text(
                     'Deleted notes',
@@ -71,11 +75,11 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                           final buttonWidth = MediaQuery.of(context).size.width / 2 - 24;
                           return Stack(
                             children: [
-                              SingleChildScrollView(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    NotesListView(
+                              CustomScrollView(
+                                slivers: [
+                                  SliverPadding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    sliver: SliverNotesGrid(
                                       isDismissible: false,
                                       layoutPreference: state.layout,
                                       notesData: trashedNotes,
@@ -91,19 +95,17 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                           .read<NoteTrashBloc>()
                                           .add(NoteTrashLongPressEvent(note: note)),
                                     ),
-                                    const SizedBox(
-                                      height: 128,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  const SliverToBoxAdapter(child: SizedBox(height: 192)),
+                                ],
                               ),
                               Column(
                                 children: [
                                   const Spacer(flex: 1),
                                   Container(
-                                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+                                    padding: EdgeInsets.fromLTRB(16, 24, 16, bottomInset+8),
                                     decoration: BoxDecoration(
-                                      color: context.themeColors.surfaceVariant,
+                                      color: context.themeColors.surfaceContainerHighest,
                                       borderRadius: const BorderRadius.only(
                                         topLeft: Radius.circular(40),
                                         topRight: Radius.circular(40),
@@ -113,7 +115,8 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                                       absorbing: state.selectedNotes.isEmpty,
                                       child: AnimatedOpacity(
                                         opacity: state.selectedNotes.isEmpty ? 0.25 : 1,
-                                        duration: 200.milliseconds,
+                                        duration: 250.milliseconds,
+                                        curve: Curves.ease,
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           mainAxisSize: MainAxisSize.max,
@@ -208,35 +211,30 @@ class _NoteTrashViewState extends State<NoteTrashView> {
                               padding: const EdgeInsets.all(40),
                               decoration: BoxDecoration(
                                 color: context.themeColors.secondaryContainer.withAlpha(120),
-                                borderRadius:
-                                    BorderRadius.circular(40),
+                                borderRadius: BorderRadius.circular(40),
                               ),
-                              child: UnconstrainedBox(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      FluentIcons.bin_recycle_24_filled,
-                                      size: 150,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    FluentIcons.bin_recycle_24_filled,
+                                    size: 150,
+                                    color: context.theme.colorScheme.onSecondaryContainer
+                                        .withAlpha(150),
+                                  ),
+                                  const SizedBox(height: 16.0),
+                                  Text(
+                                    'Nothing to see here',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
                                       color: context.theme.colorScheme.onSecondaryContainer
-                                          .withAlpha(150),
+                                          .withAlpha(220),
                                     ),
-                                    const SizedBox(
-                                      height: 16.0,
-                                    ),
-                                    Center(
-                                      child: Text(
-                                        'Nothing to see here',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: context.theme.colorScheme.onSecondaryContainer
-                                              .withAlpha(220),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           );

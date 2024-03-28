@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 
-// import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/cloud_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';

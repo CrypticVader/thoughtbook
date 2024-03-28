@@ -44,7 +44,7 @@ class LoadingScreen {
     final overlay = OverlayEntry(
       builder: (context) {
         return Material(
-          color: context.theme.colorScheme.background.withAlpha(220),
+          color: context.theme.colorScheme.surface.withAlpha(220),
           child: Center(
             child: Container(
               decoration: const BoxDecoration(
@@ -72,7 +72,7 @@ class LoadingScreen {
                             snapshot.data as String,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: context.theme.colorScheme.onBackground,
+                              color: context.theme.colorScheme.onSurface,
                             ),
                           );
                         } else {

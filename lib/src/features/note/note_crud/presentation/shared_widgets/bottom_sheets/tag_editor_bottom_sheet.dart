@@ -5,7 +5,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
-import 'package:thoughtbook/src/features/note/note_crud/presentation/common_widgets/dialogs/note_tag_rename_dialog.dart';
+import 'package:thoughtbook/src/features/note/note_crud/presentation/shared_widgets/dialogs/note_tag_rename_dialog.dart';
 import 'package:thoughtbook/src/utilities/dialogs/delete_dialog.dart';
 
 typedef NoteTagCreateCallback = void Function(String tagName);
@@ -93,12 +93,12 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
           child: Scaffold(
             backgroundColor: Color.alphaBlend(
               context.themeColors.surfaceTint.withAlpha(15),
-              context.themeColors.background,
+              context.themeColors.surface,
             ),
             appBar: AppBar(
               backgroundColor: Color.alphaBlend(
                 context.themeColors.surfaceTint.withAlpha(15),
-                context.themeColors.background,
+                context.themeColors.surface,
               ),
               leading: null,
               automaticallyImplyLeading: false,
@@ -124,7 +124,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                       fontSize: 18,
                       color: Color.alphaBlend(
                         context.themeColors.surfaceTint.withAlpha(25),
-                        context.themeColors.onBackground,
+                        context.themeColors.onSurface,
                       ),
                     ),
                   ),
@@ -215,7 +215,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                         children: [
                           Icon(
                             Icons.tag_rounded,
-                            color: context.theme.colorScheme.onBackground.withAlpha(200),
+                            color: context.theme.colorScheme.onSurface.withAlpha(200),
                           ),
                           const SizedBox(
                             width: 8.0,
@@ -225,7 +225,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
-                              color: context.theme.colorScheme.onBackground,
+                              color: context.theme.colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -305,7 +305,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                                   newName,
                                                 ),
                                               ),
-                                              splashColor: context.theme.colorScheme.onBackground
+                                              splashColor: context.theme.colorScheme.onSurface
                                                   .withAlpha(200),
                                               borderRadius: const BorderRadius.only(
                                                 topLeft: Radius.circular(24),
@@ -322,7 +322,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                                     topRight: Radius.circular(4),
                                                     bottomRight: Radius.circular(4),
                                                   ),
-                                                  color: context.theme.colorScheme.background
+                                                  color: context.theme.colorScheme.surface
                                                       .withAlpha(200),
                                                 ),
                                                 child: const Icon(
@@ -345,7 +345,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                                   widget.onDeleteTag(tag);
                                                 }
                                               },
-                                              splashColor: context.theme.colorScheme.onBackground
+                                              splashColor: context.theme.colorScheme.onSurface
                                                   .withAlpha(200),
                                               borderRadius: const BorderRadius.only(
                                                 topLeft: Radius.circular(4),
@@ -362,7 +362,7 @@ class _NoteTagEditorViewState extends State<NoteTagEditorView> {
                                                     topRight: Radius.circular(24),
                                                     bottomRight: Radius.circular(24),
                                                   ),
-                                                  color: context.theme.colorScheme.background
+                                                  color: context.theme.colorScheme.surface
                                                       .withAlpha(200),
                                                 ),
                                                 child: const Icon(Icons.delete_rounded),

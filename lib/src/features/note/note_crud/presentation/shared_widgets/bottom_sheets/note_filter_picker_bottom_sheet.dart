@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 import 'package:thoughtbook/src/extensions/object/null_check.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/filter_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/filter_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/utilities/common_widgets/tonal_chip.dart';
 
@@ -62,11 +62,26 @@ class NoteFilterPickerView extends StatefulWidget {
 
 class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
   late FilterProps filterProps;
+  late ValueStream<List<LocalNoteTag>> Function() allTags;
+  late FilterPropsCallback onChange;
+  late Map<String, Color> allColors;
 
   @override
   void initState() {
-    filterProps = widget.filterProps;
     super.initState();
+    filterProps = widget.filterProps;
+    onChange = widget.onChange;
+    allTags = widget.allTags;
+    allColors = widget.allColors;
+  }
+
+  @override
+  void didUpdateWidget(covariant NoteFilterPickerView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    filterProps = widget.filterProps;
+    onChange = widget.onChange;
+    allTags = widget.allTags;
+    allColors = widget.allColors;
   }
 
   @override
@@ -91,12 +106,12 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
           return Scaffold(
             backgroundColor: Color.alphaBlend(
               context.themeColors.surfaceTint.withAlpha(15),
-              context.themeColors.background,
+              context.themeColors.surface,
             ),
             appBar: AppBar(
               backgroundColor: Color.alphaBlend(
                 context.themeColors.surfaceTint.withAlpha(15),
-                context.themeColors.background,
+                context.themeColors.surface,
               ),
               leading: null,
               automaticallyImplyLeading: false,
@@ -122,7 +137,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                       fontSize: 18,
                       color: Color.alphaBlend(
                         context.themeColors.surfaceTint.withAlpha(25),
-                        context.themeColors.onBackground,
+                        context.themeColors.onSurface,
                       ),
                     ),
                   ),
@@ -166,7 +181,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                 filterProps.filterTagIds.add(tags[i].isarId);
                               }
                             });
-                            widget.onChange(filterProps);
+                            onChange(filterProps);
                           },
                           label: tags[i].name,
                           iconData: null,
@@ -176,14 +191,14 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                           splashColor: context.themeColors.inversePrimary,
                         );
                         final widgetWidth = (TextPainter(
-                              text: TextSpan(
+                          text: TextSpan(
                                   text: tags[i].name,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 15.0,
                                       fontFamily: 'Montserrat')),
                               maxLines: 1,
-                              textScaleFactor: MediaQuery.of(context).textScaleFactor,
+                              textScaler: MediaQuery.of(context).textScaler,
                               textDirection: TextDirection.ltr,
                             )..layout())
                                 .size
@@ -212,7 +227,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                         children: [
                           // Tag Filter
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(36),
                               color: context.themeColors.primaryContainer.withAlpha(70),
@@ -249,7 +264,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           setState(() {
                                             filterProps.filterTagIds = {};
                                           });
-                                          widget.onChange(filterProps);
+                                          onChange(filterProps);
                                         },
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: IconButton.styleFrom(
@@ -272,7 +287,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                     foregroundPainter: HorizontalFadingGradient(
                                       color: Color.alphaBlend(
                                         context.themeColors.primaryContainer.withAlpha(220),
-                                        context.themeColors.background,
+                                        context.themeColors.surface,
                                       ),
                                     ),
                                     child: Container(
@@ -280,7 +295,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                       decoration: BoxDecoration(
                                         color: Color.alphaBlend(
                                           context.themeColors.primaryContainer.withAlpha(220),
-                                          context.themeColors.background,
+                                          context.themeColors.surface,
                                         ),
                                         borderRadius: const BorderRadius.only(
                                           topLeft: Radius.circular(28),
@@ -289,23 +304,26 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           bottomRight: Radius.circular(4),
                                         ),
                                       ),
-                                      child: SingleChildScrollView(
-                                        padding: const EdgeInsets.all(14),
-                                        scrollDirection: Axis.horizontal,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: tagWidgetsRow1,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: tagWidgetsRow2,
-                                            ),
-                                          ],
+                                      child: Scrollbar(
+                                        thickness: isDesktop ? 8 : 0,
+                                        child: SingleChildScrollView(
+                                          padding: const EdgeInsets.all(14),
+                                          scrollDirection: Axis.horizontal,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: tagWidgetsRow1,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: tagWidgetsRow2,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -318,7 +336,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                       filterProps.requireEntireTagFilter =
                                           !(filterProps.requireEntireTagFilter);
                                     });
-                                    widget.onChange(filterProps);
+                                    onChange(filterProps);
                                   },
                                   splashColor: context.themeColors.secondary.withAlpha(40),
                                   highlightColor: context.themeColors.secondary.withAlpha(40),
@@ -357,7 +375,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                               filterProps.requireEntireTagFilter =
                                                   !(filterProps.requireEntireTagFilter);
                                             });
-                                            widget.onChange(filterProps);
+                                            onChange(filterProps);
                                           },
                                         ),
                                         const SizedBox(width: 12.0),
@@ -381,7 +399,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
 
                           // Color Filter
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(36),
                               color: context.themeColors.primaryContainer.withAlpha(70),
@@ -417,7 +435,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           setState(() {
                                             filterProps.filterColors = {};
                                           });
-                                          widget.onChange(filterProps);
+                                          onChange(filterProps);
                                         },
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: IconButton.styleFrom(
@@ -440,7 +458,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                     foregroundPainter: HorizontalFadingGradient(
                                         color: Color.alphaBlend(
                                       context.themeColors.secondaryContainer.withAlpha(220),
-                                      context.themeColors.background,
+                                      context.themeColors.surface,
                                     )),
                                     child: Ink(
                                       decoration: BoxDecoration(
@@ -453,93 +471,94 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           bottomRight: Radius.circular(28),
                                         ),
                                       ),
-                                      child: SingleChildScrollView(
-                                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-                                        scrollDirection: Axis.horizontal,
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints(maxHeight: 160),
-                                          child: Material(
-                                            type: MaterialType.transparency,
-                                            child: Wrap(
-                                              spacing: 4,
-                                              runSpacing: 8,
-                                              direction: Axis.vertical,
-                                              children: widget.allColors.keys
-                                                  .map<Widget>((key) => Tooltip(
-                                                        message: key,
-                                                        child: Padding(
-                                                          padding: const EdgeInsets.only(bottom: 4),
-                                                          child: InkWell(
-                                                            splashColor: widget.allColors[key],
-                                                            borderRadius: BorderRadius.circular(36),
-                                                            onTap: () {
-                                                              setState(() {
-                                                                if (filterProps.filterColors
-                                                                    .contains(widget
-                                                                        .allColors[key]!.value)) {
-                                                                  filterProps.filterColors.remove(
-                                                                      widget.allColors[key]!.value);
-                                                                } else {
-                                                                  filterProps.filterColors.add(
-                                                                      widget.allColors[key]!.value);
-                                                                }
-                                                              });
-                                                              widget.onChange(filterProps);
-                                                            },
-                                                            child: Ink(
-                                                              height: 70,
-                                                              width: 70,
-                                                              decoration: BoxDecoration(
-                                                                color: widget.allColors[key]!
-                                                                    .withAlpha(filterProps
-                                                                            .filterColors
-                                                                            .contains(widget
-                                                                                .allColors[key]!
-                                                                                .value)
-                                                                        ? 150
-                                                                        : 190),
-                                                                shape: BoxShape.circle,
-                                                                boxShadow: kElevationToShadow[
-                                                                    filterProps.filterColors
-                                                                            .contains(widget
-                                                                                .allColors[key]!
-                                                                                .value)
-                                                                        ? 0
-                                                                        : 1],
-                                                                border: filterProps.filterColors
-                                                                        .contains(widget
-                                                                            .allColors[key]!.value)
-                                                                    ? Border.all(
-                                                                        color: Color.alphaBlend(
-                                                                          context.themeColors
-                                                                              .inverseSurface
-                                                                              .withAlpha(120),
-                                                                          widget.allColors[key]!,
+                                      child: Scrollbar(
+                                        thickness: isDesktop ? 8 : 0,
+                                        child: SingleChildScrollView(
+                                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+                                          scrollDirection: Axis.horizontal,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(maxHeight: 160),
+                                            child: Material(
+                                              type: MaterialType.transparency,
+                                              child: Wrap(
+                                                spacing: 4,
+                                                runSpacing: 8,
+                                                direction: Axis.vertical,
+                                                children: allColors.keys
+                                                    .map<Widget>((key) => Tooltip(
+                                                          message: key,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets.only(bottom: 4),
+                                                            child: InkWell(
+                                                              splashColor: allColors[key],
+                                                              borderRadius:
+                                                                  BorderRadius.circular(36),
+                                                              onTap: () {
+                                                                setState(() {
+                                                                  if (filterProps.filterColors
+                                                                      .contains(allColors[key]!.value)) {
+                                                                    filterProps.filterColors.remove(
+                                                                        allColors[key]!.value);
+                                                                  } else {
+                                                                    filterProps.filterColors.add(
+                                                                        allColors[key]!.value);
+                                                                  }
+                                                                });
+                                                                onChange(filterProps);
+                                                              },
+                                                              child: Ink(
+                                                                height: 70,
+                                                                width: 70,
+                                                                decoration: BoxDecoration(
+                                                                  color: allColors[key]!
+                                                                      .withAlpha(filterProps
+                                                                              .filterColors
+                                                                              .contains(allColors[key]!
+                                                                                  .value)
+                                                                          ? 150
+                                                                          : 190),
+                                                                  shape: BoxShape.circle,
+                                                                  boxShadow: kElevationToShadow[
+                                                                      filterProps.filterColors
+                                                                              .contains(allColors[key]!
+                                                                                  .value)
+                                                                          ? 0
+                                                                          : 1],
+                                                                  border: filterProps.filterColors
+                                                                          .contains(allColors[key]!
+                                                                              .value)
+                                                                      ? Border.all(
+                                                                          color: Color.alphaBlend(
+                                                                            context.themeColors
+                                                                                .inverseSurface
+                                                                                .withAlpha(120),
+                                                                            allColors[key]!,
+                                                                          ),
+                                                                          width: 2)
+                                                                      : null,
+                                                                ),
+                                                                child: filterProps.filterColors
+                                                                        .contains(allColors[key]!.value)
+                                                                    ? Center(
+                                                                        child: Icon(
+                                                                          Icons.check_rounded,
+                                                                          size: 40,
+                                                                          color: Color.alphaBlend(
+                                                                            context.themeColors
+                                                                                .inverseSurface
+                                                                                .withAlpha(120),
+                                                                            allColors[key]!,
+                                                                          ),
                                                                         ),
-                                                                        width: 2)
+                                                                      )
                                                                     : null,
                                                               ),
-                                                              child: filterProps.filterColors
-                                                                      .contains(widget
-                                                                          .allColors[key]!.value)
-                                                                  ? Center(
-                                                                      child: Icon(
-                                                                        Icons.check_rounded,
-                                                                        size: 40,
-                                                                        color: Color.alphaBlend(
-                                                                          context.themeColors
-                                                                              .inverseSurface
-                                                                              .withAlpha(120),
-                                                                          widget.allColors[key]!,
-                                                                        ),
-                                                                      ),
-                                                                    )
-                                                                  : null,
                                                             ),
                                                           ),
-                                                        ),
-                                                      ))
-                                                  .toList(),
+                                                        ))
+                                                    .toList(),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -600,7 +619,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(24),
                                               topRight: Radius.circular(4),
@@ -650,7 +669,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(4),
                                               topRight: Radius.circular(24),
@@ -713,7 +732,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                             setState(() {
                                               filterProps.createdRange = range;
                                             });
-                                            widget.onChange(filterProps);
+                                            onChange(filterProps);
                                           }
                                         },
                                         label: const Text('Select range'),
@@ -740,13 +759,13 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                           setState(() {
                                             filterProps.createdRange = null;
                                           });
-                                          widget.onChange(filterProps);
+                                          onChange(filterProps);
                                         }
                                             : null,
                                         label: const Text('Reset'),
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: TextButton.styleFrom(
-                                          backgroundColor: context.themeColors.surfaceVariant.withAlpha(200),
+                                          backgroundColor: context.themeColors.surfaceContainerHighest.withAlpha(200),
                                           foregroundColor: context.themeColors.onSurface,
                                           shape: const RoundedRectangleBorder(
                                             borderRadius: BorderRadius.only(
@@ -814,7 +833,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(24),
                                               topRight: Radius.circular(4),
@@ -864,7 +883,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                         child: Ink(
                                           padding: const EdgeInsets.symmetric(horizontal: 14,vertical: 18),
                                           decoration: BoxDecoration(
-                                            color: context.themeColors.surfaceVariant,
+                                            color: context.themeColors.surfaceContainerHighest,
                                             borderRadius: const BorderRadius.only(
                                               topLeft: Radius.circular(4),
                                               topRight: Radius.circular(24),
@@ -927,7 +946,7 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                             setState(() {
                                               filterProps.modifiedRange = range;
                                             });
-                                            widget.onChange(filterProps);
+                                            onChange(filterProps);
                                           }
                                         },
                                         label: const Text('Select range'),
@@ -954,13 +973,13 @@ class _NoteFilterPickerViewState extends State<NoteFilterPickerView> {
                                                 setState(() {
                                                   filterProps.modifiedRange = null;
                                                 });
-                                                widget.onChange(filterProps);
+                                                onChange(filterProps);
                                               }
                                             : null,
                                         label: const Text('Reset'),
                                         icon: const Icon(FluentIcons.arrow_reset_24_regular),
                                         style: TextButton.styleFrom(
-                                          backgroundColor: context.themeColors.surfaceVariant.withAlpha(200),
+                                          backgroundColor: context.themeColors.surfaceContainerHighest.withAlpha(200),
                                           foregroundColor: context.themeColors.onSurface,
                                           shape: const RoundedRectangleBorder(
                                             borderRadius: BorderRadius.only(

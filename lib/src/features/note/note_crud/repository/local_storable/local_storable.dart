@@ -36,9 +36,7 @@ abstract class LocalStorable<T> {
       if (noteTagChange) NoteTagChangeSchema,
     ];
 
-    if (kIsWeb) {
-      Isar.initialize();
-    }
+    if (kIsWeb) await Isar.initialize();
     _isar ??= Isar.open(
       engine: kIsWeb ? IsarEngine.sqlite : IsarEngine.isar,
       schemas: schemas,

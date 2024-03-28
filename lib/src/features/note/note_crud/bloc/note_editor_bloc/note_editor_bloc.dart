@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
@@ -14,6 +15,8 @@ import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/local_store.dart';
 import 'package:thoughtbook/src/features/note/note_crud/repository/local_storable/storable_exceptions.dart';
 
+
+//TODO: Remove this bloc, & instead use the NoteBloc. Having multiple BLoCs dealing with the same functionality seems anti-pattern.
 class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
   int? _noteIsarId;
   late NoteDataNode _currentNoteNode;
@@ -53,14 +56,8 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
         if (state is NoteEditorInitialized) {
           throw NoteEditorBlocAlreadyInitializedException();
         }
-
         if (event.note == null && _noteIsarId == null) {
-          _currentNoteNode = NoteDataNode(
-            data: (
-              title: '',
-              content: '',
-            ),
-          );
+          _currentNoteNode = NoteDataNode(data: (title: '', content: ''));
           LocalNote note = await LocalStore.note.createItem();
           _noteIsarId = note.isarId;
           emit(
@@ -71,36 +68,36 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
               snackBarText: '',
               canUndo: !(_currentNoteNode.isFirst),
               canRedo: !(_currentNoteNode.isLast),
-            ),
+              textFieldValues: (content: '', title: ''),
+            )
           );
         } else {
           _noteIsarId = event.note!.isarId;
-          _currentNoteNode = NoteDataNode(
-            data: (
-              title: event.note!.title,
+          _currentNoteNode = NoteDataNode(data: (
+            title: event.note!.title,
+            content: event.note!.content,
+          ));
+          emit(NoteEditorInitialized(
+            noteStream: noteStream,
+            noteData: presentableNote,
+            allNoteTags: allNoteTags,
+            snackBarText: '',
+            canUndo: !(_currentNoteNode.isFirst),
+            canRedo: !(_currentNoteNode.isLast),
+            textFieldValues: (
               content: event.note!.content,
+              title: event.note!.title,
             ),
-          );
-          emit(
-            NoteEditorInitialized(
-              noteStream: noteStream,
-              noteData: presentableNote,
-              allNoteTags: allNoteTags,
-              snackBarText: '',
-              canUndo: !(_currentNoteNode.isFirst),
-              canRedo: !(_currentNoteNode.isLast),
-            ),
-          );
+          ));
         }
       },
+      transformer: restartable(),
     );
 
     // Close note editor
     on<NoteEditorCloseEvent>(
       (event, emit) async {
-        if (state is NoteEditorDeleted) {
-          return;
-        }
+        if (state is NoteEditorDeleted) return;
 
         final note = await this.note;
         if (note.title.isBlank && note.content.isBlank) {
@@ -113,8 +110,8 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
     // Update note title & content
     on<NoteEditorUpdateEvent>(
       (event, emit) async {
-        if (_currentNoteNode.data.content != event.newContent ||
-            _currentNoteNode.data.title != event.newTitle) {
+        if ((_currentNoteNode.data.content != event.newContent) ||
+            (_currentNoteNode.data.title != event.newTitle)) {
           _currentNoteNode.removeNodesToRight();
           _currentNoteNode.next = NoteDataNode(data: (
             title: event.newTitle,
@@ -134,10 +131,10 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
             title: event.newTitle,
             content: event.newContent,
             isSyncedWithCloud: false,
-            debounceChangeFeedEvent: true,
           );
         }
       },
+      transformer: debounceSequential(250.milliseconds),
     );
 
     // Share note
@@ -201,6 +198,7 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           );
         }
       },
+      transformer: sequential(),
     );
 
     // Copy note
@@ -263,7 +261,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           content: _currentNoteNode.data.content,
         );
       }
-    });
+    }
+    ,transformer: sequential(),
+    );
 
     // Redo edit
     on<NoteEditorRedoEvent>((event, emit) async {
@@ -284,13 +284,9 @@ class NoteEditorBloc extends Bloc<NoteEditorEvent, NoteEditorState> {
           content: _currentNoteNode.data.content,
         );
       }
-    });
-  }
-
-  @override
-  void onTransition(Transition<NoteEditorEvent, NoteEditorState> transition) {
-    super.onTransition(transition);
-    log(transition.toString());
+    },
+      transformer: sequential(),
+    );
   }
 }
 
@@ -330,4 +326,8 @@ class NoteDataNode {
     _next?.removeNodesToRight();
     _next = null;
   }
+}
+
+EventTransformer<Event> debounceSequential<Event>(Duration duration) {
+  return (events, mapper) => events.debounceTime(duration).asyncExpand(mapper);
 }

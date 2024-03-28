@@ -2,9 +2,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/authentication/domain/auth_user.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/filter_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/group_props.dart';
-import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/enums/sort_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/filter_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/group_props.dart';
+import 'package:thoughtbook/src/features/note/note_crud/bloc/note_bloc/types/sort_props.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
@@ -22,17 +22,14 @@ abstract class NoteState {
   });
 }
 
-class NoteUninitializedState extends NoteState {
-  const NoteUninitializedState({
-    required bool isLoading,
-    required AuthUser? user,
-  }) : super(
-          isLoading: isLoading,
-          user: user,
-        );
+class NoteUninitialized extends NoteState {
+  const NoteUninitialized({
+    required super.isLoading,
+    required super.user,
+  });
 }
 
-class NoteInitializedState extends NoteState with EquatableMixin {
+class NoteInitialized extends NoteState with EquatableMixin {
   final ValueStream<Map<String, List<PresentableNoteData>>> Function() notesData;
 
   final ValueStream<List<LocalNoteTag>> Function() noteTags;
@@ -55,7 +52,7 @@ class NoteInitializedState extends NoteState with EquatableMixin {
 
   final String layoutPreference;
 
-  const NoteInitializedState({
+  const NoteInitialized({
     required this.notesData,
     required this.noteTags,
     required this.filterProps,
@@ -65,13 +62,10 @@ class NoteInitializedState extends NoteState with EquatableMixin {
     required this.selectedNotes,
     this.deletedNotes,
     this.snackBarText,
-    required bool isLoading,
-    required AuthUser? user,
+    required super.isLoading,
+    required super.user,
     required this.layoutPreference,
-  }) : super(
-          isLoading: isLoading,
-          user: user,
-        );
+  });
 
   @override
   List<Object?> get props => [

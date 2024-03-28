@@ -95,7 +95,7 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
   Future<void> handleUpdateChange({required NoteChange change}) async {
     await _ensureCollectionIsOpen();
     // Find all changes on the given note of type update and delete them.
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         final duplicateUpdatesCount = isar.noteChanges
             .where()
@@ -129,7 +129,7 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
     // Find and delete NoteChange of type create of the same LocalNote from the
     // collection and ignore the given delete change
     int noteCreateDeleted = 0;
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         noteCreateDeleted = isar.noteChanges
             .where()
@@ -148,7 +148,7 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
       // If no NoteChange of type create to the same LocalNote is found,
       // then delete all NoteChange of type update to the same LocalNote
       // and add the given delete change to the collection
-      await LocalStorable.isar!.writeAsync(
+      LocalStorable.isar!.write(
         (isar) {
           final duplicateUpdatesCount = isar.noteChanges
               .where()
@@ -197,17 +197,16 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
     if (change == null) {
       throw CouldNotFindChangeException();
     }
-    await LocalStorable.isar!.writeAsync<bool>(
+    final couldDelete = LocalStorable.isar!.write<bool>(
       (isar) {
         return isar.noteChanges.delete(change.isarId);
       },
-    ).then(
-      (bool couldDelete) {
-        if (!couldDelete) {
-          throw CouldNotDeleteChangeSyncException();
-        }
-      },
     );
+    if (couldDelete) {
+      if (!couldDelete) {
+        throw CouldNotDeleteChangeSyncException();
+      }
+    }
 
     return change;
   }
@@ -220,7 +219,7 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
       timestamp: change.timestamp,
       note: change.note,
     );
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         isar.noteChanges.put(newChange);
       },
@@ -232,7 +231,7 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
   @override
   Future<void> deleteAllItems() async {
     await _ensureCollectionIsOpen();
-    await LocalStorable.isar!.writeAsync((isar) {
+    LocalStorable.isar!.write((isar) {
       isar.noteChanges.clear();
     });
   }
@@ -244,23 +243,22 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
     // This will throw if change is not found in the collection
     await getItem(id: id);
 
-    await LocalStorable.isar!.writeAsync(
+    final couldDelete = LocalStorable.isar!.write(
       (isar) {
         return isar.noteChanges.delete(id);
       },
-    ).then(
-      (bool couldDelete) {
-        if (!couldDelete) {
-          throw CouldNotDeleteNoteException();
-        }
-      },
     );
+    if (couldDelete) {
+      if (!couldDelete) {
+        throw CouldNotDeleteNoteException();
+      }
+    }
   }
 
   Future<void> deleteAllChangesForNote({required int isarNoteId}) async {
     await _ensureCollectionIsOpen();
 
-    await LocalStorable.isar!.writeAsync((isar) {
+    LocalStorable.isar!.write((isar) {
       isar.noteChanges.where().note((note) => note.isarIdEqualTo(isarNoteId)).deleteAll();
     });
   }
@@ -271,17 +269,16 @@ class NoteChangeStorable extends LocalStorable<NoteChange> {
     // This will throw if change is not found in the collection
     final change = await getItem(id: isarId);
 
-    await LocalStorable.isar!.writeAsync(
+    final couldDelete = LocalStorable.isar!.write(
       (isar) {
         return isar.noteChanges.delete(isarId);
       },
-    ).then(
-      (bool couldDelete) {
-        if (!couldDelete) {
-          throw CouldNotDeleteNoteException();
-        }
-      },
     );
+    if (couldDelete) {
+      if (!couldDelete) {
+        throw CouldNotDeleteNoteException();
+      }
+    }
 
     return change;
   }

@@ -91,7 +91,7 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
   Future<void> handleUpdateChange({required NoteTagChange change}) async {
     await _ensureCollectionIsOpen();
     // Find all changes on the given note of type update and delete them.
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         final duplicateUpdatesCount = isar.noteTagChanges
             .where()
@@ -124,7 +124,7 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
     // Find and delete NoteTagChange of type create of the same LocalNoteTag from the
     // collection and ignore the given delete change
     int noteTagCreateDeleted = 0;
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         noteTagCreateDeleted = isar.noteTagChanges
             .where()
@@ -143,7 +143,7 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
       // If no NoteTagChange of type create to the same LocalNoteTag is found,
       // then delete all NoteTagChange of type update to the same LocalNote
       // and add the given delete change to the collection
-      await LocalStorable.isar!.writeAsync(
+      LocalStorable.isar!.write(
         (isar) {
           final duplicateUpdatesCount = isar.noteTagChanges
               .where()
@@ -191,17 +191,16 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
     if (change == null) {
       throw CouldNotFindChangeException();
     }
-    await LocalStorable.isar!.writeAsync<bool>(
+    final couldDelete = LocalStorable.isar!.write<bool>(
       (isar) {
         return isar.noteTagChanges.delete(change.isarId);
       },
-    ).then(
-      (bool couldDelete) {
-        if (!couldDelete) {
-          throw CouldNotDeleteChangeSyncException();
-        }
-      },
     );
+    if (couldDelete) {
+      if (!couldDelete) {
+        throw CouldNotDeleteChangeSyncException();
+      }
+    }
 
     return change;
   }
@@ -214,7 +213,7 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
       timestamp: change.timestamp,
       noteTag: change.noteTag,
     );
-    await LocalStorable.isar!.writeAsync(
+    LocalStorable.isar!.write(
       (isar) {
         isar.noteTagChanges.put(newChange);
       },
@@ -229,7 +228,7 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
   @override
   Future<void> deleteAllItems() async {
     await _ensureCollectionIsOpen();
-    await LocalStorable.isar!.writeAsync((isar) {
+    LocalStorable.isar!.write((isar) {
       isar.noteTagChanges.clear();
     });
   }
@@ -241,23 +240,22 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
     // This will throw if change is not found in the collection
     await getItem(id: id);
 
-    await LocalStorable.isar!.writeAsync(
+    final couldDelete = LocalStorable.isar!.write(
       (isar) {
         return isar.noteTagChanges.delete(id);
       },
-    ).then(
-      (bool couldDelete) {
-        if (!couldDelete) {
-          throw CouldNotDeleteNoteException();
-        }
-      },
     );
+    if (couldDelete) {
+      if (!couldDelete) {
+        throw CouldNotDeleteNoteException();
+      }
+    }
   }
 
   Future<void> deleteAllChangesForNoteTag({required int isarNoteId}) async {
     await _ensureCollectionIsOpen();
 
-    await LocalStorable.isar!.writeAsync((isar) {
+    LocalStorable.isar!.write((isar) {
       isar.noteTagChanges
           .where()
           .noteTag((noteTag) => noteTag.isarIdEqualTo(isarNoteId))
@@ -271,17 +269,16 @@ class NoteTagChangeStorable extends LocalStorable<NoteTagChange> {
     // This will throw if change is not found in the collection
     final change = await getItem(id: isarId);
 
-    await LocalStorable.isar!.writeAsync(
+    final couldDelete = LocalStorable.isar!.write(
       (isar) {
         return isar.noteTagChanges.delete(isarId);
       },
-    ).then(
-      (bool couldDelete) {
+    );
+      if (couldDelete) {
         if (!couldDelete) {
           throw CouldNotDeleteNoteException();
         }
-      },
-    );
+      }
 
     return change;
   }

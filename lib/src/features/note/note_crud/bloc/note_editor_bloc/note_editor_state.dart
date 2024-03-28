@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:thoughtbook/src/features/note/note_crud/domain/local_note.dart';
@@ -5,10 +6,13 @@ import 'package:thoughtbook/src/features/note/note_crud/domain/local_note_tag.da
 import 'package:thoughtbook/src/features/note/note_crud/domain/presentable_note_data.dart';
 
 @immutable
-abstract class NoteEditorState {
+abstract class NoteEditorState with EquatableMixin {
   final String snackBarText;
 
   const NoteEditorState(this.snackBarText);
+
+  @override
+  List<Object?> get props => [snackBarText];
 }
 
 class NoteEditorUninitialized extends NoteEditorState {
@@ -32,6 +36,17 @@ class NoteEditorInitialized extends NoteEditorState {
     required this.noteData,
     required this.allNoteTags,
   }) : super(snackBarText);
+
+  @override
+  List<Object?> get props => [
+        snackBarText,
+        noteStream,
+        noteData,
+        allNoteTags,
+        canUndo,
+        canRedo,
+        textFieldValues,
+      ];
 }
 
 class NoteEditorDeleted extends NoteEditorState {
@@ -41,4 +56,10 @@ class NoteEditorDeleted extends NoteEditorState {
     required this.deletedNote,
     required String snackBarText,
   }) : super(snackBarText);
+
+  @override
+  List<Object?> get props => [
+        snackBarText,
+        deletedNote,
+      ];
 }

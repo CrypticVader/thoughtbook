@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:thoughtbook/src/extensions/buildContext/theme.dart';
 
 class TonalChip extends StatefulWidget {
-  final Function() onTap;
+  final Function()? onTap;
   final String label;
   final IconData? iconData;
   final Color? backgroundColor;
@@ -59,11 +59,11 @@ class _TonalChipState extends State<TonalChip> {
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
-        onTap: () => widget.onTap(),
+        onTap: widget.onTap,
         splashColor:
-            widget.splashColor?.withAlpha(100) ?? context.themeColors.secondary.withAlpha(100),
+            widget.splashColor ?? context.themeColors.secondary.withAlpha(50),
         highlightColor:
-            widget.splashColor?.withAlpha(70) ?? context.themeColors.secondary.withAlpha(120),
+            widget.splashColor ?? context.themeColors.secondary.withAlpha(70),
         borderRadius: borderRadius,
         child: Ink(
           padding: widget.padding,

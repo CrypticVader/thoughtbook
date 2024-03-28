@@ -1,5 +1,5 @@
 name: thoughtbook
-description: A Flutter app to store notes.
+description: An app to store notes.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -17,7 +17,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.0-dev.3
+version: 2.0.0-dev.5
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -27,7 +27,6 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-
   cupertino_icons:
   firebase_core:
   firebase_auth:
@@ -45,7 +44,6 @@ dependencies:
   intl:
   flutter_spinkit:
   shared_preferences:
-  flutter_staggered_grid_view:
   isar: ^4.0.0-dev.14
   isar_flutter_libs: ^4.0.0-dev.14
   connectivity_plus:
@@ -60,39 +58,95 @@ dependencies:
   dartx: ^1.2.0
   visibility_detector: ^0.4.0+2
   internet_connection_checker_plus: ^2.0.0
+  bloc_concurrency: ^0.2.2
+  isolate_manager: ^4.1.2
+  sliver_tools: ^0.2.12
+  logger: ^2.0.2+1
+  waterfall_flow: any
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints:
   build_runner:
   lints:
 
 flutter:
-
   generate: true
-
   uses-material-design: true
   fonts:
     - family: Montserrat
       fonts:
-        - asset: assets/fonts/Montserrat-Black.ttf
-        - asset: assets/fonts/Montserrat-BlackItalic.ttf
-        - asset: assets/fonts/Montserrat-Medium.ttf
-        - asset: assets/fonts/Montserrat-MediumItalic.ttf
-        - asset: assets/fonts/Montserrat-Regular.ttf
-        - asset: assets/fonts/Montserrat-Light.ttf
-        - asset: assets/fonts/Montserrat-LightItalic.ttf
-        - asset: assets/fonts/Montserrat-Thin.ttf
-        - asset: assets/fonts/Montserrat-ThinItalic.ttf
-        - asset: assets/fonts/Montserrat-SemiBold.ttf
-        - asset: assets/fonts/Montserrat-SemiBoldItalic.ttf
-        - asset: assets/fonts/Montserrat-Bold.ttf
-        - asset: assets/fonts/Montserrat-BoldItalic.ttf
-        - asset: assets/fonts/Montserrat-ExtraBold.ttf
-        - asset: assets/fonts/Montserrat-ExtraBoldItalic.ttf
-        - asset: assets/fonts/Montserrat-ExtraLight.ttf
-        - asset: assets/fonts/Montserrat-ExtraLightItalic.ttf
-        - asset: assets/fonts/Montserrat-Italic.ttf
-        - asset: assets/fonts/Montserrat-Light.ttf
-        - asset: assets/fonts/Montserrat-LightItalic.ttf
+        - asset: assets/fonts/montserrat/Montserrat-Black.ttf
+          weight: 900
+        - asset: assets/fonts/montserrat/Montserrat-BlackItalic.ttf
+          weight: 900
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/montserrat/Montserrat-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/montserrat/Montserrat-Light.ttf
+          weight: 300
+        - asset: assets/fonts/montserrat/Montserrat-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/montserrat/Montserrat-ThinItalic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/montserrat/Montserrat-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/montserrat/Montserrat-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/montserrat/Montserrat-ExtraBoldItalic.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/montserrat/Montserrat-ExtraLightItalic.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/montserrat/Montserrat-Light.ttf
+          weight: 300
+        - asset: assets/fonts/montserrat/Montserrat-LightItalic.ttf
+          weight: 300
+          style: italic
+
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/notoSans/NotoSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/notoSans/NotoSans-Italic.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/notoSans/NotoSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/notoSans/NotoSans-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/notoSans/NotoSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/notoSans/NotoSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/notoSans/NotoSans-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+
+  assets:
+    - assets/icon/icon.png
