@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
@@ -694,15 +693,8 @@ class NoteProcessor {
   static final _processorIsolateManager = IsolateManager.create(
     processNotesSync,
     isDebug: false,
-    workerName: 'worker',
-    workerConverter: (p0) {
-      //TODO: JSON encode the params before sending
-      jsonEncode(p0);
-      return p0;
-    },
   )..start();
 
-  @pragma('vm:entry-point')
   static Map<String, List<PresentableNoteData>> processNotesSync(
       ({
         Iterable<LocalNote> notes,
